@@ -1,0 +1,286 @@
+.cover {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    background-color: #f5f5f5;
+  }
+  
+  .wrapper {
+    width: 100%;
+    max-width: 400px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin: 0 auto;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .addressPlusLogo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px dashed #ddd;
+    padding-bottom: 15px;
+  }
+  
+  .logo {
+    width: 80px;
+    height:80px;
+    object-fit: cover;
+    border-radius: 50%;
+    height: auto;
+    margin-right: 15px;
+  }
+  
+  .text {
+    flex: 2;
+    margin-left: 20px;
+  }
+  
+  .text h4 {
+    margin: 3px 0;
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .receiptHeader {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .receiptHeader h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: bold;
+  }
+  
+  .receiptHeader h4 {
+    margin: 5px 0 0;
+    font-size: 14px;
+    font-weight: normal;
+  }
+  
+  .items {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+  }
+  
+  .items h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: bold;
+    color: #555;
+  }
+  
+  .itemsContainer {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+  }
+  
+  .contentsOfReceipts {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 8px;
+    padding: 5px 0;
+  }
+  
+  .contentsOfReceipts:nth-child(odd) {
+    background-color: #f9f9f9;
+  }
+  
+  .productName {
+    font-weight: 500;
+  }
+  
+  .quantity, .unit, .price {
+    text-align: center;
+  }
+  
+  .divider {
+    height: 1px;
+    background-color: #ddd;
+    margin: 15px 0;
+  }
+  
+  .adding {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .total, .cashPaid, .balance {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+  }
+  
+  .total {
+    font-weight: bold;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+  }
+  
+  .totalHeader, .total .totalAmount {
+    font-size: 16px;
+  }
+  
+  .cashPaid h4, .balance h4 {
+    margin: 0;
+    font-size: 14px;
+    color: #555;
+  }
+  
+  .security {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #777;
+    margin-bottom: 15px;
+  }
+  
+  .security h4 {
+    margin: 0;
+  }
+  
+  .footer {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px dashed #ddd;
+  }
+  
+  .tag {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 5px;
+  }
+  
+  .thankYou {
+    font-size: 14px;
+    font-weight: bold;
+    margin: 5px 0 15px;
+  }
+  .actions{
+    display:flex;
+  }
+  .smsButton{
+    width: 100px;
+    padding: 12px;
+    background-color: orangered;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  .appButton{
+    width: 100px;
+    padding: 12px;
+    background-color: green;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  .printButton {
+    width: 150px;
+    padding: 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .printButton:hover {
+    background-color: #388E3C;
+  }
+  
+  /* Loading, Error, and No Data Styles */
+  .loadingContainer, .errorContainer, .noDataContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 20px auto;
+    max-width: 400px;
+  }
+  
+  .loadingSpinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .errorIcon {
+    font-size: 30px;
+    margin-bottom: 15px;
+  }
+  
+  .retryButton {
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 15px;
+    transition: background-color 0.3s;
+  }
+  
+  .retryButton:hover {
+    background-color: #2980b9;
+  }
+  
+  /* Print styles */
+  @media print {
+    .cover {
+      background-color: white;
+      padding: 0;
+      display: block;
+    }
+    
+    .wrapper {
+      box-shadow: none;
+      padding: 0;
+      max-width: 100%;
+    }
+    
+    .printButton {
+      display: none;
+    }
+  }

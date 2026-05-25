@@ -1,0 +1,133 @@
+/* AgingReport.module.css */
+
+/* Container */
+.container {
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Headers */
+.reportTitle {
+  color: #3b82f6;
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+}
+
+.purpose {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  color: #374151;
+  font-size: 1.3rem;
+  margin: 30px 0 15px 0;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 5px;
+}
+
+.customerHeader {
+  color: #1f2937;
+  font-size: 1.1rem;
+  margin: 20px 0 10px 0;
+  background: #f9fafb;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+/* Tables */
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 20px;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table th {
+  background: #3b82f6;
+  color: white;
+  padding: 12px 8px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.table td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.table tr:hover {
+  background: #f9fafb;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Total row */
+.totalRow {
+  font-weight: bold;
+  background: #f3f4f6 !important;
+  color: #1f2937;
+}
+
+/* Outstanding row highlight */
+.outstandingRow {
+  background: #fee2e2 !important;
+}
+
+.outstandingRow:hover {
+  background: #fecaca !important;
+}
+
+/* Alert */
+.alert {
+  color: #dc2626;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Button */
+.actionButton {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.actionButton:hover {
+  background: #059669;
+}
+
+.actionButton:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+  
+  .table {
+    font-size: 0.85rem;
+  }
+  
+  .table th,
+  .table td {
+    padding: 8px 4px;
+  }
+}

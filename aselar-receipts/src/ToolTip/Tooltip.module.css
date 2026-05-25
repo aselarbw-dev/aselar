@@ -1,0 +1,23 @@
+.tooltipContainer {
+    position: relative;
+    display: inline-block; /* Ensure the container only takes up as much space as its content */
+  }
+  
+  .tooltipContent {
+    display: none; /* Hide the tooltip by default */
+    position: absolute;
+    top: 100%; /* Position the tooltip below the trigger element */
+    left: 50%; /* Center the tooltip horizontally */
+    transform: translateX(-50%); /* Adjust for centering */
+    background-color: #333; /* Tooltip background color */
+    color: #fff; /* Tooltip text color */
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    white-space: nowrap; /* Prevent text from wrapping */
+    z-index: 10; /* Ensure the tooltip appears above other elements */
+  }
+  
+  .tooltipContainer:hover .tooltipcontent {
+    display: block; /* Show the tooltip when the container is hovered */
+  }

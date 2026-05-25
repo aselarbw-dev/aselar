@@ -1,0 +1,50 @@
+.cardMain{
+    margin: 0 auto;
+    margin-top: 10rem;
+    padding: 30px;
+    display: flex;
+    flex-direction: column; /* Better content flow */
+    height:auto;
+    background-color: #fff;
+    width:330px;
+    min-height: 445px;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+.cardBody{
+    padding:5px;
+}
+.cardMain img{
+    width:150px;
+    height:150px;
+    border-radius: 50%;
+    margin-left:80px;
+}
+.edit{
+    width:120px;
+    height:30px;
+    outline:none;
+    border:none;
+    color:white;
+    background-color: blue;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 5px;
+}
+.delete{
+    width:120px;
+    height:30px;
+    outline:none;
+    border:none;
+    color:white;
+    background-color: red;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 5px;
+}
+.buttones{
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+    margin:10px;
+}

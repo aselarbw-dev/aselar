@@ -1,0 +1,83 @@
+/* BulkUpload.module.css */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modalContent {
+  background-color: white;
+  padding: 1.5rem; /* 24px */
+  border-radius: 0.5rem; /* 8px */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 28rem; /* ~448px */
+}
+
+.modalTitle {
+  font-size: 1.25rem; /* 20px */
+  font-weight: bold;
+  margin-bottom: 1rem; /* 16px */
+  color: #1f2937; /* Dark gray, similar to text-gray-800 */
+}
+
+.modalInstructions {
+  font-size: 0.875rem; /* 14px */
+  color: #4b5563; /* Medium gray, similar to text-gray-600 */
+  margin-bottom: 1rem; /* 16px */
+}
+
+.fileInput {
+  display: block;
+  width: 100%;
+  border: 1px solid #d1d5db; /* Light gray, similar to border-gray-300 */
+  border-radius: 0.25rem; /* 4px */
+  padding: 0.5rem; /* 8px */
+  margin-bottom: 1rem; /* 16px */
+}
+
+.errorMessage {
+  color: #ef4444; /* Red, similar to text-red-500 */
+  font-size: 0.875rem; /* 14px */
+  margin-bottom: 1rem; /* 16px */
+}
+
+.buttonContainer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem; /* 16px */
+}
+
+.cancelButton {
+  padding: 0.5rem 1rem; /* 8px 16px */
+  background-color: #d1d5db; /* Light gray, similar to bg-gray-300 */
+  color: #1f2937; /* Dark gray */
+  border-radius: 0.25rem; /* 4px */
+  cursor: pointer;
+}
+
+.cancelButton:hover {
+  background-color: #b3b9c4; /* Slightly darker gray, similar to hover:bg-gray-400 */
+}
+
+.uploadButton {
+  padding: 0.5rem 1rem; /* 8px 16px */
+  background-color: #1e40af; /* Blue, similar to bg-blue-600 */
+  color: white;
+  border-radius: 0.25rem; /* 4px */
+  cursor: pointer;
+}
+
+.uploadButton:hover {
+  background-color: #1e3a8a; /* Darker blue, similar to hover:bg-blue-700 */
+}
+
+.uploadButton:disabled {
+  background-color: #60a5fa; /* Lighter blue, similar to disabled:bg-blue-400 */
+  cursor: not-allowed;
+}

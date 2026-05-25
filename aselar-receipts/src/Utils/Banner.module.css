@@ -1,0 +1,374 @@
+:root {
+  --sidebar-width: 280px;
+  --sidebar-collapsed-width: 80px;
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+  --secondary-color: #64748b;
+  --success-color: #10b981;
+  --danger-color: #ef4444;
+  --white: #ffffff;
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --border-radius: 12px;
+  --border-radius-lg: 16px;
+}
+
+
+
+
+.theCoverForAll {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width);           /* Uses your CSS var */
+  right: 0;
+  background: #ffffff;
+  padding: 1.5rem 2rem;
+  height: 100px;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);   /* smooth slide */
+  z-index: 100;
+  overflow: hidden;
+ 
+}
+
+/* This is the magic line */
+.theCoverForAll.collapsed {
+  left: var(--sidebar-collapsed-width);
+}
+.theCoverForAll::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #06b6d4, transparent);
+  animation: shimmer 3s infinite;
+  z-index: -1;
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+.categories {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 100%;
+}
+
+/* Welcome Note Styles */
+.welcomeNote {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  animation: fadeInLeft 0.6s ease forwards;
+}
+
+.profileImg {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  object-fit: cover;
+
+
+  transition: all 0.3s ease;
+}
+
+.profileImg:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 30px rgba(6, 182, 212, 0.4);
+  border-color: rgba(6, 182, 212, 0.5);
+}
+
+.details {
+  display: flex;
+  align-items: center;
+}
+
+.userDetails {
+  padding-left: 12px;
+  color: #e2e8f0;
+}
+
+.userDetails h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  background: #3b82f6;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.userDetails p {
+  margin: 0.2rem 0 0 0;
+  font-size: 0.875rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* Action Section */
+.actionSection {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  animation: fadeInRight 0.6s ease forwards;
+}
+
+.iconButton {
+  background: rgba(148, 163, 184, 0.1);
+  backdrop-filter: blur(10px);
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  color: #e2e8f0;
+  font-size: 1.1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.iconButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(6, 182, 212, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.iconButton:hover::before {
+  left: 100%;
+}
+
+.iconButton:hover {
+  background: rgba(6, 182, 212, 0.2);
+  border-color: rgba(6, 182, 212, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(6, 182, 212, 0.2);
+  color: #06b6d4;
+}
+
+.iconButton:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+}
+
+/* Special styling for notification button */
+.iconButton:first-child {
+  position: relative;
+}
+
+.iconButton:first-child::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+
+
+/* Loading Container */
+.loadingContainer {
+  padding: 1.5rem 2rem;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  position: fixed;
+  top: 0;
+  left: 280px;
+  right: 0;
+  z-index: 100;
+  text-align: center;
+  color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.loadingContainer::after {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(6, 182, 212, 0.3);
+  border-top: 2px solid #06b6d4;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Enhanced Animations */
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .theCoverForAll {
+    left: 240px; /* Adjust for smaller sidebar */
+  }
+  
+  .loadingContainer {
+    left: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .theCoverForAll {
+    left: 0;
+    padding: 1rem;
+    height: 80px;
+  }
+  
+  .loadingContainer {
+    left: 0;
+    padding: 1rem;
+  }
+  
+  .categories {
+    gap: 1rem;
+  }
+  
+  .welcomeNote {
+    gap: 12px;
+  }
+  
+  .profileImg {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .userDetails h2 {
+    font-size: 1rem;
+  }
+  
+  .userDetails p {
+    font-size: 0.8rem;
+  }
+  
+  .actionSection {
+    gap: 8px;
+  }
+  
+  .iconButton {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+    background-color: white;
+  }
+  
+}
+/* Dropdown Container (shared for calendar and calculator) */
+.dropdownContainer {
+  position: relative; /* Allows absolute children to position relative to this */
+  display: inline-block; /* Prevents flex shrinkage */
+}
+
+
+
+/* Dropdown Overlay */
+.dropdown {
+  position: absolute;
+  top: 100%; /* Positions it directly below the icon button */
+  right: 0; /* Aligns to the right edge of the container (adjust to 'left: 0' if preferred) */
+  z-index: 1000; /* Ensures it's above other UI elements like sidebar or charts */
+  background: rgba(15, 23, 42, 0.95); /* Semi-transparent dark backdrop to match your theme */
+  backdrop-filter: blur(10px); /* Matches your iconButton blur */
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  min-width: 300px; /* Adjust based on your Calculator component's width */
+  max-width: 400px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); /* Deeper shadow for depth */
+  animation: slideDown 0.3s ease-out forwards; /* Smooth entrance */
+  overflow: visible; /* Ensures Calculator content isn't clipped */
+}
+
+/* Hide dropdown on small screens if needed, or adjust positioning */
+@media (max-width: 768px) {
+  .dropdown {
+    min-width: 280px;
+    right: -50%; /* Center it better on mobile */
+    transform: translateX(50%);
+  }
+}
+
+/* Entrance Animation */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

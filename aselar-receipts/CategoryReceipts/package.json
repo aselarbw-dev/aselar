@@ -1,0 +1,30 @@
+{
+  "name": "categoryreceipts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "firebase-admin": "^13.5.0",
+    "jspdf": "^3.0.2",
+    "mongoose": "^8.15.1",
+    "nodemailer": "^8.0.7",
+    "nodemon": "^3.1.10",
+    "pdfkit": "^0.17.2",
+    "qrcode": "^1.5.4",
+    "serialport": "^13.0.0",
+    "twilio": "^5.9.0",
+    "uuid": "^13.0.0"
+  }
+}

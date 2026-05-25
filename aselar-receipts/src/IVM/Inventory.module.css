@@ -1,0 +1,178 @@
+
+.headers{
+  
+    display:flex;
+    justify-content: center;
+    align-items: center;
+     flex-wrap: wrap;
+    gap:7px;
+    margin:5px;
+   
+}
+.headers img{
+  margin-left: 50px;
+    width:30px;
+    height:30px;
+    border-radius: 50%;
+}
+.beverage{
+    display:flex;
+    justify-content: center;
+    align-items: center;
+     flex-wrap: wrap;
+    gap:7px;
+    margin:5px;
+}
+.beverage p{
+    width:100%;
+    
+}
+.beverage h4{
+    text-align: center;
+}
+.dairy{
+    width:180px;
+    height:130px;
+    padding:10px;
+    background-color: #ffff;
+    border-radius: 6px;
+    box-shadow: 0px 5px 26px 8px rgba(193, 198, 207, 0.66);  
+}
+.dairy h4{
+    text-align: center;
+}
+.meat{
+    width:180px;
+    height:130px;
+    padding:10px;
+    background-color: #ffff;
+    border-radius: 6px;
+    box-shadow: 0px 5px 26px 8px rgba(193, 198, 207, 0.66);  
+}
+.meat h4{
+    text-align: center;
+}
+.carbs{
+    width:180px;
+    height:130px;
+    padding:10px;
+    background-color: #ffff;
+    border-radius: 6px;
+    box-shadow: 0px 5px 26px 8px rgba(193, 198, 207, 0.66);  
+}
+.carbs h4{
+    text-align: center;
+}
+.items{
+   
+    background-color: #0b5cff;
+    color:white;
+    border-radius: 6px;
+    padding:6px;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    width:150px;
+    height:40px;
+    font-size: 18px;
+}
+.expenseBtn{
+    background: #4caf50;;
+    color:white;
+    border-radius: 6px;
+    padding:6px;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    width:150px;
+    height:40px;
+    font-size: 18px;
+    transition: all 1s;
+}
+.expenseBtn:hover{
+    background-color: #18581a;
+}
+.minNav{
+    display:flex;
+    justify-content: space-around;
+    align-items: center;
+    background: white;  /* Change from blue to white */
+    box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+    padding:5px;
+    margin-bottom: 10px;
+    padding:15px;
+   
+}
+.estimatedProfits{
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.valuation{
+    display:flex;
+    justify-content: space-between;
+    align-items: center; 
+}
+.allItems{
+    display:flex;
+    justify-content: space-between;
+    align-items: center;   
+}
+.itemsValue{
+    font-size: 25px;
+    color:#0b5cff;
+}
+.valuationHeader{
+    font-size: 25px;
+    color:#0b5cff; 
+}
+.profitsValue{
+    font-size: 25px;
+    color:#0b5cff; 
+}
+.allForms{
+    display:flex;
+}
+.links{
+    position: absolute;
+    top:12%;
+    left: 1%;
+    padding:10px;
+    background-color:#0b5cff;
+    width:150px;
+    min-height:200px;
+    border-radius: 4px;
+    z-index:999;
+}
+.links a{
+    text-decoration: none;
+    color:white;
+    cursor: pointer;
+    font-size: 18px;
+    margin:0 auto;
+}
+.icon{
+    cursor: pointer;
+}
+.emptyState {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.refreshButton {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.refreshButton:hover {
+  background: #0056b3;
+}

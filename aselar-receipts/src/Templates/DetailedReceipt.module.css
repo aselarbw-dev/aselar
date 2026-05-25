@@ -1,0 +1,226 @@
+.cover {
+width: 100%;
+max-width: 400px;
+margin: 0 auto;
+padding: 20px;
+display: flex;
+flex-direction: column;
+gap: 20px;
+}
+.wrapper {
+background-color: white;
+padding: 20px;
+border-radius: 8px;
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.addressPlusLogo {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 20px;
+}
+.logo {
+width: 80px;
+height: auto;
+}
+.text {
+text-align: right;
+}
+.text h4 {
+margin: 5px 0;
+font-size: 14px;
+font-weight: normal;
+}
+.receiptHeader {
+text-align: center;
+margin-bottom: 20px;
+}
+.receiptHeader h3 {
+font-size: 18px;
+margin-bottom: 5px;
+}
+.receiptHeader h4 {
+font-size: 14px;
+font-weight: normal;
+margin: 5px 0;
+}
+.items {
+display: grid;
+grid-template-columns: 2fr 0.5fr 1fr 1fr;
+gap: 10px;
+margin-bottom: 10px;
+border-bottom: 1px solid #ddd;
+padding-bottom: 5px;
+}
+.items h4 {
+font-size: 14px;
+font-weight: bold;
+}
+.itemsContainer {
+display: flex;
+flex-direction: column;
+gap: 5px;
+margin-bottom: 15px;
+}
+.contentsOfReceipts {
+display: grid;
+grid-template-columns: 2fr 0.5fr 1fr 1fr;
+gap: 10px;
+padding: 5px 0;
+}
+.productName {
+font-size: 14px;
+}
+.quantity, .unit, .price {
+font-size: 14px;
+text-align: center;
+}
+.divider {
+height: 1px;
+background-color: #ddd;
+margin: 15px 0;
+}
+.adding {
+display: flex;
+flex-direction: column;
+gap: 10px;
+margin-bottom: 20px;
+}
+.total, .cashPaid, .balance {
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+.totalHeader, .cashPaid h4, .balance h4 {
+font-size: 14px;
+font-weight: bold;
+margin: 0;
+}
+.totalAmount, .paidAmount, .balanceAmount {
+font-size: 14px;
+font-weight: bold;
+}
+.security {
+display: flex;
+justify-content: space-between;
+margin-bottom: 15px;
+}
+.security h4 {
+font-size: 12px;
+font-weight: normal;
+color: #666;
+margin: 0;
+}
+.footer {
+text-align: center;
+margin-top: 20px;
+}
+.tag {
+font-size: 12px;
+color: #666;
+margin-bottom: 5px;
+}
+.thankYou {
+font-size: 14px;
+font-weight: bold;
+}
+.actions {
+display: flex;
+justify-content: center;
+gap: 15px;
+margin-top: 20px;
+}
+.printButton, .smsButton, .pdfButton {
+padding: 10px 20px;
+border: none;
+border-radius: 4px;
+font-size: 14px;
+font-weight: bold;
+cursor: pointer;
+transition: background-color 0.3s;
+}
+.printButton {
+background-color: #4caf50;
+color: white;
+}
+.printButton:hover {
+background-color: #388e3c;
+}
+.pdfButton {
+background-color: #f44336;
+color: white;
+}
+.pdfButton:hover {
+background-color: #d32f2f;
+}
+.smsButton {
+background-color: #2196f3;
+color: white;
+}
+.smsButton:hover {
+background-color: #1976d2;
+}
+.noProducts {
+text-align: center;
+font-style: italic;
+color: #666;
+margin: 20px 0;
+}
+.loadingContainer, .errorContainer, .noDataContainer {
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+padding: 40px;
+text-align: center;
+}
+.loadingSpinner {
+border: 4px solid rgba(0, 0, 0, 0.1);
+width: 36px;
+height: 36px;
+border-radius: 50%;
+border-left-color: #2196f3;
+animation: spin 1s linear infinite;
+margin-bottom: 20px;
+}
+@keyframes spin {
+0% {
+transform: rotate(0deg);
+}
+100% {
+transform: rotate(360deg);
+}
+}
+.errorIcon {
+font-size: 48px;
+margin-bottom: 20px;
+}
+.retryButton {
+margin-top: 20px;
+padding: 8px 16px;
+background-color: #2196f3;
+color: white;
+border: none;
+border-radius: 4px;
+cursor: pointer;
+font-size: 14px;
+}
+.retryButton:hover {
+background-color: #1976d2;
+}
+/* Print styles */
+@media print {
+.cover {
+width: 100%;
+max-width: none;
+padding: 0;
+margin: 0;
+}
+.wrapper {
+box-shadow: none;
+padding: 10px;
+}
+.actions {
+display: none;
+}
+}

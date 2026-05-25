@@ -1,0 +1,37 @@
+.promo{
+padding:1rem;
+width:100%;
+height:310px;
+background-color: #3944BC;
+display:flex;
+justify-content: center;
+align-items: center;
+border-radius: 10px;
+
+    }
+    .coverage{
+        padding:1rem;
+    }
+.coverage h1{
+color:white;
+font-size: 40px;
+}
+.coverage p{
+    color:white;
+    padding:5px;
+    font-size:20px;
+    width:75%;
+}
+
+.imagePromo{
+    display:flex;
+    justify-content: center;
+    align-items: center;
+}
+.imagePromo img{
+    width:300px;
+    height:300px;
+    border-radius: 50%;
+    margin:6px;
+    border: 4px solid white;
+}

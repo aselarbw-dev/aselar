@@ -1,0 +1,78 @@
+.calendarContainer {
+   position:absolute;
+    width: 310px;
+    top:85%;
+    margin: 20px auto;
+    background: #111;
+    border-radius: 10px;
+    left:5%;
+    padding: 20px;
+    font-family: "Arial", sans-serif;
+    text-align: center;
+    color: white;
+    z-index:1000;
+  }
+  
+  .timeDisplay {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #2c3e50;
+  }
+  
+  .monthDisplay {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: #34495e;
+  }
+  
+  .daysHeader {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #2c3e50;
+  }
+  
+  .dayHeader {
+    padding: 5px 0;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+  }
+  
+  .daysGrid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+  }
+  
+  .day,
+  .emptyDay {
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+  }
+  
+  .day {
+    background-color: #ecf0f1;
+    color: #34495e;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .day:hover {
+    background-color: #3498db;
+    color: white;
+  }
+  
+  .emptyDay {
+    background: none;
+    cursor: default;
+  }
+  /* Highlight for the current day */
+.currentDay {
+    background-color: #2ecc71; /* Green highlight for today */
+    color: white;
+    font-weight: bold;
+  }
+  

@@ -1,0 +1,525 @@
+/* AllQuotes.module.css - Adapted from AllReceipts for similar styling */
+
+.cover {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f8fafc;
+    min-height: 100vh;
+  }
+  
+  .topTitles {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  
+  .headerLeft {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .pageTitle {
+    font-size: 28px;
+    font-weight: bold;
+    color: #1e293b;
+    margin: 0;
+  }
+  
+  .statsCards {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .statCard {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    min-width: 120px;
+  }
+  
+  .statNumber {
+    display: block;
+    font-size: 24px;
+    font-weight: bold;
+    color: #6366f1;
+  }
+  
+  .statLabel {
+    font-size: 12px;
+    color: #64748b;
+    text-transform: uppercase;
+  }
+  
+  .headerActions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .buttonQuote,
+  .buttonRecent {
+    padding: 12px 24px;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+    transition: background 0.2s;
+  }
+  
+  .buttonQuote:hover,
+  .buttonRecent:hover {
+    background: #5856eb;
+  }
+  
+  .loadingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 50vh;
+    gap: 20px;
+  }
+  
+  .loadingContainer p {
+    color: #64748b;
+  }
+  
+  .noDataContainer {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .noDataIcon {
+    font-size: 48px;
+    margin-bottom: 20px;
+  }
+  
+  .noDataContainer h3 {
+    color: #1e293b;
+    margin-bottom: 10px;
+  }
+  
+  .noDataContainer p {
+    color: #64748b;
+    margin-bottom: 30px;
+  }
+  
+  .createButton {
+    padding: 12px 24px;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+  
+  .createButton:hover {
+    background: #059669;
+  }
+  
+  .quotesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+  
+  .quoteCard {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  
+  .quoteCard:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  .cardPreview {
+    padding: 20px;
+    height: 400px;
+    overflow-y: auto;
+    position: relative;
+  }
+  
+  .wrapper {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #1e293b;
+    max-width: 80mm;
+    margin: 0 auto;
+  }
+  
+  .addressPlusLogo {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .logo {
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+    object-fit: contain;
+  }
+  
+  .text h4 {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.3;
+    color: #374151;
+  }
+  
+  .quoteHeader {
+    text-align: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 10px;
+  }
+  
+  .quoteHeader h3 {
+    margin: 0 0 5px 0;
+    font-size: 18px;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  
+  .quoteHeader h4 {
+    margin: 0;
+    font-size: 11px;
+    color: #6b7280;
+  }
+  
+  .items {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 5px;
+    margin: 10px 0;
+    font-weight: bold;
+    text-align: center;
+    font-size: 11px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 5px;
+  }
+  
+  .itemsContainer {
+    margin: 10px 0;
+    max-height: 150px;
+    overflow-y: auto;
+  }
+  
+  .contentsOfQuotes {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 5px;
+    margin: 3px 0;
+    font-size: 11px;
+  }
+  
+  .productName {
+    text-align: left;
+    font-weight: 500;
+  }
+  
+  .quantity,
+  .unit,
+  .price {
+    text-align: center;
+  }
+  
+  .noProducts {
+    text-align: center;
+    color: #9ca3af;
+    font-style: italic;
+    font-size: 12px;
+    margin: 20px 0;
+  }
+  
+  .divider {
+    border-top: 1px dashed #d1d5db;
+    margin: 15px 0;
+  }
+  
+  .adding {
+    margin: 15px 0;
+  }
+  
+  .adding > div {
+    display: flex;
+    justify-content: space-between;
+    margin: 5px 0;
+    font-size: 12px;
+  }
+  
+  .totalHeader {
+    font-weight: bold;
+  }
+  
+  .totalAmount,
+  .paidAmount,
+  .balanceAmount {
+    text-align: right;
+    font-weight: bold;
+    color: #059669;
+  }
+  
+  .security {
+    margin-top: 15px;
+    font-size: 10px;
+    color: #6b7280;
+  }
+  
+  .security h4 {
+    margin: 2px 0;
+    font-size: 10px;
+  }
+  
+  .footer {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 9px;
+    color: #9ca3af;
+    border-top: 1px solid #f3f4f6;
+    padding-top: 10px;
+  }
+  
+  .tag {
+    margin: 0 0 5px 0;
+    font-style: italic;
+  }
+  
+  .thankYou {
+    margin: 0;
+    font-weight: 500;
+  }
+  
+  .cardInfo {
+    padding: 15px 20px;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+  }
+  
+  .cardTitle {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+  }
+  
+  .cardMeta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #6b7280;
+  }
+  
+  .cardSize,
+  .cardDate {
+    color: #9ca3af;
+  }
+  
+  .cardActions {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 20px;
+    background: #f8fafc;
+    border-top: 1px solid #e5e7eb;
+  }
+  
+  .actionButton {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  
+  .downloadButton {
+    background: #3b82f6;
+    color: white;
+  }
+  
+  .downloadButton:hover {
+    background: #2563eb;
+  }
+  
+  .deleteButton {
+    background: #ef4444;
+    color: white;
+  }
+  
+  .deleteButton:hover:not(:disabled) {
+    background: #dc2626;
+  }
+  
+  .deleteButton:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+  }
+  
+  .modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .modal {
+    background: white;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  .modalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border-bottom: 1px solid #e5e7eb;
+    gap: 10px;
+  }
+  
+  .warningIcon {
+    color: #f59e0b;
+    font-size: 20px;
+  }
+  
+  .modalHeader h3 {
+    margin: 0;
+    flex: 1;
+    color: #1e293b;
+  }
+  
+  .closeButton {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #6b7280;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .modalBody {
+    padding: 20px;
+  }
+  
+  .quoteId {
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 4px;
+    padding: 8px;
+    font-family: monospace;
+    font-size: 12px;
+    color: #92400e;
+    margin: 10px 0;
+  }
+  
+  .warningText {
+    color: #dc2626;
+    font-weight: 500;
+  }
+  
+  .modalFooter {
+    display: flex;
+    gap: 10px;
+    padding: 20px;
+    border-top: 1px solid #e5e7eb;
+    justify-content: flex-end;
+  }
+  
+  .cancelButton,
+  .deleteButton {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+  
+  .cancelButton {
+    background: #f3f4f6;
+    color: #374151;
+  }
+  
+  .cancelButton:hover {
+    background: #e5e7eb;
+  }
+  
+  .deleteButton {
+    background: #ef4444;
+    color: white;
+  }
+  
+  .deleteButton:hover:not(:disabled) {
+    background: #dc2626;
+  }
+  
+  .deleteButton:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .topTitles {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  
+    .statsCards {
+      justify-content: center;
+    }
+  
+    .headerActions {
+      justify-content: center;
+    }
+  
+    .quotesGrid {
+      grid-template-columns: 1fr;
+    }
+  
+    .cardActions {
+      flex-direction: column;
+      gap: 10px;
+    }
+  
+    .actionButton {
+      justify-content: center;
+    }
+  }

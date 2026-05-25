@@ -1,0 +1,613 @@
+/* AllCategoryReceipts.module.css - Standalone styles to avoid conflicts with other modules */
+
+.categoryCover {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .topTitles {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .headerLeft {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .pageTitle {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .statsCards {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .statCard {
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    border: 1px solid #e2e8f0;
+  }
+  
+  .statNumber {
+    display: block;
+    font-size: 2rem;
+    font-weight: bold;
+    color: #6366f1;
+  }
+  
+  .statLabel {
+    font-size: 0.9rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .headerActions {
+    display: flex;
+    gap: 1rem;
+  }
+  
+  .buttonReceipt,
+  .buttonRecent {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+  }
+  
+  .buttonReceipt {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+  }
+  
+  .buttonRecent {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+  }
+  
+  .buttonReceipt:hover,
+  .buttonRecent:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(245, 158, 11, 0.3);
+  }
+  
+  .loadingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 50vh;
+    gap: 1rem;
+  }
+  
+  .loadingContainer p {
+    color: #64748b;
+    font-size: 1.1rem;
+  }
+  
+  .noDataContainer {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    max-width: 500px;
+    margin: 2rem auto;
+  }
+  
+  .noDataIcon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+  }
+  
+  .noDataContainer h3 {
+    color: #1a202c;
+    margin-bottom: 0.5rem;
+  }
+  
+  .noDataContainer p {
+    color: #64748b;
+    margin-bottom: 2rem;
+  }
+  
+  .createButton {
+    padding: 1rem 2rem;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+  }
+  
+  .createButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(245, 158, 11, 0.3);
+  }
+  
+  .categoryReceiptsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .receiptCard {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid #e2e8f0;
+  }
+  
+  .receiptCard:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+  }
+  
+  .cardPreview {
+    padding: 1.5rem;
+    background: #f8fafc;
+    height: 400px;
+    overflow-y: auto;
+  }
+  
+  .wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .addressPlusLogo {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+  
+  .text h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #1a202c;
+    line-height: 1.4;
+  }
+  
+  .receiptHeader {
+    text-align: center;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 8px;
+  }
+  
+  .receiptHeader h3 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+  
+  .receiptHeader h4 {
+    margin: 0.25rem 0;
+    font-size: 0.85rem;
+    opacity: 0.95;
+  }
+  
+  .statusText {
+    color: #10b981 !important;
+    font-weight: bold;
+  }
+  
+  .items {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 0.5rem;
+    text-align: center;
+    background: #e2e8f0;
+    padding: 0.5rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #374151;
+  }
+  
+  .items h4 {
+    margin: 0;
+  }
+  
+  .itemsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 120px;
+    overflow-y: auto;
+  }
+  
+  .contentsOfReceipts {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 0.5rem;
+    text-align: center;
+    padding: 0.25rem;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid #f1f5f9;
+  }
+  
+  .productName,
+  .quantity,
+  .price,
+  .totalPrice {
+    font-size: 0.8rem;
+    color: #1a202c;
+    font-weight: 500;
+  }
+  
+  .divider {
+    height: 2px;
+    background: linear-gradient(90deg, #f59e0b, #d97706);
+    border-radius: 1px;
+    margin: 1rem 0;
+  }
+  
+  .adding {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    background: #f8fafc;
+    border-radius: 6px;
+  }
+  
+  .totalHeader {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin: 0;
+  }
+  
+  .totalAmount {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #1a202c;
+  }
+  
+  .footer {
+    text-align: center;
+    padding-top: 1rem;
+    border-top: 1px solid #e2e8f0;
+  }
+  
+  .tag {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin: 0;
+    font-style: italic;
+  }
+  
+  .thankYou {
+    font-size: 0.9rem;
+    color: #10b981;
+    margin: 0.5rem 0 0 0;
+    font-weight: 600;
+  }
+  
+  .cardInfo {
+    padding: 1rem 1.5rem;
+    background: white;
+    border-top: 1px solid #e2e8f0;
+  }
+  
+  .cardTitle {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    color: #1a202c;
+    font-weight: 600;
+  }
+  
+  .cardMeta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #64748b;
+  }
+  
+  .cardSize,
+  .cardDate {
+    opacity: 0.8;
+  }
+  
+  .cardActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+  }
+  
+  .actionButton {
+    padding: 0.5rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .downloadButton {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+  }
+  
+  .downloadButton:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: scale(1.05);
+  }
+  
+  .deleteButton {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+  }
+  
+  .deleteButton:hover:not(:disabled) {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: scale(1.05);
+  }
+  
+  .deleteButton:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  /* Modal Styles */
+  .modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+  }
+  
+  .modal {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    animation: slideIn 0.3s ease;
+  }
+  
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .modalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+    border-radius: 12px 12px 0 0;
+  }
+  
+  .warningIcon {
+    color: #f59e0b;
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+  }
+  
+  .modalHeader h3 {
+    margin: 0;
+    color: #1a202c;
+    flex: 1;
+  }
+  
+  .closeButton {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: #64748b;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: color 0.2s;
+  }
+  
+  .closeButton:hover {
+    color: #374151;
+  }
+  
+  .modalBody {
+    padding: 1.5rem;
+    text-align: center;
+  }
+  
+  .modalBody p {
+    margin: 0 0 1rem 0;
+    color: #374151;
+    line-height: 1.5;
+  }
+  
+  .receiptId {
+    background: #fef3c7;
+    color: #92400e;
+    padding: 0.5rem;
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+  }
+  
+  .warningText {
+    color: #dc2626;
+    font-weight: 600;
+  }
+  
+  .modalFooter {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-top: 1px solid #e2e8f0;
+    justify-content: flex-end;
+  }
+  
+  .cancelButton,
+  .deleteButton {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .cancelButton {
+    background: #e5e7eb;
+    color: #374151;
+  }
+  
+  .cancelButton:hover:not(:disabled) {
+    background: #d1d5db;
+  }
+  
+  .deleteButton {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+  }
+  
+  .deleteButton:hover:not(:disabled) {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  }
+  
+  .deleteButton:disabled,
+  .cancelButton:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  /* Scrollbar Styling for Preview */
+  .cardPreview::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .cardPreview::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+  }
+  
+  .cardPreview::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+  
+  .cardPreview::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+  
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .categoryCover {
+      padding: 1rem;
+    }
+  
+    .topTitles {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  
+    .headerActions {
+      justify-content: center;
+    }
+  
+    .categoryReceiptsGrid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  
+    .statsCards {
+      justify-content: center;
+    }
+  
+    .items {
+      font-size: 0.75rem;
+    }
+  
+    .contentsOfReceipts {
+      font-size: 0.75rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .pageTitle {
+      font-size: 2rem;
+    }
+  
+    .headerActions {
+      flex-direction: column;
+    }
+  
+    .cardActions {
+      justify-content: space-around;
+    }
+  }

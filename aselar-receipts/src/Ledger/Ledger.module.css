@@ -1,0 +1,308 @@
+/* Clean Elegant Ledger Styles */
+.ledger {
+      margin: 0 auto;
+    margin-top: 10rem;
+    padding: 30px;
+    display: flex;
+    flex-direction: column; /* Better content flow */
+    height:auto;
+    background: #ffffff;
+    width: 750px;
+    min-height: 480px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.main {
+    padding: 20px;
+}
+
+.ledgerDisplay {
+    background: #fafafa;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid #e0e0e0;
+}
+
+.ledgerTitle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.ledgerHeader {
+    text-align: center;
+    font-size: 28px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+    letter-spacing: -0.3px;
+}
+
+.display {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 10px 0;
+}
+
+.display h4 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #34495e;
+    margin: 0;
+}
+
+.display input {
+    text-align: center;
+    padding: 10px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #2c3e50;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.display input:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.display input::placeholder {
+    color: #95a5a6;
+}
+
+.displayBody {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    background: #ffffff;
+    overflow-y: auto;
+    max-height: 180px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 12px;
+}
+
+.debit::-webkit-scrollbar, 
+.credit::-webkit-scrollbar {
+    width: 4px;
+}
+
+.debit::-webkit-scrollbar-track, 
+.credit::-webkit-scrollbar-track {
+    background: #f8f9fa;
+    border-radius: 2px;
+}
+
+.debit::-webkit-scrollbar-thumb, 
+.credit::-webkit-scrollbar-thumb {
+    background: #bdc3c7;
+    border-radius: 2px;
+}
+
+.debit::-webkit-scrollbar-thumb:hover, 
+.credit::-webkit-scrollbar-thumb:hover {
+    background: #95a5a6;
+}
+
+.debit, .credit {
+    flex: 1;
+    padding: 0 8px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.debit h3, .credit h3 {
+    color: #2c3e50;
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #ecf0f1;
+}
+
+.flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+    transition: all 0.2s ease;
+}
+
+.flex:hover {
+    background: #e9ecef;
+    border-color: #dee2e6;
+}
+
+.flex p {
+    margin: 0;
+    color: #495057;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.line {
+    width: 2px;
+    height: 140px;
+    background: #bdc3c7;
+    margin: 0 auto;
+    border-radius: 1px;
+}
+
+.removeButton {
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+    opacity: 0.6;
+}
+
+.removeButton:hover {
+    opacity: 1;
+    background: rgba(231, 76, 60, 0.1);
+}
+
+.balance {
+    text-align: center;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    margin-top: 8px;
+}
+
+.balance h2 {
+    color: #2c3e50;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.submitPanel {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 10px 0;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.inputs {
+    display: flex;
+    gap: 12px;
+}
+
+.inputs > input {
+    padding: 10px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #2c3e50;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    outline: none;
+    width: 160px;
+}
+
+.inputs > input:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.inputs > input::placeholder {
+    color: #95a5a6;
+}
+
+.buttons {
+    display: flex;
+    gap: 8px;
+    margin: 0;
+}
+
+.post, .bought, .sold {
+    width: 70px;
+    height: 36px;
+    border: none;
+    cursor: pointer;
+    color: white;
+    font-weight: 600;
+    font-size: 13px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.post {
+    background: #3498db;
+}
+
+.post:hover {
+    background: #2980b9;
+    transform: translateY(-1px);
+}
+
+.bought {
+    background: #e74c3c;
+}
+
+.bought:hover {
+    background: #c0392b;
+    transform: translateY(-1px);
+}
+
+.sold {
+    background: #27ae60;
+}
+
+.sold:hover {
+    background: #229954;
+    transform: translateY(-1px);
+}
+
+.saveButton {
+    padding: 8px 16px;
+    border: none;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.inactive {
+    background: #95a5a6;
+    color: white;
+    cursor: not-allowed;
+}
+
+.active {
+    background: #f39c12;
+    color: white;
+}
+
+.active:hover {
+    background: #e67e22;
+    transform: translateY(-1px);
+}
+
+/* Clean, minimal styling - no excessive effects */

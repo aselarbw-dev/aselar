@@ -1,0 +1,133 @@
+.posContainer {
+    position: absolute;
+    top:18%;
+    left:23%;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Two columns: receipt and categories */
+    grid-template-rows: auto 1fr; /* Two rows: categories and items */
+    gap: 20px; /* Space between sections */
+    height: 100vh; /* Full viewport height */
+    padding: 20px;
+    background-color: #f9f9f9;
+    max-width: 1200px; /* Limit the maximum width of the container */
+    margin: 0 auto; /* Center the container horizontally */
+  }
+  .receiptSection {
+    grid-column: 1 / 2; /* Left column */
+    grid-row: 1 / 3; /* Span both rows */
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-right: 20px; /* Add space between receipt and categories */
+  }
+  
+  .categoriesSection {
+    grid-column: 2 / 3; /* Right column */
+    grid-row: 1 / 2; /* Top row */
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+  }
+  
+  .itemsSection {
+    grid-column: 2 / 3; /* Right column */
+    grid-row: 2 / 3; /* Bottom row */
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+  }
+.statusPrinter{
+color:forestgreen;
+}
+  .loading {
+    text-align: center;
+    font-size: 16px;
+    color: #666;
+    padding: 20px;
+  }
+  
+  .error {
+    color: #ff4d4f;
+    text-align: center;
+    font-size: 16px;
+    padding: 20px;
+  }
+  .categoriesSection, .itemsSection {
+    overflow-y: auto; /* Enable vertical scrolling */
+    max-height: 50vh; /* Limit height to 50% of the viewport */
+  }
+  .receiptActions{
+display:flex;
+justify-content: space-between;
+align-items: center;
+  }
+
+  @media (max-width: 768px) {
+    .posContainer {
+      grid-template-columns: 1fr; /* Single column */
+      grid-template-rows: auto auto auto; /* Three rows */
+    }
+  
+    .receiptSection {
+      grid-column: 1 / 2;
+      grid-row: 1 / 2;
+    }
+  
+    .categoriesSection {
+      grid-column: 1 / 2;
+      grid-row: 2 / 3;
+    }
+  
+    .itemsSection {
+      grid-column: 1 / 2;
+      grid-row: 3 / 4;
+    }
+  }
+  .composeButton{
+    width:220px;
+    height:40px;
+    border: none;
+    background-color: forestgreen; /* Green */
+    color: white;
+    text-align: center;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .drawer{
+    width:100px;
+    height:40px;
+    color: white;
+    background-color: orangered;
+     text-align: center;
+    border-radius: 6px;
+    cursor: pointer;
+    border:none;
+    margin-left:15px;
+  }
+  .payInfo{
+    width:100px;
+    height:40px;
+    color: white;
+    background-color: #ff4d4f;
+     text-align: center;
+    border-radius: 6px;
+  }
+  .recent{
+    padding: 12px 24px;
+  border: none;
+  margin:3px;
+  cursor: pointer;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background-color: green;
+  color:white;
+  
+  }
+  a{
+    text-decoration: none;
+  }

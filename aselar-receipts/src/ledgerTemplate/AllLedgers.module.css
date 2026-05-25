@@ -1,0 +1,471 @@
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .header {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333;
+  }
+  
+  .ledgerList {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .ledgerCard {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  
+  .ledgerHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #f9f9f9;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .ledgerHeader:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .ledgerHeader h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #2c3e50;
+  }
+  
+  .date {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+  }
+  
+  .toggle {
+    font-size: 1.2rem;
+    color: #7f8c8d;
+  }
+  
+  .ledgerDetails {
+    padding: 20px;
+    background-color: white;
+  }
+  
+  .entriesSection {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 20px;
+  }
+  
+  .entriesColumn {
+    border: 1px solid #eee;
+    border-radius: 6px;
+    padding: 15px;
+  }
+  
+  .entriesColumn h4 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    color: #34495e;
+  }
+  
+  .entriesList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .entry {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px dashed #f0f0f0;
+  }
+  
+  .entry:last-child {
+    border-bottom: none;
+  }
+  
+  .entryDesc {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .entryAmount {
+    text-align: right;
+    font-weight: 500;
+  }
+  
+  .entryDate {
+    text-align: right;
+    font-size: 0.8rem;
+    color: #95a5a6;
+  }
+  
+  .noEntries {
+    color: #95a5a6;
+    font-style: italic;
+    margin: 0;
+  }
+  
+  .ledgerSummary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+  }
+  
+  .total, .balance {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+  }
+  
+  .total span, .balance span {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin-bottom: 5px;
+  }
+  
+  .exportButtons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+  }
+  
+  .pdfButton {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+  
+  .csvButton {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+  
+  .loading {
+    text-align: center;
+    padding: 50px;
+    color: #7f8c8d;
+  }
+  
+  .empty {
+    text-align: center;
+    padding: 50px;
+    color: #95a5a6;
+    font-style: italic;
+  }
+  /*import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
+
+import React, { useState, useEffect, useRef } from 'react';
+import { toast } from 'react-toastify';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import styles from './AllLedgers.module.css';
+
+interface Transaction {
+  description: string;
+  amount: number;
+  date: string;
+}
+
+interface Ledger {
+  _id: string;
+  title: string;
+  createdAt: string;
+  debitEntries: Transaction[];
+  creditEntries: Transaction[];
+}
+
+const AllLedgers: React.FC = () => {
+  const [ledgers, setLedgers] = useState<Ledger[]>([]);
+  const [filteredLedgers, setFilteredLedgers] = useState<Ledger[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchAllLedgers = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/all-ledgers');
+        if (!response.ok) throw new Error('Failed to fetch ledgers');
+        
+        const data = await response.json();
+        setLedgers(data);
+        setFilteredLedgers(data);
+      } catch (error) {
+        console.error('Error:', error);
+        toast.error('Failed to load ledgers');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllLedgers();
+  }, []);
+
+  useEffect(() => {
+    const results = ledgers.filter(ledger =>
+      ledger.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ledger.createdAt.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredLedgers(results);
+    setCurrentPage(1); // Reset to first page when filtering
+  }, [searchTerm, ledgers]);
+
+  const calculateBalance = (debits: Transaction[], credits: Transaction[]) => {
+    const totalDebits = debits.reduce((sum, entry) => sum + entry.amount, 0);
+    const totalCredits = credits.reduce((sum, entry) => sum + entry.amount, 0);
+    return {
+      amount: Math.abs(totalDebits - totalCredits),
+      type: totalDebits > totalCredits ? 'Debit' : 'Credit'
+    };
+  };
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredLedgers.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredLedgers.length / itemsPerPage);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+  // Export to CSV
+  const exportToCSV = () => {
+    const headers = ['Title', 'Date', 'Total Debits', 'Total Credits', 'Balance', 'Balance Type'];
+    const csvContent = [
+      headers.join(','),
+      ...filteredLedgers.map(ledger => {
+        const totalDebits = ledger.debitEntries.reduce((sum, e) => sum + e.amount, 0);
+        const totalCredits = ledger.creditEntries.reduce((sum, e) => sum + e.amount, 0);
+        const balance = calculateBalance(ledger.debitEntries, ledger.creditEntries);
+        return [
+          `"${ledger.title}"`,
+          new Date(ledger.createdAt).toLocaleDateString(),
+          totalDebits,
+          totalCredits,
+          balance.amount,
+          balance.type
+        ].join(',');
+      })
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `ledgers_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Export to PDF
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    
+    autoTable(doc, {
+      head: [['Title', 'Date', 'Debits', 'Credits', 'Balance']],
+      body: filteredLedgers.map(ledger => {
+        const totalDebits = ledger.debitEntries.reduce((sum, e) => sum + e.amount, 0);
+        const totalCredits = ledger.creditEntries.reduce((sum, e) => sum + e.amount, 0);
+        const balance = calculateBalance(ledger.debitEntries, ledger.creditEntries);
+        return [
+          ledger.title,
+          new Date(ledger.createdAt).toLocaleDateString(),
+          `BWP ${totalDebits.toLocaleString()}`,
+          `BWP ${totalCredits.toLocaleString()}`,
+          `BWP ${balance.amount.toLocaleString()} (${balance.type})`
+        ];
+      }),
+      startY: 20,
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [22, 160, 133] }
+    });
+  
+    doc.save(`ledgers_${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
+
+  // Print single ledger (same as before)
+ 
+
+  const handlePrintLedger = (ledgerId: string) => {
+    const printWindow = window.open('', '_blank');
+    const ledger = ledgers.find(l => l._id === ledgerId);
+    
+    if (ledger && printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>${ledger.title}</title>
+            <style>
+              body { font-family: Arial; padding: 20px; }
+              h1 { text-align: center; }
+              .ledger-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+              .column { border: 1px solid #ddd; padding: 10px; }
+              .entry { display: flex; justify-content: space-between; margin: 5px 0; }
+              .total { font-weight: bold; border-top: 1px solid #000; padding-top: 5px; }
+              .balance { text-align: center; margin-top: 15px; font-weight: bold; }
+            </style>
+          </head>
+          <body>
+            <h1>${ledger.title}</h1>
+            <p>Created: ${new Date(ledger.createdAt).toLocaleDateString()}</p>
+            <div class="ledger-grid">
+              <div class="column">
+                <h3>Debit</h3>
+                ${ledger.debitEntries.map(entry => `
+                  <div class="entry">
+                    <span>${entry.description}</span>
+                    <span>BWP ${entry.amount.toLocaleString()}</span>
+                  </div>
+                `).join('')}
+                <div class="total">
+                  Total: BWP ${ledger.debitEntries.reduce((sum, e) => sum + e.amount, 0).toLocaleString()}
+                </div>
+              </div>
+              <div class="column">
+                <h3>Credit</h3>
+                ${ledger.creditEntries.map(entry => `
+                  <div class="entry">
+                    <span>${entry.description}</span>
+                    <span>BWP ${entry.amount.toLocaleString()}</span>
+                  </div>
+                `).join('')}
+                <div class="total">
+                  Total: BWP ${ledger.creditEntries.reduce((sum, e) => sum + e.amount, 0).toLocaleString()}
+                </div>
+              </div>
+            </div>
+            <div class="balance">
+              Balance: BWP ${calculateBalance(ledger.debitEntries, ledger.creditEntries).amount.toLocaleString()} 
+              (${calculateBalance(ledger.debitEntries, ledger.creditEntries).type})
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => printWindow.print(), 500);
+    }
+  };
+
+  if (loading) return <div className={styles.loading}>Loading ledgers...</div>;
+  if (ledgers.length === 0) return <div className={styles.empty}>No ledgers found</div>;
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.toolbar}>
+        <div className={styles.search}>
+          <input
+            type="text"
+            ref={searchRef}
+            placeholder="Search ledgers..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <button onClick={() => searchRef.current?.focus()}>🔍</button>
+        </div>
+
+        <div className={styles.exportButtons}>
+          <button onClick={exportToCSV} className={styles.csvButton}>
+            Export CSV
+          </button>
+          <button onClick={exportToPDF} className={styles.pdfButton}>
+            Export PDF
+          </button>
+        </div>
+      </div>
+
+      <div className={styles.grid}>
+        {currentItems.map((ledger) => (
+          <div key={ledger._id} className={styles.card}>
+             <div className={styles.cardHeader}>
+              <h3>{ledger.title}</h3>
+              <span className={styles.date}>
+                {new Date(ledger.createdAt).toLocaleDateString()}
+              </span>
+            </div>
+          
+          </div>
+        ))}
+      </div>
+
+      {filteredLedgers.length > itemsPerPage && (
+        <div className={styles.pagination}>
+          <button
+            onClick={() => paginate(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            &laquo; Prev
+          </button>
+          
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+            <button
+              key={number}
+              onClick={() => paginate(number)}
+              className={currentPage === number ? styles.active : ''}
+            >
+              {number}
+            </button>
+          ))}
+          
+          <button
+            onClick={() => paginate(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Next &raquo;
+          </button>
+        </div>
+      )}
+
+      <div className={styles.summary}>
+        Showing {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredLedgers.length)} of {filteredLedgers.length} ledgers
+      </div>
+    </div>
+  );
+};
+
+export default AllLedgers;
+
+
+
+*/

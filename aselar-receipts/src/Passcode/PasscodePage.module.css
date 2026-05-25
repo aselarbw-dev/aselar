@@ -1,0 +1,123 @@
+/* Passcode.module.css */
+
+/* Styles for the Create Passcode Page */
+.createPasscodeContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: white;
+    padding: 20px;
+  }
+  
+  .createPasscodeContainer h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #3b82f6;
+  }
+  
+  .createPasscodeContainer p {
+    font-size: 14px;
+    color: #3b82f6;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .createPasscodeContainer input {
+    width: 100%;
+    max-width: 300px;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  
+  .createPasscodeContainer button {
+    width: 100%;
+    max-width: 300px;
+    padding: 10px;
+ background: #3b82f6;
+    color:white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .createPasscodeContainer button:hover {
+    background-color: #0941b5;
+  }
+  
+  /* Styles for the Passcode Modal */
+  .modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modalContent {
+    background: #3b82f6;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+    width: 300px;
+    text-align: center;
+  }
+  
+  .closeButton {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 20px;
+    background-color: #0941b5;
+    cursor: pointer;
+    color: white;
+  }
+  
+  .closeButton:hover {
+    color: white;
+  }
+  
+  .modalContent h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #3b82f6;
+  }
+  
+  .modalContent input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  
+  .modalContent button {
+    width: 100%;
+    padding: 10px;
+    background-color: #0b5cff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .modalContent button:hover {
+    background-color: #0941b5;
+  }

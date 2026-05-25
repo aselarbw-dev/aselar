@@ -1,0 +1,75 @@
+.payslipContainer {
+     margin: 0 auto;
+    margin-top: 10rem;
+    padding: 30px;
+    display: flex;
+    flex-direction: column; /* Better content flow */
+    height:auto;
+    font-family: 'Arial', sans-serif;
+    width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+  }
+  
+  .header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .header h1 {
+    font-size: 24px;
+    color: #333;
+    margin: 0;
+  }
+  
+  .header p {
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .employeeDetails {
+    margin-bottom: 20px;
+  }
+  
+  .employeeDetails p {
+    margin: 5px 0;
+    font-size: 14px;
+    color: #444;
+  }
+  
+  .salaryDetails {
+    margin-bottom: 20px;
+  }
+  
+  .salaryDetails h2 {
+    font-size: 18px;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .row:last-child {
+    border-bottom: none;
+  }
+  
+  .row.total {
+    font-weight: bold;
+    color: #000;
+  }
+  
+  .footer {
+    text-align: center;
+    font-size: 12px;
+    color: #777;
+    margin-top: 20px;
+  }

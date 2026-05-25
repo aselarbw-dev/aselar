@@ -1,0 +1,407 @@
+/* Main container styles */
+.container {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  padding: 2rem;
+  max-width: 600px;
+  margin: 0 auto;
+  color: #333;
+  background: #f5f5f5;
+}
+
+/* Quotation Card */
+.quotationCard {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 2.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e8e8e8;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #000;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.02em;
+}
+
+.quoteNumber {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Info sections */
+.infoSection {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  align-items: flex-start;
+}
+
+.companyInfo {
+  flex: 1;
+}
+
+.logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 1rem;
+  background: #f0f0f0;
+}
+
+.companyName {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  color: #000;
+}
+
+.address {
+  color: #666;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+/* Client Info */
+.clientInfoContainer {
+  flex: 1;
+  text-align: right;
+}
+
+.clientInfo {
+  background: transparent;
+  padding: 0;
+}
+
+.clientTitle {
+  font-size: 0.8rem;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 0.5rem 0;
+  font-weight: 500;
+}
+
+.clientName {
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: #000;
+  margin: 0 0 1rem 0;
+}
+
+.quoteDetails {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.detailItem {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.3rem;
+  gap: 2rem;
+}
+
+.detailLabel {
+  font-weight: 500;
+}
+
+/* Quote items */
+.quoteContent {
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  display: none; /* Hide to match receipt simplicity */
+}
+
+.sectionHeading {
+  display: none;
+}
+
+.tableContainer {
+  margin: 2rem 0;
+}
+
+.changeOrientation {
+  display: grid;
+  grid-template-columns: 40px 2fr 80px 100px 100px;
+  gap: 1rem;
+  padding: 0.45rem 0;
+  border-bottom: 2px solid #000;
+  margin-bottom: 0.5rem;
+}
+
+.contentsOfReceipts {
+  display: grid;
+  grid-template-columns: 40px 3fr 80px 100px 100px;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  font-size: 0.9rem;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.tableHeader {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #000;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.itemIndex {
+  font-weight: 500;
+  color: #666;
+}
+
+.itemDescription {
+  font-weight: 500;
+  color: #000;
+}
+
+.itemQuantity,
+.itemPrice {
+  color: #666;
+  text-align: right;
+  font-weight: 400;
+}
+
+.itemTotal {
+  font-weight: 500;
+  text-align: right;
+  color: #000;
+}
+
+.noProducts {
+  text-align: center;
+  font-style: italic;
+  padding: 2rem 0;
+  color: #999;
+  font-size: 0.9rem;
+}
+
+/* Totals - Receipt style */
+.totalsContainer {
+  margin: 2rem 0;
+}
+
+.totalsCard {
+  background: transparent;
+  padding: 0;
+  width: 100%;
+  border: none;
+  margin-left: auto;
+  max-width: 300px;
+}
+
+.totalsDivider {
+  display: none;
+}
+
+.totalsRowFinal {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #000;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.totalsRowFinal:last-child {
+  font-weight: 600;
+  font-size: 1.1rem;
+  border-bottom: 2px solid #000;
+  padding-top: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.totalAmount {
+  color: #000;
+  font-weight: inherit;
+}
+
+/* Notes */
+.notesSection {
+  background: transparent;
+  border: none;
+  padding: 1.5rem 0;
+  margin-bottom: 2rem;
+  border-top: 1px solid #f0f0f0;
+}
+
+.notesTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #000;
+  margin-bottom: 0.8rem;
+}
+
+.notesContent {
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+.notesContent p {
+  margin: 0 0 0.4rem 0;
+}
+
+/* Action buttons - Receipt style */
+.actionButtons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin: 2rem 0 1rem 0;
+}
+
+.actionButton {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  font-weight: 200;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background-color 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.actionButton:first-child {
+  background: #2196F3;
+}
+
+.actionButton:nth-child(2) {
+  background: #FF9800;
+}
+
+.actionButton:hover {
+  opacity: 0.9;
+  transform: none;
+  box-shadow: none;
+}
+
+.buttonIcon {
+  font-size: 0.9rem;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f0f0f0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.footer p:first-child {
+  font-weight: 600;
+  color: #000;
+  margin: 0 0 0.3rem 0;
+}
+
+.footerContact {
+  font-size: 0.75rem;
+  color: #999;
+  margin: 0;
+}
+
+/* States */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 1rem;
+  color: #666;
+  background: white;
+  border-radius: 12px;
+}
+
+.error {
+  padding: 1.5rem;
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  color: #c53030;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+  
+  .quotationCard {
+    padding: 1.5rem;
+  }
+  
+  .infoSection {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .clientInfoContainer {
+    text-align: left;
+  }
+  
+  .changeOrientation,
+  .contentsOfReceipts {
+    grid-template-columns: 30px 1.5fr 60px 80px 80px;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+  }
+  
+  .actionButtons {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  
+  .actionButton {
+    flex: 1;
+    min-width: 100px;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  .container {
+    background: white;
+    padding: 0;
+  }
+  
+  .quotationCard {
+    box-shadow: none;
+    padding: 1.5rem;
+  }
+  
+  .actionButtons {
+    display: none;
+  }
+  
+  .footer {
+    page-break-inside: avoid;
+  }
+}

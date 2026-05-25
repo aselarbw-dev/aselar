@@ -1,0 +1,85 @@
+.mainFooter {
+  background: linear-gradient(to right, #0f172a, #1f2973); /* deep elegant blend */
+  color: #ffffff;
+  padding: 3rem 2rem 1rem;
+}
+
+.mainCover {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.logoAselar h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+}
+
+.logoAselar span {
+  color: white;
+  border-bottom: 3px solid white;
+}
+
+.tagline {
+  margin-top: 0.5rem;
+  color: #cbd5e1;
+  font-size: 1rem;
+}
+
+.linksSection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3rem;
+  justify-content: space-between;
+}
+
+.linksFooter {
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+}
+
+.linksFooter h4 {
+  font-size: 1.125rem;
+  margin-bottom: 0.8rem;
+  color: white;
+}
+
+.linksFooter a {
+  color: #cbd5e1;
+  text-decoration: none;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  transition: color 0.3s ease;
+}
+
+.linksFooter a:hover {
+  color: #ffffff;
+}
+
+.copyRight {
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+/* Responsive layout */
+@media (min-width: 768px) {
+  .mainCover {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .logoAselar {
+    flex: 1;
+  }
+
+  .linksSection {
+    flex: 3;
+  }
+}

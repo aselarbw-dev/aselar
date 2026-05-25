@@ -1,0 +1,55 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f5f5f5;
+  }
+  
+  .agreementBox {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 600px;
+    height: 600px;
+
+  }
+  
+  h2 {
+    text-align: center;
+    margin-bottom: 16px;
+  
+    color: #3b82f6;
+  }
+  
+  .scrollableContainer {
+    height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+  .scrollableContainer p{
+    padding:10px;
+  }
+  .actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .proceedButton {
+    padding: 8px 16px;
+   background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .proceedButton:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }

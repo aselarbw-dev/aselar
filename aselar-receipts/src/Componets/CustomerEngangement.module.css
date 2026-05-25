@@ -1,0 +1,136 @@
+.container {
+  text-align: center;
+  padding: 40px 20px;
+  background: white; /* Pure white for clean, subtle separation */
+  max-width: 1200px;
+  margin: 0 auto;
+  border-radius: 12px; /* Subtle rounded edges for elite feel */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Very subtle shadow to differentiate from cards */
+}
+
+.heading {
+  font-size: 3rem;
+  text-transform: capitalize;
+  color: #1e293b; /* Darker blue-gray for elite feel */
+  text-align: center;
+  margin-bottom: 30px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.subheading {
+  padding: 12px;
+  font-size: 1.125rem; /* 18px */
+  line-height: 1.6;
+  margin: 0 auto 20px;
+  color: #334155; /* Darker gray for better readability */
+  width: 80%;
+  max-width: 800px;
+  font-weight: 400;
+}
+
+.cardContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  margin-top: 50px;
+  justify-items: center;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: white;
+  border-radius: 16px;
+  padding: 30px 20px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  max-width: 350px;
+  width: 100%;
+}
+
+.card:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.cardImage {
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  transition: transform 0.3s ease;
+}
+
+.card:hover .cardImage {
+  transform: scale(1.05);
+}
+
+.cardContent {
+  text-align: center;
+}
+
+.cardTitle {
+  color: #1e293b; /* Darker for elite contrast */
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  letter-spacing: -0.015em;
+}
+
+.benefitsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.benefitItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  color: #475569; /* Slightly darker gray for body text */
+  font-size: 1rem;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.benefitItem:last-child {
+  margin-bottom: 0;
+}
+
+.checkIcon {
+  color: #3b82f6;
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-size: 1.125rem;
+}
+
+.benefitItem span {
+  flex: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .heading {
+    font-size: 2.25rem;
+  }
+  
+  .subheading {
+    width: 95%;
+    font-size: 1rem;
+  }
+  
+  .cardContainer {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .card {
+    max-width: none;
+  }
+}

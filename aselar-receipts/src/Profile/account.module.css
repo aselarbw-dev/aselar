@@ -1,0 +1,154 @@
+/* ===== COLOR SCHEME ===== */
+:root {
+    /* Light Mode */
+    --primary: #4f46e5;       /* Your brand purple */
+    --danger: #ef4444;       /* Red for delete actions */
+    --text: #1f2937;         /* Dark gray for text */
+    --bg: #f9fafb;           /* Light gray background */
+    --card-bg: #ffffff;      /* White cards */
+    --border: #e5e7eb;       /* Light borders */
+  
+    /* Dark Mode */
+    --dark-primary: #8b5cf6;
+    --dark-danger: #f87171;
+    --dark-text: #f3f4f6;
+    --dark-bg: #111827;
+    --dark-card-bg: #1f2937;
+    --dark-border: #374151;
+  }
+  
+  /* ===== BASE STYLES ===== */
+  .container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    border-radius: 12px;
+    background: var(--card-bg);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border);
+    color: var(--text);
+    transition: all 0.3s ease;
+  }
+  
+  /* ===== DARK MODE ===== */
+  @media (prefers-color-scheme: dark) {
+    .container {
+      background: var(--dark-card-bg);
+      color: var(--dark-text);
+      border-color: var(--dark-border);
+    }
+  }
+  
+  /* ===== LOADING SPINNER ===== */
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: currentColor;
+    animation: spin 0.8s ease-in-out infinite;
+    margin-right: 0.5rem;
+    vertical-align: middle;
+  }
+  
+  /* ===== DELETE COMPONENT ===== */
+  .deleteWarning {
+    background-color: rgba(239, 68, 68, 0.05);
+    border-left: 4px solid var(--danger);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border-radius: 0 4px 4px 0;
+  }
+  
+  .dark .deleteWarning {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-left-color: var(--dark-danger);
+  }
+  
+  .deleteButton {
+    background-color: var(--danger);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .deleteButton:hover {
+    background-color: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2);
+  }
+  
+  .deleteButton:disabled {
+    background-color: #fca5a5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  
+  /* ===== GOODBYE PAGE ===== */
+  .goodbyeContainer {
+    text-align: center;
+    padding: 4rem 2rem;
+  }
+  
+  .goodbyeEmoji {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    display: inline-block;
+    animation: bounce 1s infinite alternate;
+  }
+  
+  @keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-10px); }
+  }
+  
+  .goodbyeText {
+    font-size: 1.2rem;
+    color: var(--text);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+  
+  .homeLink {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--primary);
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s;
+  }
+  
+  .homeLink:hover {
+    background-color: #4338ca;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+  }
+  
+  /* Dark mode adjustments */
+  @media (prefers-color-scheme: dark) {
+    .deleteButton {
+      background-color: var(--dark-danger);
+    }
+    .homeLink {
+      background-color: var(--dark-primary);
+    }
+    .goodbyeText {
+      color: var(--dark-text);
+    }
+  }

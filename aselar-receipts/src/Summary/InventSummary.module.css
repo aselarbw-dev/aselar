@@ -1,0 +1,38 @@
+.summary{
+    display:flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.summary h4{
+    color:#0b5cff;
+}
+.estimatedProfits{
+    display:flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-left:6px;
+}
+.valuation{
+    display:flex;
+    justify-content: space-between;
+    align-items: center; 
+    margin-left:6px;
+}
+.allItems{
+    display:flex;
+    justify-content: space-between;
+    align-items: center;   
+    margin-left:6px;
+}
+.itemsValue{
+    font-size: 25px;
+    color:#0b5cff;
+}
+.valuationHeader{
+    font-size: 25px;
+    color:#0b5cff; 
+}
+.profitsValue{
+    font-size: 25px;
+    color:#0b5cff; 
+}

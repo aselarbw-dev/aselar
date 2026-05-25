@@ -1,0 +1,131 @@
+.slip{
+    position: absolute;
+    top:18%;
+    left:35%;
+    font-family: 'Arial', sans-serif;
+    width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+}
+.paySlipHeader{
+    text-align: center;
+    font-size: 35px;
+    padding:5px;
+}
+.name{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin:5px;
+
+}
+.name input{
+    padding:10px;
+    width:300px;
+    border-radius: 4px;
+    margin-left: 5px;
+    
+}
+.empd{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin:5px;
+}
+.empd input{
+    padding:10px;
+    width:300px;
+    border-radius: 4px;
+    margin-left: 5px;
+}
+.paySlipCover h4{
+    text-align: center;
+    padding:10px;
+}
+.salary{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin:5px;
+}
+.salary input{
+    padding:10px;
+    width:300px;
+    border-radius: 4px;
+    margin-left: 5px;
+}
+.taxation{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin:5px; 
+}
+.taxation input{
+    padding:10px;
+    width:300px;
+    border-radius: 4px;
+    margin-left: 5px;
+}
+.deductions{
+    width:100px;
+    height:40px;
+    border-radius: 12px;
+    background-color: red;
+    color:white;
+    border: none;
+    outline:none;
+    cursor: pointer; 
+    padding:5px;
+}
+.additions{
+    width:100px;
+    height:40px;
+    border-radius: 12px;
+    background-color: forestgreen;
+    color:white;
+    border: none;
+    outline:none;
+    cursor: pointer; 
+    padding:5px;
+}
+.post{
+    width:150px;
+    height:40px;
+    border-radius: 12px;
+    background-color: blue;
+    color:white;
+    border: none;
+    outline:none;
+    cursor: pointer; 
+    padding:5px;
+}
+.addition,.deduction{
+    margin:5px;
+}
+.addition input,.deduction input{
+    padding:3px;
+}
+.deleteButton {
+    color: red;
+    cursor: pointer;
+    font-size: 25px;
+    margin-left: 8px;
+  }
+  
+  .deleteButton:hover {
+    color: darkred;
+  }
+.sendSlip{
+    padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+  background-color: #25d366;
+  color: white;
+}

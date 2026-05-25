@@ -1,0 +1,19 @@
+.dashboardlayout {
+  display: grid;
+  grid-template-areas:
+    "header header"
+    "sidebar main";
+  grid-template-rows: auto 1fr;  /* Header height + remaining space */
+  grid-template-columns: auto 1fr; /* Sidebar width + main content */
+  height: 100vh;
+   z-index: -1;
+}
+
+.content {
+  grid-area: main;
+  overflow: auto; /* Scrollable content */
+  
+   padding:1rem;
+
+
+}

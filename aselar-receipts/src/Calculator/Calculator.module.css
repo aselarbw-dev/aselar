@@ -1,0 +1,115 @@
+.calculator {
+  /* Remove position: absolute; top/left; — let parent .dropdown handle positioning */
+  width: 100%; /* Fill the .dropdown's width */
+  max-width: 300px; /* Keep your max limit */
+  position: absolute;
+  top:15%;
+  left:76%;
+  margin: 0; /* Remove auto margins — no need inside fixed container */
+  padding: 15px;
+  border-radius: 15px;
+  background: white;
+  z-index: 10000; /* Keep high z-index for safety */
+  border:6px solid #3498db;
+ 
+}
+
+.display {
+  background: #f8f9fa; /* Slightly off-white for better contrast */
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  text-align: right;
+  color: #333; /* Darker text for readability on white bg */
+  border: 1px solid #e9ecef;
+}
+
+.input {
+  font-size: 1.2em;
+  margin-bottom: 8px;
+  color: #6c757d;
+}
+
+.result {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #212529;
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.button {
+  padding: 15px;
+  font-size: 1em;
+  border: none;
+  border-radius: 10px;
+  background: #3498db;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease; /* Match banner's smooth transitions */
+}
+
+.button:hover {
+  background: #2980b9;
+  transform: translateY(-1px); /* Subtle lift on hover */
+}
+
+.button:active {
+  background: #1c5980;
+  transform: translateY(0);
+}
+
+.button[data-value="="] {
+  grid-column: span 2;
+  background: #e67e22;
+}
+
+.button[data-value="="]:hover {
+  background: #d35400;
+}
+
+.button[data-value="C"] {
+  background: #e74c3c;
+}
+
+.button[data-value="C"]:hover {
+  background: #c0392b;
+}
+
+.button[data-value="."] {
+  background: #95a5a6;
+}
+
+.button[data-value="."]:hover {
+  background: #7f8c8d;
+}
+
+/* Media Queries for Smaller Screens */
+@media (max-width: 480px) {
+  .calculator {
+    width: 100%;
+    padding: 10px;
+    max-width: none; /* Allow full width on tiny screens */
+  }
+
+  .display {
+    padding: 8px;
+  }
+
+  .input {
+    font-size: 1em;
+  }
+
+  .result {
+    font-size: 1.2em;
+  }
+
+  .button {
+    padding: 10px;
+    font-size: 0.9em;
+  }
+}

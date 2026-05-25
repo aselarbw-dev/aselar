@@ -1,0 +1,126 @@
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+    background: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .header {
+    text-align: center;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 20px;
+  }
+  
+  .title {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 5px;
+  }
+  
+  .date {
+    color: #666;
+    font-size: 14px;
+  }
+  
+  .ledgerGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 30px;
+  }
+  
+  .column {
+    border: 1px solid #ddd;
+    padding: 15px;
+    border-radius: 5px;
+  }
+  
+  .columnHeader {
+    text-align: center;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-top: 0;
+  }
+  
+  .entries {
+    min-height: 200px;
+  }
+  
+  .entry {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px dashed #eee;
+  }
+  
+  .amount {
+    font-weight: bold;
+  }
+  
+  .total {
+    font-weight: bold;
+    text-align: right;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 2px solid #333;
+  }
+  
+  .balance {
+    text-align: center;
+    font-size: 18px;
+    margin: 20px 0;
+    padding: 15px;
+    background: #f5f5f5;
+    border-radius: 5px;
+  }
+  
+  .actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 30px;
+  }
+  
+  .printButton,
+  .shareButton {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .printButton {
+    background: #4CAF50;
+    color: white;
+  }
+  
+  .shareButton {
+    background: #2196F3;
+    color: white;
+  }
+  
+  .loading,
+  .error {
+    text-align: center;
+    padding: 50px;
+    font-size: 18px;
+  }
+  
+  @media print {
+    .actions {
+      display: none;
+    }
+    
+    body {
+      background: white;
+    }
+    
+    .container {
+      box-shadow: none;
+    }
+  }

@@ -1,0 +1,32 @@
+/* src/components/ExpenseList.module.css */
+.listContainer {
+    margin-top: 20px;
+  }
+  
+  .listContainer ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .listContainer li {
+    padding: 5px;
+    background-color: #f9f9f9;
+    margin-bottom: 5px;
+  }
+  
+  .buttons {
+    margin-top: 10px;
+  }
+  
+  .buttons button {
+    margin-right: 10px;
+    padding: 5px 10px;
+    background-color: #008cba;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .buttons button:hover {
+    background-color: #007ba7;
+  }

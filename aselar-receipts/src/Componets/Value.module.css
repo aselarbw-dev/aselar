@@ -1,0 +1,29 @@
+.mainCover{
+    margin-left:10rem;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+}
+.imageWrapper img{
+    width:300px;
+    height:300px;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border: 4px solid blue;
+}
+.minor{
+    color:blue;
+    font-size:20px;
+}
+.textValue{
+    margin:20px;
+}
+.bigger{
+    width:60%;
+    color:blue;
+}
+.para{
+    width:70%;
+    color:blue;
+    font-size:20px;
+}

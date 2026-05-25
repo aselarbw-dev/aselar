@@ -1,0 +1,42 @@
+.cards{
+    padding:2rem;
+    display:flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: center;
+    gap:7px;
+}
+
+.btn{
+    width:500px;
+    height:70px;
+    background-color:blue;
+    box-shadow: 0px 5px 26px 8px rgba(193, 198, 207, 0.66);
+    cursor: pointer;
+    border: none;
+    outline: none;
+    padding:10px;
+    margin-left:50px;
+    color:white;;
+    font-size: 17px;
+  
+}
+.content{
+    width:250px;
+    height:200px;
+    background-color:white;
+    border-radius: 15px;
+    box-shadow: 0px 5px 26px 8px rgba(193, 198, 207, 0.66);
+}
+.description h3{
+    color:#007bff;
+    text-align: center;
+    font-size:20px;
+}
+.description p{
+    color:#007bff;
+    padding:5px;
+    width:100%;
+    font-size: 18px;
+    opacity:.7;
+}

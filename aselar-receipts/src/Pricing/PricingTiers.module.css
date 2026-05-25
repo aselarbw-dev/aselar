@@ -1,0 +1,128 @@
+.pricingContainer {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    padding: 40px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.pricingCard {
+    background: white;
+    border-radius: 8px;
+    padding: 32px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 350px;
+}
+
+.pricingCard h2 {
+    font-size: 24px;
+    margin: 0 0 24px 0;
+    color: #252525;
+}
+
+.price {
+    margin-bottom: 8px;
+}
+
+.amount {
+    font-size: 36px;
+    font-weight: bold;
+    color: #252525;
+}
+
+.period {
+    display: block;
+    font-size: 14px;
+    color: #666;
+    margin-top: 4px;
+}
+
+.subscription {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 24px;
+}
+
+.buttonGroup {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.buyNowButton {
+    background-color: #0b5cff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 24px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.buyNowButton:hover {
+    background-color: #094dd9;
+}
+
+.tryNowButton {
+    background-color: transparent;
+    color: #0b5cff;
+    border: 1px solid #0b5cff;
+    border-radius: 4px;
+    padding: 8px 24px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.tryNowButton:hover {
+    background-color: rgba(11, 92, 255, 0.05);
+}
+
+.trialTerms {
+    font-size: 14px;
+    color: #0b5cff;
+    text-decoration: underline;
+    cursor: pointer;
+    margin-bottom: 24px;
+}
+
+.featuresList {
+    list-style: none;
+    padding: 0;
+    margin: 24px 0 0 0;
+}
+
+.featuresList li {
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: #252525;
+    line-height: 1.5;
+    position: relative;
+    padding-left: 24px;
+}
+
+.featuresList li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #0b5cff;
+    font-weight: bold;
+}
+
+
+/* Responsive Design */
+@media (max-width: 968px) {
+    .pricingContainer {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .pricingCard {
+        max-width: 100%;
+    }
+}

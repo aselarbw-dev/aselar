@@ -1,0 +1,206 @@
+/* DebtCollectionTemplate.module.css */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  font-family: Arial, sans-serif;
+  position: relative;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: #d32f2f;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.companyInfo {
+  text-align: right;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.companyInfo div {
+  margin-bottom: 2px;
+}
+
+.title {
+  text-align: center;
+  font-size: 28px;
+  font-weight: bold;
+  margin: 20px 0 10px;
+  color: #333;
+}
+
+.date {
+  text-align: center;
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.detailsSection {
+  margin-bottom: 20px;
+}
+
+.detailsTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 auto;
+}
+
+.detailsTable td {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+  vertical-align: top;
+}
+
+.label {
+  font-weight: bold;
+  width: 40%;
+  color: #555;
+}
+
+.value {
+  width: 60%;
+  color: #333;
+}
+
+.messageSection {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background: #f9f9f9;
+}
+
+.messageSection .label {
+  font-weight: bold;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.message {
+  line-height: 1.5;
+  color: #444;
+  white-space: pre-wrap;
+}
+
+.footerSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 1px solid #e0e0e0;
+  font-size: 14px;
+  color: #666;
+}
+
+.footer {
+  text-align: center;
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 1px solid #e0e0e0;
+  font-size: 12px;
+  color: #888;
+}
+
+.thanks {
+  font-weight: bold;
+  margin-top: 5px;
+  color: #333;
+}
+
+.actionButtons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.smsButton,
+.whatsappButton,
+.qrButton,
+.downloadButton {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.smsButton {
+  background-color: #d32f2f;
+  color: white;
+}
+
+.whatsappButton {
+  background-color: #25d366;
+  color: white;
+}
+
+.qrButton {
+  background-color: #2196f3;
+  color: white;
+}
+
+.downloadButton {
+  background-color: #4caf50;
+  color: white;
+}
+
+.smsButton:hover { background-color: #b71c1c; }
+.whatsappButton:hover { background-color: #128c7e; }
+.qrButton:hover { background-color: #1976d2; }
+.downloadButton:hover { background-color: #388e3c; }
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .detailsTable td {
+    display: block;
+    width: 100%;
+    padding: 8px 0;
+  }
+
+  .label {
+    width: 100%;
+    margin-bottom: 4px;
+  }
+
+  .value {
+    width: 100%;
+  }
+
+  .footerSection {
+    flex-direction: column;
+    gap: 5px;
+    text-align: center;
+  }
+
+  .actionButtons {
+    flex-wrap: wrap;
+  }
+}

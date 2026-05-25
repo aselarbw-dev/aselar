@@ -1,0 +1,77 @@
+.receipt {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: 20px auto;
+  }
+  
+  .receipt h3 {
+    font-size: 20px;
+    margin-bottom: 16px;
+    color: #333;
+    text-align: center;
+  }
+  
+  .items {
+    margin-bottom: 20px;
+  }
+  
+  .item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 14px;
+    color: #333;
+  }
+  
+  .item:last-child {
+    border-bottom: none;
+  }
+  
+  .totals {
+    margin-top: 20px;
+  }
+  
+  .totals div {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #333;
+  }
+  
+  .totals input {
+    width: 100px;
+    padding: 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 14px;
+    text-align: right;
+  }
+  
+  .totals input:focus {
+    outline: none;
+    border-color: #007bff;
+  }
+  .removeButton{
+    background-color: red;
+    color: white;
+    width:40px;
+    height:30px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    text-align: center;
+  }
+  .discountButton{
+background-color: #4CAF50;
+    color: white;
+    width:40px;
+    height:30px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+  }

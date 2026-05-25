@@ -1,0 +1,166 @@
+
+.beverage{
+  position: relative;
+    width:220px;
+    height:340px;
+    padding:25px;
+    background-color: #ffff;
+    border-radius: 6px;
+    box-shadow: 0px 5px 26px 8px rgba(193, 198, 207, 0.66);
+    margin:6px;
+    border:2px solid #0b5577;
+}
+
+.beverage ul li{
+  list-style-type: none;
+}
+.beverage h1{
+  color:blue;
+}
+.beverage h5{
+  color:blue;
+}
+.beverage img{
+    margin-left: 40px;
+      width: 80px;
+      height:80px;
+      border-radius: 50%;
+  }
+  .grid{
+    display:flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap:wrap;
+ 
+  }
+ 
+
+
+  .card {
+    position: relative;
+    min-width: 300px;
+    max-width: 500px;
+    background-color: #ffff;
+    border-radius: 6px;
+    padding: 0.7rem;
+    margin: 3px;
+    box-shadow: 0px 5px 26px 8px rgba(193, 198, 207, 0.66);
+  }
+  
+  .removeButton {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    font-size: 1em;
+    cursor: pointer;
+  }
+  
+  /* Ensure button appears when hovering over .card */
+  .card:hover .removeButton {
+    display: flex;
+  }
+  .cardActions{
+    display: flex;
+    gap: 8px;
+    position: absolute;
+    top: 8px;
+    right: 0px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .itemActions {
+    display: flex;
+    gap: 8px;
+    position: absolute;
+    top: 8px;
+    right: 0px;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .card:hover .cardActions,
+  .itemCard:hover .itemActions {
+    opacity: 1;
+  }
+  
+  .editButton {
+    position:absolute;
+    top:5;
+    cursor: pointer;
+    color: #4b5563;
+    transition: color 0.2s;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    left:30%;
+    justify-content: center;
+    align-items: center;
+    font-size: 1em;
+  }
+  
+  .editButton:hover {
+    color: #1f2937;
+  }
+  .restockWarning {
+  background-color: #ef4444; /* Red */
+  color: white;
+  font-size: 0.8em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  font-weight: bold;
+}
+.expiryModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.expiryModal {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.expiryModal h3 {
+  color: #dc3545;
+  margin-bottom: 1rem;
+}
+
+.expiryModal ul {
+  text-align: left;
+  margin: 1rem 0;
+  padding-left: 1rem;
+}
+
+.modalButton {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modalButton:hover {
+  background: #0056b3;
+}

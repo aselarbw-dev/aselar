@@ -1,0 +1,23 @@
+{
+  "name": "aselarai",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type":"module",
+  
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "author": "JB",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "groq-sdk": "^0.37.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.2.1",
+    "nodemon": "^3.1.14"
+  }
+}

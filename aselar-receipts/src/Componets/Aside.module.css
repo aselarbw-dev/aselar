@@ -1,0 +1,16 @@
+.aside{
+    padding:2rem;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+}
+.image img{
+    width:350px;
+    border-radius: 12px;
+    border: 5px solid #3944BC;
+    margin:6px;
+}
+.asideText{
+    color:#3944BC;
+    font-size: 20px;
+}

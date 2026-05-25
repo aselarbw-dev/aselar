@@ -1,0 +1,130 @@
+.container{
+  padding:0.5rem;
+  
+}
+.wrapper{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /*background-color: blue;*/
+    box-shadow: 0 0.6em 1.2em rgba(25, 20, 36, 0.06);
+   
+}
+.logo{
+  display:flex;
+  justify-content:center;
+  align-items: center;
+}
+.aselarLogo{
+  width:130px;
+ height: 130px;
+}
+.logo img{
+ width:100px;
+ margin:0.5rem;
+
+}
+.aselar{
+    color:#3b82f6;  /*#22c55e*/
+    font-size: 45px;
+    padding:10px;
+}
+.aselar span{
+  border-bottom: 4px solid #3b82f6;
+}
+.lists{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+}
+.lists li{
+    list-style-type: none;
+   background: #3b82f6;
+    border-radius: 20px;
+    padding:10px 50px;
+    color:color;
+    margin-left: 45px;
+    cursor: pointer;
+    font-size: 18px;
+   border:none;
+}
+.lists li:hover{
+  opacity:.7;
+}
+.lists a{
+  text-decoration: none;
+  color:white;
+  
+  
+}
+.buttons{
+ 
+  padding:10px;
+}
+.buttons a{
+  text-decoration: none;
+}
+.signupButton{
+width:180px;
+height:50px;
+background-color: white;
+cursor: pointer;
+border: 2px solid #3b82f6;
+outline: none;
+padding:5px;
+color:#3b82f6;
+font-size:20px;
+font-weight: 400;
+border-radius: 15px;
+margin-left: 20px;
+box-shadow: 0 0.6em 1.2em rgba(28,0,80,0.06);
+transition: 1s all;
+}
+.contact {
+  color:#3b82f6;
+  padding:10px 10px;
+  font-size:20px;
+text-decoration: none;
+}
+.signupButton:hover{
+background-color: rgb(28, 149, 197);
+color:white;
+}
+.signinButton{
+  width:130px;
+  height:50px;
+ 
+  cursor: pointer;
+  border: none;
+  outline: none;
+  padding:8px;
+  color:#007bff;
+ background-color: #f2f2f2;
+  border-radius: 15px;
+  font-size: 20px;
+  margin-right:3px;
+  }
+  .buttons{
+    display: flex;
+    
+  }
+  .searchBusiness{
+    width:200px;
+    height:50px;
+     background: #3b82f6;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    padding:5px;
+    color:white;
+    font-size:20px;
+    font-weight: 400;
+    border-radius: 15px;
+    margin-left: 30px;
+    box-shadow: 0 0.6em 1.2em rgba(28,0,80,0.06);
+    transition: 1s all;
+  }
+  .searchBusiness:hover{
+    background-color: #16a34a;
+  }

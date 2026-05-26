@@ -5,7 +5,8 @@
   "type":"module",
   
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node index.js",
+    "postinstall": "cd ../Shared && npm install"
   },
   "author": "JB",
   "license": "ISC",

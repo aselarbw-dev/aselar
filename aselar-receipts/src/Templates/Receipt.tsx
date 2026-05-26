@@ -85,7 +85,7 @@ const Receipt: React.FC = () => {
         setLoading(true);
         
         const [receiptResponse, businessResponse, profileResponse] = await Promise.all([
-          fetch('http://localhost:5005/api/get-receipts', { credentials: "include" }),
+          fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}/api/get-receipts`, { credentials: "include" }),
           fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/get-business`, { 
             headers: { 'Content-Type': 'application/json' }, 
             credentials: "include" 
@@ -260,7 +260,7 @@ const Receipt: React.FC = () => {
         }
       };
 
-      const response = await fetch('http://localhost:5005/api/generate-qr', {
+      const response = await fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}/api/generate-qr`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -404,7 +404,7 @@ const Receipt: React.FC = () => {
       const htmlContent = getReceiptHTML();
       if (!htmlContent) throw new Error("No receipts data available");
 
-      const response = await fetch('http://localhost:5005/api/sms-receipt', {
+      const response = await fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}/api/sms-receipt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -461,7 +461,7 @@ const Receipt: React.FC = () => {
         cleanNumber = `+${cleanNumber}`;
       }
 
-      const response = await fetch('http://localhost:5005/api/whatsapp-receipt', {
+      const response = await fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}/api/whatsapp-receipt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -510,7 +510,7 @@ const handleEmailModalSubmit = async (customerEmail: string) => {
       const htmlContent = getReceiptHTML();
       if (!htmlContent) throw new Error("No receipt content available");
 
-      const response = await fetch('http://localhost:5005/api/email-receipt', {
+      const response = await fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}/api/email-receipt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

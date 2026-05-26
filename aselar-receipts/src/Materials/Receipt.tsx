@@ -161,7 +161,7 @@ const Receipt: React.FC = () => {
         // If no auth middleware, add: user: localStorage.getItem('userId') || 'your-default'
       };
   
-      const response = await fetch("http://localhost:5005/api/quick-receipt", {
+      const response = await fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}/api/quick-receipt`, {
         method: "POST",
         credentials: "include",
         mode: "cors",

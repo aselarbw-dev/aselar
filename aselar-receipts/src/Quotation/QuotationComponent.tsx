@@ -96,7 +96,7 @@ const QuotationComponent: React.FC = () => {
           fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/get-new-quote`, { credentials: "include" }),
           fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/get-business`, { headers: { 'Content-Type': 'application/json' }, credentials: "include" }),
           fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/profile`, { headers: { 'Content-Type': 'application/json' }, credentials: "include" }),
-          fetch('http://localhost:5003/api/get-receiver', { headers: { 'Content-Type': 'application/json' }, credentials: "include" }),
+          fetch(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}/api/get-receiver`, { headers: { 'Content-Type': 'application/json' }, credentials: "include" }),
           fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/user-banking`, { headers: { 'Content-Type': 'application/json' }, credentials: "include" })
         ]);
 
@@ -415,7 +415,7 @@ const QuotationComponent: React.FC = () => {
         }
       };
 
-      const response = await fetch('http://localhost:5003/api/email-quote', {
+      const response = await fetch(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}/api/email-quote`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -468,7 +468,7 @@ const QuotationComponent: React.FC = () => {
         }
       };
 
-      const response = await fetch('http://localhost:5003/api/sms-quote', {
+      const response = await fetch(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}/api/sms-quote`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -518,7 +518,7 @@ const QuotationComponent: React.FC = () => {
         }
       };
 
-      const response = await fetch('http://localhost:5003/api/whatsapp-quote', {
+      const response = await fetch(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}/api/whatsapp-quote`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

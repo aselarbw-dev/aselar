@@ -179,7 +179,7 @@ const DetailedReceipt: React.FC = () => {
         }
       };
 
-      const response = await fetch('http://localhost:5010/api/generate-qr', {
+      const response = await fetch(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}/api/generate-qr`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -339,7 +339,7 @@ const DetailedReceipt: React.FC = () => {
       const htmlContent = generateHTMLContent();
       if (!htmlContent) throw new Error("No receipt content available");
 
-      const response = await fetch('http://localhost:5010/api/email-receipt', {
+      const response = await fetch(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}/api/email-receipt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -393,7 +393,7 @@ const DetailedReceipt: React.FC = () => {
       const htmlContent = generateHTMLContent();
       if (!htmlContent) throw new Error("No receipts data available");
 
-      const response = await fetch('http://localhost:5010/api/sms-receipt', {
+      const response = await fetch(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}/api/sms-receipt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -433,7 +433,7 @@ const DetailedReceipt: React.FC = () => {
       const htmlContent = generateHTMLContent();
       if (!htmlContent) throw new Error("No receipts data available");
 
-      const response = await fetch('http://localhost:5010/api/whatsapp-receipt', {
+      const response = await fetch(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}/api/whatsapp-receipt`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

@@ -121,7 +121,7 @@ const Quote:React.FC = () => {
           totalSum: totalSum.toFixed(2),
       };
 
-      const response = await fetch("http://localhost:5003/api/quote", {
+      const response = await fetch(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}/api/quote`, {
           method: "POST",
           mode: "cors",
           credentials: "include",

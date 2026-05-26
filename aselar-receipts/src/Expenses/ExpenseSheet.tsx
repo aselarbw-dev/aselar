@@ -22,7 +22,7 @@ const ExpenseSheet: React.FC = () => {
 // Fetch expenses from the backend
 const fetchExpenses = async () => {
   try {
-    const response = await fetch('/api/get-expenses', {
+    const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/get-expenses`, {
       credentials: 'include', // For cookie-based auth
     });
 

@@ -166,7 +166,7 @@ const AllQuotes: React.FC = () => {
   const fetchQuotes = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5003/api/get-all-quotes', {
+      const response = await axios.get(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}/api/get-all-quotes`, {
         withCredentials: true,
       });
       
@@ -301,7 +301,7 @@ const AllQuotes: React.FC = () => {
     setDeletingId(quoteId);
     
     try {
-      await axios.delete(`http://localhost:5003/api/quotes/${quoteId}`, {
+      await axios.delete(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}/api/quotes/${quoteId}`, {
         withCredentials: true,
       });
       toast.success('Quote deleted successfully!');

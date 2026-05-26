@@ -170,7 +170,7 @@ const AllCategoryReceipts: React.FC = () => {
   const fetchReceipts = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5010/api/receipts', {
+      const response = await axios.get(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}/api/receipts`, {
         withCredentials: true,
       });
       
@@ -312,7 +312,7 @@ const AllCategoryReceipts: React.FC = () => {
     setDeletingId(receiptId);
     
     try {
-      await axios.delete(`http://localhost:5010/api/receipts/${receiptId}`, {
+      await axios.delete(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}/api/receipts/${receiptId}`, {
         withCredentials: true,
       });
       toast.success('Receipt deleted successfully!');

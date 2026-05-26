@@ -3,7 +3,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 
-const API_BASE = "http://localhost:5014/api";
+const API_BASE = `${import.meta.env.VITE_ASELAR_AI_SERVICE_URL}/api`;
 
 export interface Message {
   role: "user" | "assistant";

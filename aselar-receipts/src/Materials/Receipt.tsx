@@ -2,13 +2,11 @@ import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import receipts from "./Receipt.module.css";
 import { FaTrash } from 'react-icons/fa';
-//import { FaArrowTurnUp } from 'react-icons/fa6';
 import { FaPlus } from 'react-icons/fa';
 import { IconContext } from "react-icons";
 import { formatNumber } from "../Helperfunctions/formatNumbers";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import Spinner from "../Spinners/Spinner";
-import { Link } from "react-router-dom";
 
 interface InputField {
   id: number;
@@ -35,12 +33,14 @@ const Receipt: React.FC = () => {
   const [subtotal, setSubtotal] = useState<number>(0);
   const [vatAmount, setVatAmount] = useState<number>(0);
   const [totalAfterVat, setTotalAfterVat] = useState<number>(0);
-  const [show, setShow] = useState<boolean>(false);
+  
+  const [show, setShow] = useState<boolean>(false);           // SMS toggle
   const [isSaved, setIsSaved] = useState<boolean>(false);
  
   const [subtraction, setSubtraction] = useState<SubtractionField>({ value: 0 });
   const [loading, setLoading] = useState(false);
   const [showDiscountPopup, setShowDiscountPopup] = useState<boolean>(false);
+  
   const [discount, setDiscount] = useState<DiscountData>({
     name: '',
     value: 0,
@@ -135,6 +135,7 @@ const Receipt: React.FC = () => {
     localStorage.setItem('discount', JSON.stringify(discount));
     setIsSaved(true);
   };
+
   const submitData = async () => {
     if (inputs.length === 0) {
       toast.error("You cannot submit a receipt without entries.");
@@ -143,7 +144,6 @@ const Receipt: React.FC = () => {
     
     setLoading(true);
     try {
-      // Calculate final change (post-discount/VAT)
       const finalChange = Math.max(0, subtraction.value - totalAfterVat);
       
       const payload = {
@@ -152,13 +152,12 @@ const Receipt: React.FC = () => {
         vatAmount: vatAmount,
         grandTotal: totalAfterVat,
         cash: subtraction.value,
-        change: finalChange,  // ← FIXED: Use accurate calc
+        change: finalChange,
         ...(discount.value > 0 && {
           discountName: discount.name,
           discountValue: discount.value,
           discountType: discount.isPercentage ? "percentage" : "fixed"
         }),
-        // If no auth middleware, add: user: localStorage.getItem('userId') || 'your-default'
       };
   
       const response = await fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}/api/quick-receipt`, {
@@ -181,14 +180,14 @@ const Receipt: React.FC = () => {
       toast.success("Receipt is being prepared, wait to print");
       console.log('Receipt created:', data);
       
-      // Reset form
       setInputs([]);
       setSubtraction({ value: 0 });
       setSubtotal(0);
       setVatAmount(0);
       setTotalAfterVat(0);
       setDiscount({ name: '', value: 0, isPercentage: false });
-      localStorage.clear();  // ← FIXED: Clear all keys at once
+      setShow(false);                    // Reset SMS input too
+      localStorage.clear();
       
       navigate("/receipt-template");
     } catch (error) {
@@ -227,13 +226,12 @@ const Receipt: React.FC = () => {
             Percentage Discount
           </label>
           <div className={receipts.discountButtons}>
- <button onClick={() => setShowDiscountPopup(false)}>Apply</button>
-          <button onClick={() => {
-            setDiscount({ name: '', value: 0, isPercentage: false });
-            setShowDiscountPopup(false);
-          }}>Remove</button>
+            <button onClick={() => setShowDiscountPopup(false)}>Apply</button>
+            <button onClick={() => {
+              setDiscount({ name: '', value: 0, isPercentage: false });
+              setShowDiscountPopup(false);
+            }}>Remove</button>
           </div>
-         
         </div>
       </div>
     );
@@ -256,18 +254,10 @@ const Receipt: React.FC = () => {
                    
         <div className={receipts.receiptForm}>
           <div className={receipts.titles}>
-            <div className="product">
-              <h4>Product</h4>
-            </div>
-            <div className="quantity">
-              <h4>Quantity</h4>
-            </div>
-            <div className="unit">
-              <h4>Unit(kg)</h4>
-            </div>
-            <div className="price">
-              <h4>Price(P)</h4>
-            </div>
+            <div className="product"><h4>Product</h4></div>
+            <div className="quantity"><h4>Quantity</h4></div>
+            <div className="unit"><h4>Unit(kg)</h4></div>
+            <div className="price"><h4>Price(P)</h4></div>
           </div>
 
           {inputs.map((input) => (
@@ -350,18 +340,14 @@ const Receipt: React.FC = () => {
             <button className={receipts.print} onClick={submitData}>
               Compose 
             </button>
-            <Link to="/receipt-template">
-            <button className={receipts.sales} >
-              Recent
+
+            <button 
+              className={receipts.sms} 
+              onClick={showSendersNumber}
+            >
+              SMS
             </button>
-            </Link>
-            
-            {show && (
-              <div className={receipts.senders}>
-                <input type="number" placeholder='enter number'/>
-                <button>Data</button>
-              </div>
-            )}
+
             <button 
               className={receipts.sms} 
               onClick={() => setShowDiscountPopup(true)}
@@ -373,6 +359,11 @@ const Receipt: React.FC = () => {
               <FaPlus/>  
               Cell
             </button>
+
+            <Link to="/receipt-template">
+              <button className={receipts.sales}>Recent</button>
+            </Link>
+            
             <div className={receipts.tooltipContainer}>
               <Link to='/generative-scanner' className={receipts.hoverTrigger}>
                 <button className={receipts.sales}>Sell</button>
@@ -383,8 +374,16 @@ const Receipt: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {show && (
+            <div className={receipts.senders}>
+              <input type="number" placeholder='enter number'/>
+              <button>Data</button>
+            </div>
+          )}
         </div>
       </div>
+
       {showDiscountPopup && <DiscountPopup />}
     </div>
   );

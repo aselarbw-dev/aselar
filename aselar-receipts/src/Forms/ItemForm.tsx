@@ -180,7 +180,11 @@ const ItemForm: React.FC<ItemFormProps> = ({ categoryId, editingItem, onEditComp
       />
 
       {/* NEW: Image Upload (Optional) */}
-   
+      <input 
+        type="file" 
+        accept="image/*" 
+        onChange={handleImageUpload} 
+      />
       {image && <small>Image selected</small>}
 
       <button type="submit">

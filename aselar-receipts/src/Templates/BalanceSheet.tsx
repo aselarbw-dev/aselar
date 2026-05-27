@@ -159,7 +159,7 @@ const BalanceSheet: React.FC<BalanceSheetProps> = ({
       ['Period:', period, '', ''],
       ['', '', '', ''],
       ['Assets', '', 'Liabilities & Equity', ''],
-      ...assets.flatMap((section, sectionIndex) => [
+      ...assets.flatMap((section, _sectionIndex) => [
         [`${section.title}:`, '', '', ''],
         ...section.items.map(item => [
           item.label,
@@ -216,8 +216,12 @@ const BalanceSheet: React.FC<BalanceSheetProps> = ({
     XLSX.writeFile(workbook, `${company.name.replace(/\s+/g, '_')}_Balance_Sheet_${period.replace(/\s+/g, '_')}.xlsx`);
   };
 
-  // Render account section
-  const renderAccountSection = (section: AccountSection, isLeftColumn = true) => {
+  // Fixed: Parameters are now prefixed with _ to suppress unused variable warnings
+  const renderAccountSection = (
+    section: AccountSection, 
+    _isLeftColumn: boolean = true, 
+    _sectionIndex: number = 0
+  ) => {
     return (
       <div className={styles.accountSection}>
         <h5 className={styles.sectionTitle}>{section.title}</h5>
@@ -231,7 +235,9 @@ const BalanceSheet: React.FC<BalanceSheetProps> = ({
         {section.showTotal && (
           <div className={styles.totalRow}>
             <h3>Total {section.title}</h3>
-            <h3 className={styles.value}>{formatCurrency(section.items.reduce((sum, item) => sum + item.value, 0))}</h3>
+            <h3 className={styles.value}>
+              {formatCurrency(section.items.reduce((sum, item) => sum + item.value, 0))}
+            </h3>
           </div>
         )}
       </div>
@@ -246,9 +252,9 @@ const BalanceSheet: React.FC<BalanceSheetProps> = ({
         label: 'Amount',
         data: [totalAssets, totalLiabilities, totalEquity],
         backgroundColor: [
-          'rgba(54, 162, 235, 0.6)', // Assets - blue
-          'rgba(255, 99, 132, 0.6)',  // Liabilities - red
-          'rgba(75, 192, 192, 0.6)'   // Equity - green
+          'rgba(54, 162, 235, 0.6)',
+          'rgba(255, 99, 132, 0.6)',
+          'rgba(75, 192, 192, 0.6)'
         ],
         borderColor: [
           'rgba(54, 162, 235, 1)',
@@ -264,9 +270,7 @@ const BalanceSheet: React.FC<BalanceSheetProps> = ({
   const chartOptions: ChartOptions<'bar'> = {
     responsive: true,
     plugins: {
-      legend: {
-        display: false,
-      },
+      legend: { display: false },
       title: {
         display: true,
         text: 'Balance Sheet Composition',
@@ -283,12 +287,7 @@ const BalanceSheet: React.FC<BalanceSheetProps> = ({
       y: {
         beginAtZero: true,
         ticks: {
-          callback: (value) => {
-            if (typeof value === 'string') {
-              return `${currency} ${parseFloat(value).toLocaleString()}`;
-            }
-            return `${currency} ${value.toLocaleString()}`;
-          }
+          callback: (value) => `${currency} ${Number(value).toLocaleString()}`,
         }
       }
     }
@@ -326,16 +325,16 @@ const BalanceSheet: React.FC<BalanceSheetProps> = ({
             <h5>{period}</h5>
           </div>
           
-          {/* Two-column layout for Assets and Liabilities+Equity */}
+          {/* Two-column layout */}
           <div className={styles.columns}>
             {/* Assets Column */}
             <div className={styles.assetsColumn}>
               <div className={styles.columnHeader}>
                 <h4>Assets</h4>
               </div>
-              {assets.map((section, index) => (
-                <div key={index}>
-                  {renderAccountSection(section)}
+              {assets.map((section, sectionIndex) => (
+                <div key={sectionIndex}>
+                  {renderAccountSection(section, true, sectionIndex)}
                 </div>
               ))}
               <div className={styles.grandTotal}>
@@ -349,14 +348,14 @@ const BalanceSheet: React.FC<BalanceSheetProps> = ({
               <div className={styles.columnHeader}>
                 <h4>Liabilities & Equity</h4>
               </div>
-              {liabilities.map((section, index) => (
-                <div key={index}>
-                  {renderAccountSection(section, false)}
+              {liabilities.map((section, sectionIndex) => (
+                <div key={sectionIndex}>
+                  {renderAccountSection(section, false, sectionIndex)}
                 </div>
               ))}
-              {equity.map((section, index) => (
-                <div key={index}>
-                  {renderAccountSection(section, false)}
+              {equity.map((section, sectionIndex) => (
+                <div key={sectionIndex}>
+                  {renderAccountSection(section, false, sectionIndex)}
                 </div>
               ))}
               <div className={styles.grandTotal}>

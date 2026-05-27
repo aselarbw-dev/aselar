@@ -45,7 +45,7 @@ export const useActivityTracker = ({
     onBeforeUnload();
     
     // Optional: Show confirmation dialog
-    // event.preventDefault();
+     event.preventDefault();
     // event.returnValue = '';
   }, [onBeforeUnload, enabled]);
 

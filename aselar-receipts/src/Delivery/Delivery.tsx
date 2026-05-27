@@ -54,7 +54,7 @@ const Delivery: React.FC = () => {
 
       if (response.ok) {
         const result = await response.json();
-        setSubmitMessage('Debt collection note submitted successfully!');
+        setSubmitMessage(result.message || 'Debt collection note submitted successfully!');
         toast.success("Debt collection note submitted successfully!");
         navigate("/debt-delivery")
         // Reset form

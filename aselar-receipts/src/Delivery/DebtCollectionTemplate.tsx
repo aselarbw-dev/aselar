@@ -359,7 +359,9 @@ const DebtCollectionTemplate: React.FC = () => {
     return ReactDOMServer.renderToString(
       <div className={styles.container}>
         <div className={styles.header}>
-          <div className={styles.logo}>TEX</div>
+          <div className={styles.logo}>
+            <img src={profileData?.profilePicture || ''} alt="logo" className={styles.logo} />
+          </div>
           <div className={styles.companyInfo}>
             <div>{profileData?.nameOfBusiness || 'TeX-Technology Extreme'}</div>
             <div>{profileData?.emailBusiness || ''}</div>
@@ -436,7 +438,10 @@ const DebtCollectionTemplate: React.FC = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div className={styles.logo}>TEX</div>
+        <div className={styles.logo}>
+<img src={profileData?.profilePicture || ''} alt="" className={styles.logo} />
+
+        </div>
         <div className={styles.companyInfo}>
           <div>{profileData?.nameOfBusiness || 'TeX-Technology Extreme'}</div>
           <div>{profileData?.emailBusiness || ''}</div>
@@ -565,6 +570,16 @@ const DebtCollectionTemplate: React.FC = () => {
               </a>
             </div>
           )}
+{downloadUrl && (
+              <a
+                href={downloadUrl}
+                download="debt-note.pdf"
+                style={{ display: 'block', marginTop: '10px', color: '#007bff' }}
+              >
+                Download PDF
+              </a>
+            ) }
+
           <button
             onClick={closeQRModal}
             style={{

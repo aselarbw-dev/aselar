@@ -154,7 +154,7 @@ Using both RAG and generative AI to prepare IS7, Income Statements, receipts,
               {/* Stats */}
               <div className={Herostyles.stats}>
                 <div className={Herostyles.statItem}>
-                  <div className={Herostyles.statNumber}>10K+</div>
+                  <div className={Herostyles.statNumber}>300+</div>
                   <div className={Herostyles.statLabel}>Businesses</div>
                 </div>
                 <div className={Herostyles.statItem}>

@@ -37,7 +37,10 @@ const setupCookieSecurity = (app) => {
   // CORS with cookie support
   const corsOptions = {
     origin: function (origin, callback) {
-      const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173'];
+      const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173',
+         'https://aselar.vercel.app',
+    'https://aselar-git-main-aselarbw-5973s-projects.vercel.app/'
+      ];
       
       // Allow requests with no origin (mobile apps, Postman, etc.)
       if (!origin) return callback(null, true);

@@ -103,6 +103,14 @@ mongoose
     console.error("Database connection failed:", err);
     process.exit(1);
   });
+  app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://avelarai.vercel.app',
+    'https://avelarai-git-main-avelarai269-4786s-projects.vercel.app'
+  ],
+  credentials: true
+}));
   // Global error handler
 app.use((err, req, res, next) => {
   console.error('Global error handler:', err);

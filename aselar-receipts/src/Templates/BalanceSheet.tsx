@@ -1,7 +1,7 @@
 // BalanceSheet.tsx
 import React, { useState, useRef } from 'react';
 import styles from './BalanceSheet.module.css';
-import income from '../assets/tesla-logo-7408969_1280.png';
+import income from '../assets/apparel-1850804_640.jpg';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ChartOptions } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { toPng } from 'html-to-image';

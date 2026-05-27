@@ -1,7 +1,7 @@
 // IncomeStatement.tsx (Cookie-Based Authentication)
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './IncomeStatement.module.css';
-import income from '../assets/tesla-logo-7408969_1280.png';
+//import income from '../assets/tesla-logo-7408969_1280.png';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ChartOptions } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { toPng } from 'html-to-image';
@@ -390,7 +390,8 @@ const IncomeStatement: React.FC<IncomeStatementProps> = ({
             </div>
             
             <div className={styles.logo}>
-               <img src={income} alt="company logo" />
+              {/* <img src={income} alt="company logo" />*/}
+               
             </div>
             
             <div className={styles.contacts}>

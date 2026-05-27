@@ -1,7 +1,7 @@
 // BalanceSheet.tsx
 import React, { useState, useRef } from 'react';
 import styles from './BalanceSheet.module.css';
-import income from '../assets/apparel-1850804_640.jpg';
+//import income from '../assets/apparel-1850804_640.jpg';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ChartOptions } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { toPng } from 'html-to-image';
@@ -307,7 +307,8 @@ const BalanceSheet: React.FC<BalanceSheetProps> = ({
             </div>
             
             <div className={styles.logo}>
-              <img src={income} alt="company logo" />
+              company logo 
+              {/*<img src={income} alt="company logo" /> */}
             </div>
             
             <div className={styles.contacts}>

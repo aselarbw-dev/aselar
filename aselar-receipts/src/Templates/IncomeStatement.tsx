@@ -390,7 +390,7 @@ const IncomeStatement: React.FC<IncomeStatementProps> = ({
             </div>
             
             <div className={styles.logo}>
-              <img src={income} alt="company logo" />
+               <img src={income} alt="company logo" />
             </div>
             
             <div className={styles.contacts}>

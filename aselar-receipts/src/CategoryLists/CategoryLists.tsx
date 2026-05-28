@@ -15,7 +15,7 @@ const CategoriesLists: React.FC<{ onSelectCategory: (categoryId: string) => void
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/get-categories1`, {
+        const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/get-categories`, {
           credentials: 'include',
            headers: { 'Content-Type': 'application/json',
           'authorization': `Bearer ${localStorage.getItem("token")}`

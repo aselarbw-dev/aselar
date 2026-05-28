@@ -10,7 +10,7 @@ export interface Category {
   items: Item[];
   user: string;
 }
-const token = localStorage.getItem("token");
+
 export interface Item {
   _id: string;
   name: string;
@@ -54,7 +54,8 @@ export const submitCategory = createAsyncThunk(
         ...dataToSend, 
         imageLength: dataToSend.image?.length 
       });
-
+ const token = localStorage.getItem("token"); // ← moved inside
+      console.log('Making API request, token:', token ? 'Present' : 'Missing');
       const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/add-category`, {
         method: 'POST',
         mode: "cors",
@@ -83,6 +84,8 @@ export const submitItem = createAsyncThunk(
   'items/submitItem',
   async (payload: { categoryId: string; item: Omit<Item, '_id'> }) => {
     try {
+       const token = localStorage.getItem("token"); // ← moved inside
+      console.log('Making API request, token:', token ? 'Present' : 'Missing');
       const { categoryId, item } = payload;
       const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/add-item/${categoryId}`, {
         method: 'POST',
@@ -111,7 +114,8 @@ export const getCategories = createAsyncThunk(
   'categories/getCategories',
   async () => {
     try {
-      console.log('Making API request');
+       const token = localStorage.getItem("token"); // ← moved inside
+      console.log('Making API request, token:', token ? 'Present' : 'Missing');
       const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/get-categories`, {
         credentials: 'include',
         cache: "no-cache",
@@ -139,6 +143,8 @@ export const removeItem = createAsyncThunk(
   'items/removeItem',
   async (payload: { categoryId: string; itemId: string }) => {
     try {
+       const token = localStorage.getItem("token"); // ← moved inside
+      console.log('Making API request, token:', token ? 'Present' : 'Missing');
       console.log("Attempting to delete:", payload);
       
       const response = await fetch(
@@ -176,6 +182,8 @@ export const removeCategory = createAsyncThunk(
   'categories/removeCategory',
   async (categoryId: string, { rejectWithValue }) => {
     try {
+      const token = localStorage.getItem("token"); // ← moved inside
+      console.log('Making API request, token:', token ? 'Present' : 'Missing');
       const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/remove-category/${categoryId}`, {
         method: 'DELETE',
         headers: {
@@ -201,6 +209,8 @@ export const removeCategory = createAsyncThunk(
 export const editItem = createAsyncThunk(
   'inventory/editItem',
   async (payload: { categoryId: string; itemId: string; updates: any }) => {
+     const token = localStorage.getItem("token"); // ← moved inside
+      console.log('Making API request, token:', token ? 'Present' : 'Missing');
     const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/items/${payload.categoryId}/${payload.itemId}`, {
       method: 'PUT',
       credentials: 'include',
@@ -224,6 +234,8 @@ export const bulkUpload = createAsyncThunk<
   'inventory/bulkUpload',
   async (file: File, { rejectWithValue }) => {
     try {
+       const token = localStorage.getItem("token"); // ← moved inside
+      console.log('Making API request, token:', token ? 'Present' : 'Missing');
       const formData = new FormData();
       formData.append('file', file);
 

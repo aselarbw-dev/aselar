@@ -39,7 +39,7 @@ const setupCookieSecurity = (app) => {
     origin: function (origin, callback) {
       const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173',
          'https://aselar.vercel.app',
-    'https://aselar-git-main-aselarbw-5973s-projects.vercel.app/'
+    'https://aselar-git-main-aselarbw-5973s-projects.vercel.app'
       ];
       
       // Allow requests with no origin (mobile apps, Postman, etc.)

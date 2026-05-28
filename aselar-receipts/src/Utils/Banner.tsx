@@ -47,7 +47,7 @@ const Banner = ({ isCollapsed }: BannerProps) => {
     const fetchUserProfile = async () => {
       try {
         const response = await axios.get<UserProfile>(
-          `${import.meta.env.VITE_AUTH_SERVICE_URL}/api/profile`,
+          `${import.meta.env.VITE_AUTH_SERVICE_URL}api/profile`,
           {
             withCredentials: true,
           }

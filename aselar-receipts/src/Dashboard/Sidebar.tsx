@@ -190,7 +190,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const handleVerifyPasscode = async (enteredPasscode: string) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/verify-passcode`, {
+      const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/verify-passcode`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ passcode: enteredPasscode }),

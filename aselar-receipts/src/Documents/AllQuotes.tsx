@@ -138,11 +138,11 @@ const AllQuotes: React.FC = () => {
     const fetchBusinessAndProfile = async () => {
       try {
         const [businessResponse, profileResponse] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/get-business`, {
+          axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/get-business`, {
             headers: { 'Content-Type': 'application/json' },
             withCredentials: true,
           }),
-          axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/profile`, {
+          axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/profile`, {
             headers: { 'Content-Type': 'application/json' },
             withCredentials: true,
           })
@@ -166,7 +166,7 @@ const AllQuotes: React.FC = () => {
   const fetchQuotes = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}/api/get-all-quotes`, {
+      const response = await axios.get(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}api/get-all-quotes`, {
         withCredentials: true,
       });
       
@@ -301,7 +301,7 @@ const AllQuotes: React.FC = () => {
     setDeletingId(quoteId);
     
     try {
-      await axios.delete(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}/api/quotes/${quoteId}`, {
+      await axios.delete(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}api/quotes/${quoteId}`, {
         withCredentials: true,
       });
       toast.success('Quote deleted successfully!');

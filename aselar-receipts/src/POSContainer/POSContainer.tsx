@@ -145,7 +145,7 @@ const POSContainer: React.FC = () => {
 
   const openDrawer = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}/api/open-drawer`, {
+      const res = await fetch(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/open-drawer`, {
         method: "POST",
      
       });
@@ -181,7 +181,7 @@ const POSContainer: React.FC = () => {
         setLoadingItems(true);
         setError(null);
         try {
-          const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}/api/get-items/${selectedCategoryId}`, {
+          const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/get-items/${selectedCategoryId}`, {
             credentials: 'include', // Include credentials (cookies, auth headers)
           });
 
@@ -248,7 +248,7 @@ const POSContainer: React.FC = () => {
   // NEW: Direct API call to process sale and deduct inventory (no Redux needed)
   const processSaleDirect = async (soldItems: { categoryId: string; itemId: string; soldQuantity: number }[]) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}/api/process-sale`, {
+      const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/process-sale`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -302,7 +302,7 @@ const POSContainer: React.FC = () => {
       };
       
       // Send to backend
-      const response = await fetch(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}/api/submit-receipt`, {
+      const response = await fetch(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/submit-receipt`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

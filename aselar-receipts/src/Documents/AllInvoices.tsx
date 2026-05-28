@@ -142,11 +142,11 @@ const AllInvoices: React.FC = () => {
     const fetchBusinessAndProfile = async () => {
       try {
         const [businessResponse, profileResponse] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/get-business`, {
+          axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/get-business`, {
             headers: { 'Content-Type': 'application/json' },
             withCredentials: true,
           }),
-          axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/profile`, {
+          axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/profile`, {
             headers: { 'Content-Type': 'application/json' },
             withCredentials: true,
           })

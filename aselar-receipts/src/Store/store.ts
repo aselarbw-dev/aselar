@@ -55,7 +55,7 @@ export const submitCategory = createAsyncThunk(
         imageLength: dataToSend.image?.length 
       });
 
-      const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}/api/add-category`, {
+      const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/add-category`, {
         method: 'POST',
         mode: "cors",
         headers: {
@@ -110,7 +110,7 @@ export const getCategories = createAsyncThunk(
   async () => {
     try {
       console.log('Making API request');
-      const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}/api/get-categories`, {
+      const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/get-categories`, {
         credentials: 'include',
         cache: "no-cache",
       });
@@ -136,7 +136,7 @@ export const removeItem = createAsyncThunk(
       console.log("Attempting to delete:", payload);
       
       const response = await fetch(
-        `${import.meta.env.VITE_CATEGORIES_SERVICE_URL}/api/remove-item/${payload.categoryId}/${payload.itemId}`,
+        `${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/remove-item/${payload.categoryId}/${payload.itemId}`,
         {
           method: 'DELETE',
           credentials: 'include',
@@ -166,7 +166,7 @@ export const removeCategory = createAsyncThunk(
   'categories/removeCategory',
   async (categoryId: string, { rejectWithValue }) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}/api/remove-category/${categoryId}`, {
+      const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/remove-category/${categoryId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -187,7 +187,7 @@ export const removeCategory = createAsyncThunk(
 export const editItem = createAsyncThunk(
   'inventory/editItem',
   async (payload: { categoryId: string; itemId: string; updates: any }) => {
-    const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}/api/items/${payload.categoryId}/${payload.itemId}`, {
+    const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/items/${payload.categoryId}/${payload.itemId}`, {
       method: 'PUT',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -210,7 +210,7 @@ export const bulkUpload = createAsyncThunk<
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}/api/bulk-upload`, {  // Standardized port to 5009
+      const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/bulk-upload`, {  // Standardized port to 5009
         method: 'POST',
         credentials: 'include',
         body: formData,

@@ -126,11 +126,11 @@ const AllExpenses: React.FC = () => {
     const fetchBusinessAndProfile = async () => {
       try {
         const [businessResponse, profileResponse] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/get-business`, {
+          axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/get-business`, {
             headers: { 'Content-Type': 'application/json' },
             withCredentials: true,
           }),
-          axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/profile`, {
+          axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/profile`, {
             headers: { 'Content-Type': 'application/json' },
             withCredentials: true,
           })
@@ -155,7 +155,7 @@ const AllExpenses: React.FC = () => {
     try {
       setLoading(true);
       // Adjust port/endpoint to your expenses server (e.g., 5007/api/expenses—update as needed)
-      const response = await axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/get-expenses`, {  // ← Mirror: Update port/path
+      const response = await axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/get-expenses`, {  // ← Mirror: Update port/path
         withCredentials: true,
       });
       
@@ -282,7 +282,7 @@ const AllExpenses: React.FC = () => {
     
     try {
       // Adjust endpoint/port to match your expenses server
-      await axios.delete(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/expenses/${expenseId}`, {  // ← Mirror: Update port/path
+      await axios.delete(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/expenses/${expenseId}`, {  // ← Mirror: Update port/path
         withCredentials: true,
       });
       toast.success('Expense deleted successfully!');

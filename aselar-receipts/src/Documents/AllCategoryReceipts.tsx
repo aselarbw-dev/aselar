@@ -142,11 +142,11 @@ const AllCategoryReceipts: React.FC = () => {
     const fetchBusinessAndProfile = async () => {
       try {
         const [businessResponse, profileResponse] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/get-business`, {
+          axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/get-business`, {
             headers: { 'Content-Type': 'application/json' },
             withCredentials: true,
           }),
-          axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/profile`, {
+          axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/profile`, {
             headers: { 'Content-Type': 'application/json' },
             withCredentials: true,
           })
@@ -170,7 +170,7 @@ const AllCategoryReceipts: React.FC = () => {
   const fetchReceipts = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}/api/receipts`, {
+      const response = await axios.get(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/receipts`, {
         withCredentials: true,
       });
       
@@ -312,7 +312,7 @@ const AllCategoryReceipts: React.FC = () => {
     setDeletingId(receiptId);
     
     try {
-      await axios.delete(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}/api/receipts/${receiptId}`, {
+      await axios.delete(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/receipts/${receiptId}`, {
         withCredentials: true,
       });
       toast.success('Receipt deleted successfully!');

@@ -10,7 +10,7 @@ export interface Category {
   items: Item[];
   user: string;
 }
-
+const token = localStorage.getItem("token");
 export interface Item {
   _id: string;
   name: string;
@@ -60,6 +60,7 @@ export const submitCategory = createAsyncThunk(
         mode: "cors",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         credentials: 'include',
         body: JSON.stringify(dataToSend),
@@ -83,10 +84,11 @@ export const submitItem = createAsyncThunk(
   async (payload: { categoryId: string; item: Omit<Item, '_id'> }) => {
     try {
       const { categoryId, item } = payload;
-      const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}/api/add-item/${categoryId}`, {
+      const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/add-item/${categoryId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          "Authorization": `Bearer ${token}`
         },
         credentials: 'include',
         body: JSON.stringify(item),
@@ -113,6 +115,10 @@ export const getCategories = createAsyncThunk(
       const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/get-categories`, {
         credentials: 'include',
         cache: "no-cache",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
       });
       console.log("Response", response);
 
@@ -140,6 +146,10 @@ export const removeItem = createAsyncThunk(
         {
           method: 'DELETE',
           credentials: 'include',
+          headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         }
       );
       
@@ -168,6 +178,10 @@ export const removeCategory = createAsyncThunk(
     try {
       const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/remove-category/${categoryId}`, {
         method: 'DELETE',
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         credentials: 'include',
       });
 
@@ -190,7 +204,10 @@ export const editItem = createAsyncThunk(
     const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/items/${payload.categoryId}/${payload.itemId}`, {
       method: 'PUT',
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
       body: JSON.stringify(payload.updates),
     });
     if (!response.ok) throw new Error('Failed to edit item');
@@ -213,6 +230,10 @@ export const bulkUpload = createAsyncThunk<
       const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/bulk-upload`, {  // Standardized port to 5009
         method: 'POST',
         credentials: 'include',
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         body: formData,
       });
 

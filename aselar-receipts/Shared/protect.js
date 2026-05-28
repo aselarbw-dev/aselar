@@ -25,10 +25,17 @@ const protect = async (req, res, next) => {
 
         // Import User model after ensuring DB connection
         const User = require('./model');
+let token;
 
-        const token = req.cookies.token;
-        console.log('🔐 Token from cookies:', token ? 'Present' : 'Missing');
-
+if (req.headers.authorization?.startsWith("Bearer")) {
+    token = req.headers.authorization.split(" ")[1];
+    console.log('🔐 Token from Authorization header:', 'Present');
+} else if (req.cookies?.token) {
+    token = req.cookies.token;
+    console.log('🔐 Token from cookies:', 'Present');
+} else {
+    console.log('🔐 Token: Missing from both header and cookies');
+}
         if (!token) {
             return res.status(401).json({
                 message: "Not authorized, please login"

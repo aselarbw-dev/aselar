@@ -82,19 +82,20 @@ const SignIn: React.FC= () => {
       password: formData.password
     };
 
-    const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/business-login`, {
-      method: "POST",
-      mode: "cors",
-      body: JSON.stringify(loginPayload),
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    });
+   const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/business-login`, {
+  method: "POST",
+  mode: "cors",
+  body: JSON.stringify(loginPayload),
+  credentials: "include",
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+});
 
-    const data = await response.json();
-    
+const data = await response.json();
+localStorage.setItem("token", data.token); // ← was response.data.token
+
     // ADD THESE DEBUG LOGS
     console.log("Response status:", response.status);
     console.log("Response ok:", response.ok);

@@ -82,7 +82,7 @@ const SignIn: React.FC= () => {
       password: formData.password
     };
 
-    const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/business-login`, {
+    const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/business-login`, {
       method: "POST",
       mode: "cors",
       body: JSON.stringify(loginPayload),

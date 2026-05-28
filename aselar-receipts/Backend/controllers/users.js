@@ -252,10 +252,10 @@ const loginBusiness = asyncHandler(async(req, res) => {
     // Send HTTP-only cookie
     res.cookie("token", token, {
   path: "/",
-  httpOnly: true,    
-  maxAge: 24 * 60 * 60 * 1000, // 1 day
-  sameSite: "strict",
-  secure: process.env.NODE_ENV === "production", // 👈 Automatically true in production
+  httpOnly: true,
+  maxAge: 24 * 60 * 60 * 1000,
+  sameSite: "none",   // ← changed from "strict"
+  secure: true,   // 👈 Automatically true in production
 });
 
 

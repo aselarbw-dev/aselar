@@ -50,7 +50,7 @@ const Banking: React.FC<BankingProps> = () => {
         setSubmitStatus(null);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/banking`, {
+            const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/banking`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {

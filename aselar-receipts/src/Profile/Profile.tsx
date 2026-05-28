@@ -32,14 +32,14 @@ const Profile:React.FC= () => {
             // Fetch all data simultaneously
             const [businessResponse, profileResponse] = await Promise.all([
             
-              fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/get-business`, {
+              fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/get-business`, {
                 headers: {
                 
                   'Content-Type': 'application/json'
                 },
                 credentials: "include"
               }),
-              fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/profile`, {
+              fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/profile`, {
                 headers: {
      // Adjust based on your auth method
                   'Content-Type': 'application/json'

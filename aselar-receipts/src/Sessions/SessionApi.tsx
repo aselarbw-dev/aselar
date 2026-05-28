@@ -21,7 +21,7 @@ const createFetchOptions = (method: string, body?: any): RequestInit => {
 // Lock user session
 export const lockUserSession = async (reason: 'inactivity' | 'navigation' = 'inactivity') => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/lock`, 
+    const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/lock`, 
       createFetchOptions('POST', { reason })
     );
 
@@ -36,7 +36,7 @@ export const lockUserSession = async (reason: 'inactivity' | 'navigation' = 'ina
 // Check session status
 export const checkSessionStatus = async () => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/status`, 
+    const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/status`, 
       createFetchOptions('GET')
     );
 

@@ -216,7 +216,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 const signOut = async (): Promise<void> => {
   try {
     // Call backend logout with proper payload
-    await fetch("/api/logout", {
+    await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/logout`, {
       method: "POST",
       credentials: 'include',
       headers: {

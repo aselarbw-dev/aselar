@@ -24,7 +24,7 @@ const DeleteAccountButton = () => {
 
     setIsLoading(true);
     try {
-      await axios.delete(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/delete-account`,
+      await axios.delete(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/delete-account`,
          { withCredentials: true });
       navigate('/goodbye');
     } catch (error) {

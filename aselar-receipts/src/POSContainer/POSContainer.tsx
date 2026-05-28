@@ -147,6 +147,11 @@ const POSContainer: React.FC = () => {
     try {
       const res = await fetch(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/open-drawer`, {
         method: "POST",
+         headers: { 'Content-Type': 'application/json',
+          'authorization': `Bearer ${localStorage.getItem("token")}`
+
+
+         },        credentials: "include",
      
       });
       const data = await res.json();
@@ -182,7 +187,12 @@ const POSContainer: React.FC = () => {
         setError(null);
         try {
           const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/get-items/${selectedCategoryId}`, {
-            credentials: 'include', // Include credentials (cookies, auth headers)
+            credentials: 'include',
+             headers: { 'Content-Type': 'application/json',
+          'authorization': `Bearer ${localStorage.getItem("token")}`
+
+
+         }, // Include credentials (cookies, auth headers)
           });
 
           if (!response.ok) {
@@ -251,7 +261,11 @@ const POSContainer: React.FC = () => {
       const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/process-sale`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json',
+          'authorization': `Bearer ${localStorage.getItem("token")}`
+
+
+         },
         body: JSON.stringify({ soldItems }),
       });
 
@@ -304,9 +318,11 @@ const POSContainer: React.FC = () => {
       // Send to backend
       const response = await fetch(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/submit-receipt`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+         headers: { 'Content-Type': 'application/json',
+          'authorization': `Bearer ${localStorage.getItem("token")}`
+
+
+         },
         credentials: 'include',
         body: JSON.stringify(receiptData),
       });

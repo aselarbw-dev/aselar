@@ -15,7 +15,7 @@ const ChangePasswordForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.put(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/change-password`, {
+      const response = await axios.put(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/change-password`, {
         withCredentials: true,
         currentPassword,
         newPassword,

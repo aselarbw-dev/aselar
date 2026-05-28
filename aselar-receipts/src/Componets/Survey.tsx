@@ -37,7 +37,7 @@ const navigate=useNavigate()
       try {
 
         
-        const response= await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/verify-business`,{
+        const response= await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/verify-business`,{
             method:"POST",
             mode:"cors",
             body:JSON.stringify(formData),

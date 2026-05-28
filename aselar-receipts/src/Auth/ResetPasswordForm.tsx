@@ -12,7 +12,7 @@ const ResetPasswordForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.put(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/reset-password/${token}`, { password });
+      const response = await axios.put(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/reset-password/${token}`, { password });
       setMessage(response.data.message);
       setError('');
     } catch (err: any) {

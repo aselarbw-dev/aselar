@@ -19,7 +19,7 @@ const PasscodePage = () => {
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/set-passcode`, {
+      const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/set-passcode`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ passcode }),

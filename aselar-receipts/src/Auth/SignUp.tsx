@@ -139,7 +139,7 @@ const SignUp: React.FC = () => {
     setLoad(true);
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/business-signup`, {
+      const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/business-signup`, {
         method: "POST",
         body: formData,
         credentials: "include",

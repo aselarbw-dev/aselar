@@ -11,7 +11,7 @@ const ForgotPasswordForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/forgot-password`, { emailBusiness: email });
+      const response = await axios.post(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/forgot-password`, { emailBusiness: email });
       setMessage(response.data.message);
       setError('');
     } catch (err: any) {

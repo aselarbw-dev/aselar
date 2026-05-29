@@ -2,7 +2,7 @@
 const { bucket } = require("./firebase");
 const { v4: uuidv4 } = require('uuid');
 const { jsPDF } = require('jspdf');
-
+const admin = require('firebase-admin');
 const QRCode = require('qrcode');
 
 class PDFServiceJsPDF {
@@ -229,57 +229,56 @@ class PDFServiceJsPDF {
   }
 
 async uploadToFirebase(pdfBuffer, filename, metadata = {}) {
-  const MAX_RETRIES = 3;
-  
-  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      const buffer = Buffer.isBuffer(pdfBuffer)
-        ? pdfBuffer
-        : Buffer.from(pdfBuffer);
+  try {
+    const buffer = Buffer.isBuffer(pdfBuffer) ? pdfBuffer : Buffer.from(pdfBuffer);
+    
+    console.log('Uploading via REST API, buffer:', buffer.length, 'bytes');
 
-      console.log(`Upload attempt ${attempt}/${MAX_RETRIES}, buffer: ${buffer.length} bytes`);
+    const token = uuidv4();
+    const bucketName = bucket.name;
+    const filePath = `receipts/${filename}`;
+    const encodedPath = encodeURIComponent(filePath);
 
-      const file = bucket.file(`receipts/${filename}`);
-      const token = uuidv4();
+    // Get access token from admin credential
+    const accessToken = await admin.app().options.credential.getAccessToken();
 
-      await new Promise((resolve, reject) => {
-        const stream = file.createWriteStream({
-          metadata: {
-            contentType: 'application/pdf',
-            metadata: {
-              firebaseStorageDownloadTokens: token,
-              createdAt: new Date().toISOString(),
-              ...metadata
-            }
-          },
-          resumable: false,
-          timeout: 30000 // ← 30s timeout
-        });
+    const uploadUrl = `https://storage.googleapis.com/upload/storage/v1/b/${bucketName}/o?uploadType=media&name=${encodedPath}`;
 
-        stream.on('error', (err) => {
-          console.error(`Stream error on attempt ${attempt}:`, err.message);
-          reject(err);
-        });
-        stream.on('finish', resolve);
-        stream.end(buffer);
-      });
+    const response = await fetch(uploadUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken.access_token}`,
+        'Content-Type': 'application/pdf',
+        'Content-Length': buffer.length
+      },
+      body: buffer
+    });
 
-      await file.makePublic();
-
-      const publicUrl = `https://storage.googleapis.com/${bucket.name}/receipts/${filename}?token=${token}`;
-
-      return { publicUrl, filename, bucket: bucket.name, path: `receipts/${filename}` };
-
-    } catch (error) {
-      console.error(`Attempt ${attempt} failed:`, error.message);
-      
-      if (attempt === MAX_RETRIES) {
-        throw new Error(`Firebase upload failed after ${MAX_RETRIES} attempts: ${error.message}`);
-      }
-      
-      // Wait before retrying (exponential backoff)
-      await new Promise(r => setTimeout(r, attempt * 1000));
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`GCS REST upload failed: ${response.status} - ${errText}`);
     }
+
+    console.log('✅ REST upload successful');
+
+    // Make public
+    const aclUrl = `https://storage.googleapis.com/storage/v1/b/${bucketName}/o/${encodedPath}/acl`;
+    await fetch(aclUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken.access_token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ entity: 'allUsers', role: 'READER' })
+    });
+
+    const publicUrl = `https://storage.googleapis.com/${bucketName}/${filePath}?token=${token}`;
+
+    return { publicUrl, filename, bucket: bucketName, path: filePath };
+
+  } catch (error) {
+    console.error('🔴 Upload error:', error);
+    throw new Error(`Firebase upload failed: ${error.message}`);
   }
 }
   // NEW METHOD: Generate QR code for existing upload result

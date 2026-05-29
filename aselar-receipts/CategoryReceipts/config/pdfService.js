@@ -228,17 +228,22 @@ class PDFServiceJsPDF {
     }
   }
 
- async uploadToFirebase(pdfBuffer, filename, metadata = {}) {
+async uploadToFirebase(pdfBuffer, filename, metadata = {}) {
   try {
-    // Ensure we have a proper Buffer
-    const buffer = Buffer.isBuffer(pdfBuffer) 
-      ? pdfBuffer 
+    const buffer = Buffer.isBuffer(pdfBuffer)
+      ? pdfBuffer
       : Buffer.from(pdfBuffer);
+
+    // 🔍 Debug logs
+    console.log('Buffer type:', typeof buffer);
+    console.log('Is Buffer:', Buffer.isBuffer(buffer));
+    console.log('Buffer length:', buffer.length);
+    console.log('Bucket name:', bucket.name);
+    console.log('Filename:', filename);
 
     const file = bucket.file(`receipts/${filename}`);
     const token = uuidv4();
 
-    // ✅ Use createWriteStream instead of file.save()
     await new Promise((resolve, reject) => {
       const stream = file.createWriteStream({
         metadata: {
@@ -252,23 +257,24 @@ class PDFServiceJsPDF {
         resumable: false
       });
 
-      stream.on('error', reject);
-      stream.on('finish', resolve);
-      stream.end(buffer); // ✅ Write buffer and close cleanly
+      stream.on('error', (err) => {
+        console.error('🔴 Stream error:', err); // ← full error object
+        reject(err);
+      });
+      stream.on('finish', () => {
+        console.log('✅ Stream finished successfully');
+        resolve();
+      });
+      stream.end(buffer);
     });
 
     await file.makePublic();
-
     const publicUrl = `https://storage.googleapis.com/${bucket.name}/receipts/${filename}?token=${token}`;
 
-    return {
-      publicUrl,
-      filename,
-      bucket: bucket.name,
-      path: `receipts/${filename}`
-    };
+    return { publicUrl, filename, bucket: bucket.name, path: `receipts/${filename}` };
+
   } catch (error) {
-    console.error('Error uploading to Firebase:', error);
+    console.error('🔴 Full Firebase error:', error); // ← full stack
     throw new Error(`Firebase upload failed: ${error.message}`);
   }
 }

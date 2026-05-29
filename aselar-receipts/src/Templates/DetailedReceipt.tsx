@@ -80,9 +80,20 @@ const DetailedReceipt: React.FC = () => {
     const fetchReceipt = async () => {
       try {
         setLoading(true);
+        const token=localStorage.getItem('token')
         const [recentReceipt, userProfile] = await Promise.all([
-          fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/recent-receipt`, { credentials: "include" }),
-          fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/profile`, { credentials: "include" })
+          fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/recent-receipt`, { credentials: "include",
+             headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+           }),
+          fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/profile`, { credentials: "include",
+             headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+           })
         ]);
 
         if (!recentReceipt.ok) throw new Error('Failed to fetch receipt data');
@@ -178,11 +189,11 @@ const DetailedReceipt: React.FC = () => {
           profilePicture: businessProfile?.profilePicture
         }
       };
-
+  const token=localStorage.getItem('token')
       const response = await fetch(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/generate-qr`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(requestData)
       });
 
@@ -338,10 +349,13 @@ const DetailedReceipt: React.FC = () => {
     try {
       const htmlContent = generateHTMLContent();
       if (!htmlContent) throw new Error("No receipt content available");
-
+    const token=localStorage.getItem('token') 
       const response = await fetch(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/email-receipt`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         credentials: 'include',
         body: JSON.stringify({
           email: customerEmail,
@@ -392,10 +406,13 @@ const DetailedReceipt: React.FC = () => {
     try {
       const htmlContent = generateHTMLContent();
       if (!htmlContent) throw new Error("No receipts data available");
-
+  const token=localStorage.getItem('token')
       const response = await fetch(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/sms-receipt`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+         headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         credentials: 'include',
         body: JSON.stringify({
           phoneNumber,
@@ -432,10 +449,13 @@ const DetailedReceipt: React.FC = () => {
     try {
       const htmlContent = generateHTMLContent();
       if (!htmlContent) throw new Error("No receipts data available");
-
+   const token=localStorage.getItem('token')
       const response = await fetch(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/whatsapp-receipt`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+         headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         credentials: 'include',
         body: JSON.stringify({
           whatsappNumber: phoneNumber,

@@ -229,56 +229,59 @@ class PDFServiceJsPDF {
   }
 
 async uploadToFirebase(pdfBuffer, filename, metadata = {}) {
-  try {
-    const buffer = Buffer.isBuffer(pdfBuffer)
-      ? pdfBuffer
-      : Buffer.from(pdfBuffer);
+  const MAX_RETRIES = 3;
+  
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const buffer = Buffer.isBuffer(pdfBuffer)
+        ? pdfBuffer
+        : Buffer.from(pdfBuffer);
 
-    // 🔍 Debug logs
-    console.log('Buffer type:', typeof buffer);
-    console.log('Is Buffer:', Buffer.isBuffer(buffer));
-    console.log('Buffer length:', buffer.length);
-    console.log('Bucket name:', bucket.name);
-    console.log('Filename:', filename);
+      console.log(`Upload attempt ${attempt}/${MAX_RETRIES}, buffer: ${buffer.length} bytes`);
 
-    const file = bucket.file(`receipts/${filename}`);
-    const token = uuidv4();
+      const file = bucket.file(`receipts/${filename}`);
+      const token = uuidv4();
 
-    await new Promise((resolve, reject) => {
-      const stream = file.createWriteStream({
-        metadata: {
-          contentType: 'application/pdf',
+      await new Promise((resolve, reject) => {
+        const stream = file.createWriteStream({
           metadata: {
-            firebaseStorageDownloadTokens: token,
-            createdAt: new Date().toISOString(),
-            ...metadata
-          }
-        },
-        resumable: false
+            contentType: 'application/pdf',
+            metadata: {
+              firebaseStorageDownloadTokens: token,
+              createdAt: new Date().toISOString(),
+              ...metadata
+            }
+          },
+          resumable: false,
+          timeout: 30000 // ← 30s timeout
+        });
+
+        stream.on('error', (err) => {
+          console.error(`Stream error on attempt ${attempt}:`, err.message);
+          reject(err);
+        });
+        stream.on('finish', resolve);
+        stream.end(buffer);
       });
 
-      stream.on('error', (err) => {
-        console.error('🔴 Stream error:', err); // ← full error object
-        reject(err);
-      });
-      stream.on('finish', () => {
-        console.log('✅ Stream finished successfully');
-        resolve();
-      });
-      stream.end(buffer);
-    });
+      await file.makePublic();
 
-    await file.makePublic();
-    const publicUrl = `https://storage.googleapis.com/${bucket.name}/receipts/${filename}?token=${token}`;
+      const publicUrl = `https://storage.googleapis.com/${bucket.name}/receipts/${filename}?token=${token}`;
 
-    return { publicUrl, filename, bucket: bucket.name, path: `receipts/${filename}` };
+      return { publicUrl, filename, bucket: bucket.name, path: `receipts/${filename}` };
 
-  } catch (error) {
-    console.error('🔴 Full Firebase error:', error); // ← full stack
-    throw new Error(`Firebase upload failed: ${error.message}`);
+    } catch (error) {
+      console.error(`Attempt ${attempt} failed:`, error.message);
+      
+      if (attempt === MAX_RETRIES) {
+        throw new Error(`Firebase upload failed after ${MAX_RETRIES} attempts: ${error.message}`);
+      }
+      
+      // Wait before retrying (exponential backoff)
+      await new Promise(r => setTimeout(r, attempt * 1000));
+    }
   }
 }
-
   // NEW METHOD: Generate QR code for existing upload result
   async generateQRForUpload(uploadResult) {
     try {

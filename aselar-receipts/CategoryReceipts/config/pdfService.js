@@ -228,12 +228,19 @@ class PDFServiceJsPDF {
     }
   }
 
-  async uploadToFirebase(pdfBuffer, filename, metadata = {}) {
-    try {
-      const file = bucket.file(`receipts/${filename}`); // Changed path from 'quotations/' to 'receipts/'
-      const token = uuidv4();
+ async uploadToFirebase(pdfBuffer, filename, metadata = {}) {
+  try {
+    // Ensure we have a proper Buffer
+    const buffer = Buffer.isBuffer(pdfBuffer) 
+      ? pdfBuffer 
+      : Buffer.from(pdfBuffer);
 
-      await file.save(pdfBuffer, {
+    const file = bucket.file(`receipts/${filename}`);
+    const token = uuidv4();
+
+    // ✅ Use createWriteStream instead of file.save()
+    await new Promise((resolve, reject) => {
+      const stream = file.createWriteStream({
         metadata: {
           contentType: 'application/pdf',
           metadata: {
@@ -245,23 +252,26 @@ class PDFServiceJsPDF {
         resumable: false
       });
 
-      // Make the file publicly accessible
-      await file.makePublic();
+      stream.on('error', reject);
+      stream.on('finish', resolve);
+      stream.end(buffer); // ✅ Write buffer and close cleanly
+    });
 
-      // Generate public URL with token
-      const publicUrl = `https://storage.googleapis.com/${bucket.name}/receipts/${filename}?token=${token}`;
+    await file.makePublic();
 
-      return {
-        publicUrl,
-        filename,
-        bucket: bucket.name,
-        path: `receipts/${filename}`
-      };
-    } catch (error) {
-      console.error('Error uploading to Firebase:', error);
-      throw new Error(`Firebase upload failed: ${error.message}`);
-    }
+    const publicUrl = `https://storage.googleapis.com/${bucket.name}/receipts/${filename}?token=${token}`;
+
+    return {
+      publicUrl,
+      filename,
+      bucket: bucket.name,
+      path: `receipts/${filename}`
+    };
+  } catch (error) {
+    console.error('Error uploading to Firebase:', error);
+    throw new Error(`Firebase upload failed: ${error.message}`);
   }
+}
 
   // NEW METHOD: Generate QR code for existing upload result
   async generateQRForUpload(uploadResult) {

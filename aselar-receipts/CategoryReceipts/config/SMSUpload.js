@@ -281,19 +281,16 @@ const generateQR = async (req, res) => {
 };
 // Initialize Gmail Transporter
 const sendEmail = async ({ to, subject, html, attachments }) => {
-  const client = SibApiV3Sdk.ApiClient.instance;
-  client.authentications['api-key'].apiKey = process.env.BREVO_API_KEY;
+  const resend = new Resend(process.env.RESEND_API_KEY);
 
-  const emailApi = new SibApiV3Sdk.TransactionalEmailsApi();
-
-  await emailApi.sendTransacEmail({
-    sender: { email: process.env.BREVO_EMAIL, name: 'Aselar' },
-    to: [{ email: to }],
+  await resend.emails.send({
+    from: 'Aselar <onboarding@resend.dev>',
+    to,
     subject,
-    htmlContent: html,
-    attachment: attachments?.map(a => ({
-      name: a.filename,
-      content: Buffer.isBuffer(a.content) 
+    html,
+    attachments: attachments?.map(a => ({
+      filename: a.filename,
+      content: Buffer.isBuffer(a.content)
         ? a.content.toString('base64')
         : a.content
     }))

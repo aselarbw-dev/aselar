@@ -280,7 +280,7 @@ const generateQR = async (req, res) => {
     });
   }
 };
-// Initialize Gmail Transporter
+// Initialize resend mail Transporter
 const sendEmail = async ({ to, subject, html, attachments }) => {
   const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -417,7 +417,7 @@ await sendEmail({
   }]
 });
   
-    console.log(`✅ Email sent to ${email} | Message ID: ${info.messageId}`);
+    console.log(`✅ Email sent to ${email} `);
 
    res.json({
   success: true,

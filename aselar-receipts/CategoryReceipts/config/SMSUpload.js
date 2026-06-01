@@ -2,7 +2,7 @@ const path = require('path');
 const dotenv = require('dotenv');
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const nodemailer = require('nodemailer');
-
+const Brevo = require('@getbrevo/brevo');
 const twilio = require('twilio');
 const { PDFServiceJsPDF } = require('./pdfService');
 
@@ -279,23 +279,23 @@ const generateQR = async (req, res) => {
   }
 };
 // Initialize Gmail Transporter
-let emailTransporter = null;
+const sendEmail = async ({ to, subject, html, attachments }) => {
+  const client = Brevo.ApiClient.instance;
+  client.authentications['api-key'].apiKey = process.env.BREVO_API_KEY;
 
-const getEmailTransporter = () => {
-  if (!emailTransporter) {
-    emailTransporter = nodemailer.createTransport({
-  host: 'smtp-relay.brevo.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.BREVO_EMAIL,      // your Brevo login email
-    pass: process.env.BREVO_SMTP_KEY    // SMTP key from Brevo dashboard
-  }
-});
-  }
-  return emailTransporter;
+  const emailApi = new Brevo.TransactionalEmailsApi();
+
+  await emailApi.sendTransacEmail({
+    sender: { email: process.env.BREVO_EMAIL, name: 'Aselar' },
+    to: [{ email: to }],
+    subject,
+    htmlContent: html,
+    attachment: attachments?.map(a => ({
+      name: a.filename,
+      content: a.content.toString('base64')
+    }))
+  });
 };
-
 
 // ====================== EMAIL UPLOAD (New) ======================
 const EmailUpload = async (req, res) => {
@@ -407,7 +407,7 @@ const EmailUpload = async (req, res) => {
       </div>
     `;
 
-    const transporter = getEmailTransporter();
+    const transporter = sendEmail();
 
     const mailOptions = {
       from: {

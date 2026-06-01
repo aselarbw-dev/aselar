@@ -406,43 +406,33 @@ const EmailUpload = async (req, res) => {
         <p><strong>${companyInfo?.nameOfBusiness || 'Your Business'}</strong></p>
       </div>
     `;
-
-    const transporter = sendEmail();
-
-    const mailOptions = {
-      from: {
-        name: companyInfo?.nameOfBusiness || 'Your Business',
-        address: process.env.SENDER_EMAIL
-      },
-      to: email,
-      subject: `Receipt #${receiptsNumber} - ${companyInfo?.nameOfBusiness || 'Your Business'}`,
-      html: emailBody,
-      attachments: [{
-        filename: filename,
-        content: pdfBuffer,
-        contentType: 'application/pdf'
-      }]
-    };
-
-    const info = await transporter.sendMail(mailOptions);
-
+await sendEmail({
+  to: email,
+  subject: `Receipt #${receiptsNumber} - ${companyInfo?.nameOfBusiness || 'Your Business'}`,
+  html: emailBody,
+  attachments: [{
+    filename: filename,
+    content: pdfBuffer,
+    contentType: 'application/pdf'
+  }]
+});
+  
     console.log(`✅ Email sent to ${email} | Message ID: ${info.messageId}`);
 
-    res.json({
-      success: true,
-      message: 'Receipt sent successfully via Email with PDF attachment',
-      data: {
-        messageId: info.messageId,
-        downloadUrl: uploadResultWithQR.publicUrl,
-        filename,
-        emailAddress: email
-      },
-      sentBy: {
-        userId: authenticatedUser.id,
-        email: authenticatedUser.email || null
-      },
-      timestamp: new Date().toISOString()
-    });
+   res.json({
+  success: true,
+  message: 'Receipt sent successfully via Email with PDF attachment',
+  data: {
+    downloadUrl: uploadResultWithQR.publicUrl,
+    filename,
+    emailAddress: email
+  },
+  sentBy: {
+    userId: authenticatedUser.id,
+    email: authenticatedUser.email || null
+  },
+  timestamp: new Date().toISOString()
+});
 
   } catch (error) {
     console.error('Error in EmailUpload:', error);

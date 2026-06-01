@@ -284,24 +284,19 @@ let emailTransporter = null;
 const getEmailTransporter = () => {
   if (!emailTransporter) {
     emailTransporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',  // ← explicit host, no 'service'
-      port: 587,
-      secure: false,
-      family: 4,
-      auth: {
-        user: process.env.SENDER_EMAIL,
-        pass: process.env.GMAIL_APP_PASSWORD
-      },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
-      tls: {
-        rejectUnauthorized: false
-      }
-    });
+  host: 'smtp-relay.brevo.com',
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.BREVO_EMAIL,      // your Brevo login email
+    pass: process.env.BREVO_SMTP_KEY    // SMTP key from Brevo dashboard
+  }
+});
   }
   return emailTransporter;
 };
+
+
 // ====================== EMAIL UPLOAD (New) ======================
 const EmailUpload = async (req, res) => {
   try {

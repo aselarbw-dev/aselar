@@ -284,20 +284,20 @@ let emailTransporter = null;
 const getEmailTransporter = () => {
   if (!emailTransporter) {
     emailTransporter = nodemailer.createTransport({
-      service: 'gmail',
-      port: 587,        // ← change from 465 to 587
-  secure: false,    // ← false for port 587
-  family: 4, 
+      host: 'smtp.gmail.com',  // ← explicit host, no 'service'
+      port: 587,
+      secure: false,
+      family: 4,
       auth: {
         user: process.env.SENDER_EMAIL,
         pass: process.env.GMAIL_APP_PASSWORD
       },
-       connectionTimeout: 10000,  // 10 seconds
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
-  tls: {
-    rejectUnauthorized: false
-  }
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
+      tls: {
+        rejectUnauthorized: false
+      }
     });
   }
   return emailTransporter;

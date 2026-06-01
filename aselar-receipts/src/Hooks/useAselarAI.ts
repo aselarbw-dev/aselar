@@ -3,7 +3,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 
-const API_BASE = `${import.meta.env.VITE_ASELAR_AI_SERVICE_URL}/api`;
+const API_BASE = `${import.meta.env.VITE_ASELAR_AI_SERVICE_URL}api`;
 
 export interface Message {
   role: "user" | "assistant";
@@ -29,8 +29,15 @@ export function useAselarAI() {
   useEffect(() => { fetchSessions(); }, []);
 
   const fetchSessions = async () => {
+    
     try {
-      const res = await fetch(`${API_BASE}/chat/sessions`, { credentials: "include" });
+       const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/chat/sessions`, {
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       if (!res.ok) return;
       setSessions(await res.json());
     } catch (err) { console.error("Failed to fetch sessions:", err); }
@@ -39,10 +46,13 @@ export function useAselarAI() {
   const newSession = useCallback(async () => {
   try {
     console.log("[FRONTEND] Attempting to create new session...");
-
+ const token = localStorage.getItem("token");
     const res = await fetch(`${API_BASE}/chat/session`, {
       method: "POST",
       credentials: "include",
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     });
 
     console.log("[FRONTEND] Response status:", res.status);
@@ -82,7 +92,13 @@ export function useAselarAI() {
   const loadSession = useCallback(async (sessionId: string) => {
     setIsLoading(true); setError(null);
     try {
-      const res = await fetch(`${API_BASE}/chat/session/${sessionId}`, { credentials: "include" });
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/chat/session/${sessionId}`, {
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       if (!res.ok) throw new Error();
       const data = await res.json();
       setActiveSessionId(sessionId);
@@ -92,8 +108,11 @@ export function useAselarAI() {
   }, []);
 
   const deleteSession = useCallback(async (sessionId: string) => {
+    const token = localStorage.getItem("token");
     await fetch(`${API_BASE}/chat/session/${sessionId}`, {
-      method: "DELETE", credentials: "include",
+      method: "DELETE", credentials: "include",headers: {
+        Authorization: `Bearer ${token}`
+      }
     });
     setSessions((prev) => prev.filter((s) => s._id !== sessionId));
     if (activeSessionId === sessionId) { setActiveSessionId(null); setMessages([]); }
@@ -115,10 +134,14 @@ export function useAselarAI() {
     abortRef.current = new AbortController();
 
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(`${API_BASE}/chat/stream`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",  // ← cookie sent automatically
+        headers: { "Content-Type": "application/json",
+Authorization: `Bearer ${token}`
+         },
+        credentials: "include",  
+        
         body: JSON.stringify({ message: userMessage, sessionId }),
         signal: abortRef.current.signal,
       });

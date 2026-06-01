@@ -1,5 +1,6 @@
 const path = require('path');
 const dotenv = require('dotenv');
+const { Resend } = require('resend');
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const nodemailer = require('nodemailer');
 //const Brevo = require('@getbrevo/brevo');

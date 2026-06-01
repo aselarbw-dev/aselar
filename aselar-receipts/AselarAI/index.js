@@ -21,13 +21,21 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 // Middleware
 // ─────────────────────────────────────────
 app.use(cors({
+  origin: ['http://localhost:5173',
+           process.env.FRONTEND_URL,
+           'https://aselar.vercel.app'
+         ],
+  credentials: true
+}));
+/*
+app.use(cors({
   origin:['https://aselar.vercel.app',
-    'https://aselar-git-main-aselarbw-5973s-projects.vercel.app'] || [process.env.FRONTEND_URL || 'http://localhost:5173'],
+    'https://aselar-git-main-aselarbw-5973s-projects.vercel.app'],
   credentials: true,
   methods: ["GET", "POST", "DELETE", "OPTIONS"],   // added for safety
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
-
+*/
 
 app.use(express.json());
 app.use(cookieParser());

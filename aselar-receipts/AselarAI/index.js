@@ -21,7 +21,8 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 // Middleware
 // ─────────────────────────────────────────
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  origin:['https://aselar.vercel.app',
+    'https://aselar-git-main-aselarbw-5973s-projects.vercel.app'] || [process.env.FRONTEND_URL || 'http://localhost:5173'],
   credentials: true,
   methods: ["GET", "POST", "DELETE", "OPTIONS"],   // added for safety
   allowedHeaders: ["Content-Type", "Authorization"]

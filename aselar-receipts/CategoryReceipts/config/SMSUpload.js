@@ -285,6 +285,9 @@ const getEmailTransporter = () => {
   if (!emailTransporter) {
     emailTransporter = nodemailer.createTransport({
       service: 'gmail',
+      port: 587,        // ← change from 465 to 587
+  secure: false,    // ← false for port 587
+  family: 4, 
       auth: {
         user: process.env.SENDER_EMAIL,
         pass: process.env.GMAIL_APP_PASSWORD

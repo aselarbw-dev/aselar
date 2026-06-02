@@ -2,10 +2,10 @@ const path = require('path');
 const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
-
+const { Resend } = require('resend');
 const twilio = require('twilio');
 const { PDFServiceJsPDF } = require('./pdfService');
-
+const SibApiV3Sdk = require('sib-api-v3-sdk');
 // Initialize Twilio
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
@@ -421,25 +421,22 @@ const WhatsAppUpload = async (req, res) => {
   }
 };
 // Initialize Gmail transporter
-let emailTransporter = null;
+const sendEmail = async ({ to, subject, html, attachments }) => {
+  const resend = new Resend(process.env.RESEND_API_KEY);
 
-const getEmailTransporter = () => {
-  if (!emailTransporter) {
-    emailTransporter = nodemailer.createTransport({
-      service: 'gmail',           // Simplest way for Gmail
-      // OR you can use this explicit config:
-      host: 'smtp.gmail.com',
-       port: 587,
-      secure: false,
-      auth: {
-        user: process.env.SENDER_EMAIL,        // Your full Gmail address
-        pass: process.env.GMAIL_APP_PASSWORD   // ← The 16-char App Password
-      }
-    });
-  }
-  return emailTransporter;
+  await resend.emails.send({
+    from: 'Aselar <onboarding@resend.dev>',
+    to,
+    subject,
+    html,
+    attachments: attachments?.map(a => ({
+      filename: a.filename,
+      content: Buffer.isBuffer(a.content)
+        ? a.content.toString('base64')
+        : a.content
+    }))
+  });
 };
-
 // ====================== FULL EMAIL UPLOAD FUNCTION (Gmail) ======================
 const EmailUpload = async (req, res) => {
   try {
@@ -561,28 +558,18 @@ const EmailUpload = async (req, res) => {
     `;
 
     // Send Email
-    const transporter = getEmailTransporter();
-
-    const mailOptions = {
-      from: {
-        name: companyInfo?.nameOfBusiness || 'Your Business',
-        address: process.env.SENDER_EMAIL
-      },
+   await sendEmail({
       to: email,
-      subject: `Receipt #${receiptsNumber} - ${companyInfo?.nameOfBusiness || 'Your Business'}`,
-      html: emailBody,
-      attachments: [
-        {
-          filename: filename,
-          content: pdfBuffer,
-          contentType: 'application/pdf'
-        }
-      ]
-    };
+      subject: `Your Receipt #${receiptsNumber} from ${companyInfo?.nameOfBusiness || 'Our Store'}`,
+      html: emailBody,  
+      attachments: [{
+    filename: filename,
+    content: pdfBuffer,
+    contentType: 'application/pdf'
+  }]
+   })
 
-    const info = await transporter.sendMail(mailOptions);
-
-    console.log(`✅ Email sent to ${email} | Message ID: ${info.messageId}`);
+    console.log(`✅ Email sent to ${email} `);
 
     res.json({
       success: true,

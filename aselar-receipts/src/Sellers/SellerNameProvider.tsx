@@ -52,9 +52,13 @@ const SellerNameProvider: React.FC<SellerNameProviderProps> = ({ children }) => 
 
     // Submit to server
     try {
-      const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/seller`, {
+      const token = localStorage.getItem('token'); // Assuming token is stored in localStorage
+      const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/seller`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ name: trimmedName, date: today }),
         credentials: 'include', // Include cookies/auth if needed
       });

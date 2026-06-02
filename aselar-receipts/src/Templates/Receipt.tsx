@@ -82,16 +82,25 @@ const Receipt: React.FC = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
+          const token = localStorage.getItem('token');
         setLoading(true);
         
         const [receiptResponse, businessResponse, profileResponse] = await Promise.all([
-          fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}/api/get-receipts`, { credentials: "include" }),
-          fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/get-business`, { 
-            headers: { 'Content-Type': 'application/json' }, 
+        
+          fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}api/get-receipts`, { 
+            headers: { 'Authorization': `Bearer ${token}` },
             credentials: "include" 
           }),
-          fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/profile`, { 
-            headers: { 'Content-Type': 'application/json' }, 
+          fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/get-business`, { 
+            headers: { 'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+             }, 
+            credentials: "include" 
+          }),
+          fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/profile`, { 
+            headers: { 'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+             }, 
             credentials: "include" 
           })
         ]);
@@ -131,9 +140,13 @@ const Receipt: React.FC = () => {
 
     const fetchDailySeller = async () => {
       try {
+        const token = localStorage.getItem('token');
         const receiptDate = receipt.date || receipt.createdAt || new Date();
         const formattedDate = new Date(receiptDate).toISOString().split('T')[0];
-        const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/daily-seller/${formattedDate}`, { credentials: "include" });
+        const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/daily-seller/${formattedDate}`, { 
+          headers: { 'Authorization': `Bearer ${token}` },
+          credentials: "include" 
+        });
         if (response.ok) {
           const sellerData = await response.json();
           setSeller(sellerData);
@@ -232,6 +245,7 @@ const Receipt: React.FC = () => {
 
   const handleQRCode = async () => {
     try {
+      const token = localStorage.getItem('token');
       const htmlContent = getReceiptHTML();
       if (!htmlContent) throw new Error('No receipt content to send');
 
@@ -263,7 +277,10 @@ const Receipt: React.FC = () => {
       const response = await fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}/api/generate-qr`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify(requestData)
       });
 
@@ -401,12 +418,16 @@ const Receipt: React.FC = () => {
   // SMS Handler
   const handleSMSModalSubmit = async (phoneNumber: string) => {
     try {
+      const token = localStorage.getItem('token');
       const htmlContent = getReceiptHTML();
       if (!htmlContent) throw new Error("No receipts data available");
 
-      const response = await fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}/api/sms-receipt`, {
+      const response = await fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}api/sms-receipt`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           phoneNumber,
           receiptsNumber: receipt?.receiptsNumber,
@@ -452,6 +473,7 @@ const Receipt: React.FC = () => {
   // WHATSAPP HANDLER - OPTIMIZED FOR SANDBOX
   const handleWhatsAppModalSubmit = async (whatsappNumber: string) => {
     try {
+      const token = localStorage.getItem('token');
       const htmlContent = getReceiptHTML();
       if (!htmlContent) throw new Error("No receipts data available");
 
@@ -461,9 +483,12 @@ const Receipt: React.FC = () => {
         cleanNumber = `+${cleanNumber}`;
       }
 
-      const response = await fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}/api/whatsapp-receipt`, {
+      const response = await fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}api/whatsapp-receipt`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           whatsappNumber: cleanNumber,
           receiptsNumber: receipt?.receiptsNumber,
@@ -507,12 +532,16 @@ const Receipt: React.FC = () => {
   };
 const handleEmailModalSubmit = async (customerEmail: string) => {
     try {
+      const token=localStorage.getItem('token')
       const htmlContent = getReceiptHTML();
       if (!htmlContent) throw new Error("No receipt content available");
 
-      const response = await fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}/api/email-receipt`, {
+      const response = await fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}api/email-receipt`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         credentials: 'include',
         body: JSON.stringify({
           email: customerEmail,

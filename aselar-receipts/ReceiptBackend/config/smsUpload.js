@@ -575,7 +575,6 @@ const EmailUpload = async (req, res) => {
       success: true,
       message: 'Receipt sent successfully via Email',
       data: {
-        messageId: info.messageId,
         downloadUrl: uploadResultWithQR.publicUrl,
         filename,
         emailAddress: email

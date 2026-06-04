@@ -29,11 +29,14 @@ const ServiceForm: React.FC = () => {
     };
 
     try {
+      
       // Send data to the backend
-      const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/create-services`, {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/create-services`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(serviceData),
       });

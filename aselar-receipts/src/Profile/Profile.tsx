@@ -27,23 +27,18 @@ const Profile:React.FC= () => {
       useEffect(() => {
         const fetchAllData = async () => {
           try {
+            const token=localStorage.getItem('token')
             setLoading(true);
-            
-            // Fetch all data simultaneously
             const [businessResponse, profileResponse] = await Promise.all([
             
+            // Fetch all data simultaneously
+            
               fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/get-business`, {
-                headers: {
-                
-                  'Content-Type': 'application/json'
-                },
+                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 credentials: "include"
               }),
               fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/profile`, {
-                headers: {
-     // Adjust based on your auth method
-                  'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 credentials: "include"
               })
             ]);

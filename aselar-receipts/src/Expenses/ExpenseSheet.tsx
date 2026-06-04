@@ -22,8 +22,12 @@ const ExpenseSheet: React.FC = () => {
 // Fetch expenses from the backend
 const fetchExpenses = async () => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/get-expenses`, {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/get-expenses`, {
       credentials: 'include', // For cookie-based auth
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
     });
 
     if (!response.ok) {
@@ -39,11 +43,12 @@ const fetchExpenses = async () => {
   const handleAddExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>) => {
     setIsAdding(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/expenses`, {
+      const token=localStorage.getItem('token')
+      const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/expenses`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        //  Authorization: `Bearer ${localStorage.getItem('token')}`, // For Bearer auth
+         Authorization: `Bearer ${token}`, // For Bearer auth
         },
         body: JSON.stringify(expense),
         credentials: 'include', // For cookie-based auth

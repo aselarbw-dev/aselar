@@ -125,13 +125,14 @@ const AllExpenses: React.FC = () => {
   useEffect(() => {
     const fetchBusinessAndProfile = async () => {
       try {
+        const token=localStorage.getItem('token')
         const [businessResponse, profileResponse] = await Promise.all([
           axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/get-business`, {
-            headers: { 'Content-Type': 'application/json' },
+             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             withCredentials: true,
           }),
           axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/profile`, {
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             withCredentials: true,
           })
         ]);
@@ -155,8 +156,10 @@ const AllExpenses: React.FC = () => {
     try {
       setLoading(true);
       // Adjust port/endpoint to your expenses server (e.g., 5007/api/expenses—update as needed)
+      const token = localStorage.getItem('token');
       const response = await axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/get-expenses`, {  // ← Mirror: Update port/path
         withCredentials: true,
+         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       });
       
       console.log('Fetched expenses data:', response.data); // Debug log
@@ -281,8 +284,10 @@ const AllExpenses: React.FC = () => {
     setDeletingId(expenseId);
     
     try {
+      const token = localStorage.getItem('token');
       // Adjust endpoint/port to match your expenses server
       await axios.delete(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/expenses/${expenseId}`, {  // ← Mirror: Update port/path
+        headers: { 'Authorization': `Bearer ${token}` },
         withCredentials: true,
       });
       toast.success('Expense deleted successfully!');

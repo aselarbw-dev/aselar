@@ -219,7 +219,7 @@ const Quote:React.FC = () => {
                   <button className={styles.print} onClick={submitData}> Compose</button>
                   <Link to="/quotation-template"> <button className={styles.recent}>Recent</button></Link>
                  <button className={styles.receivers} onClick={handleReceiverFormSubmit}>Quote To</button>
-                  {showReceiverForm?<ReceiverForm submitUrl='http://localhost:5003/api/receiver'/>:null}
+                  {showReceiverForm?<ReceiverForm submitUrl={`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}api/receiver`}/>:null}
                   <button className={styles.add} onClick={handleInputs}><FaPlus/> Add Cell</button>
                  </div>
              </div>

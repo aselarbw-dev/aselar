@@ -29,12 +29,15 @@ const ReceiverForm: React.FC<ReceiverFormProps> = ({ submitUrl, onSuccess }) => 
     setMessage(null);
 
     try {
+      const token=localStorage.getItem('token')
       const res = await fetch(submitUrl, {
         method: 'POST',
         body: JSON.stringify(formData),
         credentials: 'include',
         headers: { "Content-Type": "application/json",
-          Accept: "application/json", },
+          Accept: "application/json",
+          "Authorization": `Bearer ${token}`
+        },
         
       });
 console.log('Response status:', res.status);

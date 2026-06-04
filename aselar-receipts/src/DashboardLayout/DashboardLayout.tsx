@@ -4,6 +4,7 @@ import Sidebar from '../Dashboard/Sidebar';
 import Banner from '../Utils/Banner';
 import { Outlet } from 'react-router-dom';
 import SellerNameProvider from "../Sellers/SellerNameProvider";
+import WhatsAppNotification from '../Notification/WhatsAppNotification';
 
 const DashboardLayout = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -12,6 +13,7 @@ const DashboardLayout = () => {
     <SellerNameProvider>
       <div className={styles.dashboardLayout}>
         {/* Pass the state to Banner */}
+        <WhatsAppNotification />
         <Banner isCollapsed={isCollapsed} />
 
         <Sidebar

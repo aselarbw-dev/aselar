@@ -10,7 +10,7 @@ interface UseAutoLogoutProps {
 }
 
 export const useAutoLogout = ({ 
-  timeout = 2 * 60 * 1000, // 2 minutes
+  timeout = 4 * 60 * 1000, // 4 minutes
   warningTime = 30 * 1000, // 30 seconds warning
   onWarning,
   onLogout,
@@ -42,11 +42,13 @@ export const useAutoLogout = ({
   // Validate session with server using cookies
   const validateSession = useCallback(async (): Promise<boolean> => {
     try {
-      const response = await fetch('/api/validate-session', {
+      const token=localStorage.getItem('token')
+      const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/validate-session`, {
         method: 'POST',
         credentials: 'include', // Important: Include cookies
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` // Include token in header if needed
         }
       });
 

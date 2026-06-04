@@ -24,8 +24,9 @@ const DeleteAccountButton = () => {
 
     setIsLoading(true);
     try {
+      const token = localStorage.getItem('token');
       await axios.delete(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/delete-account`,
-         { withCredentials: true });
+         { withCredentials: true, headers: { Authorization: `Bearer ${token}` } });
       navigate('/goodbye');
     } catch (error) {
       alert("Deletion failed. Please try again.");

@@ -91,13 +91,19 @@ const QuotationComponent: React.FC = () => {
   useEffect(() => {
     async function fetchLatestQuote() {
       try {
+        const token= localStorage.getItem('token');
         setLoading(true);
         const [quoteResponse, businessResponse, profileResponse, receiversResponse, bankResponse] = await Promise.all([
-          fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/get-new-quote`, { credentials: "include" }),
-          fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/get-business`, { headers: { 'Content-Type': 'application/json' }, credentials: "include" }),
-          fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/profile`, { headers: { 'Content-Type': 'application/json' }, credentials: "include" }),
-          fetch(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}/api/get-receiver`, { headers: { 'Content-Type': 'application/json' }, credentials: "include" }),
-          fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/user-banking`, { headers: { 'Content-Type': 'application/json' }, credentials: "include" })
+
+          fetch(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}api/get-new-quote`, { credentials: "include",
+            headers:{ 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+           }),
+          fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/get-business`, { headers: { 'Content-Type': 'application/json','Authorization': `Bearer ${token}` }, credentials: "include",
+       
+          }),
+          fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/profile`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, credentials: "include" }),
+          fetch(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}api/get-receiver`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, credentials: "include" }),
+          fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/user-banking`, { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, credentials: "include" })
         ]);
 
         if (!quoteResponse.ok) throw new Error('Failed to fetch quote');
@@ -214,11 +220,11 @@ const QuotationComponent: React.FC = () => {
           swiftCode: bank?.swiftCode
         }
       };
-
-      const response = await fetch('http://localhost:5003/api/generate-qr', {
+   const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}api/generate-qr`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(requestData)
       });
 
@@ -414,11 +420,11 @@ const QuotationComponent: React.FC = () => {
           swiftCode: bank?.swiftCode
         }
       };
-
-      const response = await fetch(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}/api/email-quote`, {
+             const token=localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}api/email-quote`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(requestData)
       });
 
@@ -467,11 +473,11 @@ const QuotationComponent: React.FC = () => {
           swiftCode: bank?.swiftCode
         }
       };
-
-      const response = await fetch(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}/api/sms-quote`, {
+     const token= localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}api/sms-quote`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(requestData)
       });
 
@@ -517,11 +523,11 @@ const QuotationComponent: React.FC = () => {
           swiftCode: bank?.swiftCode
         }
       };
-
-      const response = await fetch(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}/api/whatsapp-quote`, {
+  const token= localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}api/whatsapp-quote`, {
         method: 'POST',
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(requestData)
       });
 

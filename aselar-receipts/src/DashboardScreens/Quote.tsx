@@ -120,14 +120,15 @@ const Quote:React.FC = () => {
           vat: vat.toFixed(2),
           totalSum: totalSum.toFixed(2),
       };
-
-      const response = await fetch(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}/api/quote`, {
+     const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}api/quote`, {
           method: "POST",
           mode: "cors",
           credentials: "include",
           headers: {
               "Content-Type": "application/json",
               "Accept": "application/json",
+              "Authorization": `Bearer ${token}`
           },
           body: JSON.stringify(payload),
       });

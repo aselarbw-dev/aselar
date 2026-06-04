@@ -2,7 +2,7 @@
 const { bucket } = require('../config/firebase');
 const { v4: uuidv4 } = require('uuid');
 const { jsPDF } = require('jspdf');
-
+const admin = require('firebase-admin');
 const QRCode = require('qrcode');
 
 class PDFServiceJsPDF {

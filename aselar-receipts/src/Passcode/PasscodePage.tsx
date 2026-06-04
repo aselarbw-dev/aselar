@@ -19,9 +19,10 @@ const PasscodePage = () => {
     }
 
     try {
+      const token = localStorage.getItem('token'); // Get token from localStorage if using token-based auth
       const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/set-passcode`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ passcode }),
        credentials: "include", // Include cookies if using session-based auth
       });

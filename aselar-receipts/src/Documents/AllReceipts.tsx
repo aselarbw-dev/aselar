@@ -141,13 +141,14 @@ const AllReceipts: React.FC = () => {
   useEffect(() => {
     const fetchBusinessAndProfile = async () => {
       try {
+        const token=localStorage.getItem('token');
         const [businessResponse, profileResponse] = await Promise.all([
           axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/get-business`, {
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${token}` },
             withCredentials: true,
           }),
           axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/profile`, {
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${token}` },
             withCredentials: true,
           })
         ]);
@@ -169,7 +170,9 @@ const AllReceipts: React.FC = () => {
 
   const fetchReceipts = async (page: number) => {
     try {
+      
       const response = await axios.get(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}api/all-receipts`, {
+        headers: { "Authorization": `Bearer ${localStorage.getItem('token')}` },
         params: { page, limit: 8 },
         withCredentials: true,
       });
@@ -303,6 +306,7 @@ const AllReceipts: React.FC = () => {
     try {
       await axios.delete(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}api/receipts/${receiptId}`, {
         withCredentials: true,
+        headers: { "Authorization": `Bearer ${localStorage.getItem('token')}` }
       });
       toast.success('Receipt deleted successfully!');
       fetchReceipts(currentPage);

@@ -137,13 +137,14 @@ const AllQuotes: React.FC = () => {
   useEffect(() => {
     const fetchBusinessAndProfile = async () => {
       try {
+        const token=localStorage.getItem('token');
         const [businessResponse, profileResponse] = await Promise.all([
           axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/get-business`, {
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${token}` },
             withCredentials: true,
           }),
           axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/profile`, {
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', "Authorization": `Bearer ${token}` },
             withCredentials: true,
           })
         ]);
@@ -165,9 +166,11 @@ const AllQuotes: React.FC = () => {
 
   const fetchQuotes = async () => {
     try {
+      const token=localStorage.getItem('token');
       setLoading(true);
       const response = await axios.get(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}api/get-all-quotes`, {
         withCredentials: true,
+        headers: { "Authorization": `Bearer ${token}` }
       });
       
       console.log('Fetched quotes data:', response.data); // Debug log
@@ -301,8 +304,10 @@ const AllQuotes: React.FC = () => {
     setDeletingId(quoteId);
     
     try {
+      const token=localStorage.getItem('token');
       await axios.delete(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}api/quotes/${quoteId}`, {
         withCredentials: true,
+        headers: { "Authorization": `Bearer ${token}` }
       });
       toast.success('Quote deleted successfully!');
       fetchQuotes();

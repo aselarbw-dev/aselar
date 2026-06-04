@@ -24,15 +24,16 @@ const DashboardStats: React.FC = () => {
 
   const fetchDashboardStats = async () => {
     try {
+      const token=localStorage.getItem('token')
       setLoading(true);
       // ← CHANGED: allSettled for partial wins
       const results = await Promise.allSettled([
-        axios.get(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}api/get-all-quotes`, { withCredentials: true }),
-        axios.get('http://localhost:5004/api/get-invoices', { withCredentials: true }),
-        axios.get(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}api/all-receipts`, { withCredentials: true }),
-        axios.get('http://localhost:5006/api/all-ledgers', { withCredentials: true }),
-        axios.get('http://localhost:5002/api/all-pays', { withCredentials: true }),
-        axios.get('http://localhost:5012/api/debts', { withCredentials: true })
+        axios.get(`${import.meta.env.VITE_QUOTE_BACKEND_SERVICE_URL}api/get-all-quotes`, { withCredentials: true ,headers: { "Authorization": `Bearer ${token}` }}),
+        axios.get('http://localhost:5004/api/get-invoices', { withCredentials: true,headers: { "Authorization": `Bearer ${token}` } }),
+        axios.get(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}api/all-receipts`, { withCredentials: true,headers: { "Authorization": `Bearer ${token}` } }),
+        axios.get('http://localhost:5006/api/all-ledgers', { withCredentials: true,headers: { "Authorization": `Bearer ${token}` } }),
+        axios.get('http://localhost:5002/api/all-pays', { withCredentials: true,headers: { "Authorization": `Bearer ${token}` } }),
+        axios.get('http://localhost:5012/api/debts', { withCredentials: true,headers: { "Authorization": `Bearer ${token}` } })
       ]);
   
       // ← NEW: Process each result individually

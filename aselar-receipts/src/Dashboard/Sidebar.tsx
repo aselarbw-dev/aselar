@@ -190,9 +190,10 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const handleVerifyPasscode = async (enteredPasscode: string) => {
     try {
+      const token=localStorage.getItem('token');
       const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/verify-passcode`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ passcode: enteredPasscode }),
         credentials: "include",
       });
@@ -215,12 +216,14 @@ const Sidebar: React.FC<SidebarProps> = ({
 
 const signOut = async (): Promise<void> => {
   try {
+     const token=localStorage.getItem('token');
     // Call backend logout with proper payload
     await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/logout`, {
       method: "POST",
       credentials: 'include',
       headers: {
         "Content-Type": "application/json",
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         reason: 'manual_logout',

@@ -72,7 +72,10 @@ const Hero: React.FC = () => {
               <FaYoutube />
             </div>
             <div className={Herostyles.iconWrapper}>
-              <FaInstagram />
+              <a href='https://www.instagram.com/aselar_bw/'>
+<FaInstagram />
+              </a>
+              
             </div>
           </div>
 

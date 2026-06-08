@@ -22,17 +22,11 @@ const handleSetPasscode = async () => {
   try {
     const token = localStorage.getItem('token');
 
-    if (!token) {
-      toast.error("Session expired. Please log in again.");
-      navigate("/sign-in");
-      return;
-    }
-
     const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/set-passcode`, {
       method: "POST",
       headers: { 
         "Content-Type": "application/json", 
-        "Authorization": `Bearer ${token}` 
+        ...(token && { "Authorization": `Bearer ${token}` })  // only send if exists
       },
       body: JSON.stringify({ passcode }),
       credentials: "include",
@@ -40,11 +34,11 @@ const handleSetPasscode = async () => {
 
     const data = await response.json();
 
-   if (data.success) {
-  toast.success("Passcode set successfully!");
-  const redirectTo = location.state?.redirectTo;
-  navigate(redirectTo || "/banking"); // onboarding continues to banking, dashboard redirect only if coming from inside
-} else {
+    if (data.success) {
+      toast.success("Passcode set successfully!");
+      const redirectTo = location.state?.redirectTo;
+      navigate(redirectTo || "/banking");
+    } else {
       toast.error("Failed to set passcode. Please try again.");
     }
 

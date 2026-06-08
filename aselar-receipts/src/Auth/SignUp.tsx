@@ -147,15 +147,16 @@ const SignUp: React.FC = () => {
       
       const data = await response.json();
       
-      if (!response.ok) {
-        // Handle server-side validation errors
-        toast.error(data.message || "Registration failed. Please try again.");
-        return;
-      }
-      
-      console.log(data);
-      toast.success(`Welcome on board ${userProfile.nameOfBusiness}!`);
-      navigate("/create-passcode");
+     if (!response.ok) {
+  toast.error(data.message || "Registration failed. Please try again.");
+  return;
+}
+
+// add this line
+localStorage.setItem('token', data.token);
+
+toast.success(`Welcome on board ${userProfile.nameOfBusiness}!`);
+navigate("/create-passcode");
       setUserProfile(initialSignup);
       setPasswordStrength("");
       

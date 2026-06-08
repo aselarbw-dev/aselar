@@ -146,6 +146,7 @@ const SignUp: React.FC = () => {
       });
       
       const data = await response.json();
+console.log("Signup response data:", data); // add this
       
      if (!response.ok) {
   toast.error(data.message || "Registration failed. Please try again.");

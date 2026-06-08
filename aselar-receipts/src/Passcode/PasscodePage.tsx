@@ -1,5 +1,5 @@
 import  { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation} from "react-router-dom";
 import { toast } from "react-toastify";
 import styles from "./PasscodePage.module.css";
 import Notice from "../Notice/Notice";
@@ -7,39 +7,52 @@ const PasscodePage = () => {
   const [passcode, setPasscode] = useState("");
   const [confirmPasscode, setConfirmPasscode] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+const handleSetPasscode = async () => {
+  if (passcode.length < 4) {
+    toast.error("Passcode must be at least 4 characters long.");
+    return;
+  }
 
-  const handleSetPasscode = async () => {
-    if (passcode.length < 4) {
-        toast.error("Passcode must be at least 4 characters long.");
-        return;
-      }
-    if (passcode !== confirmPasscode) {
-      toast.error("Passcodes do not match. Please try again.");
+  if (passcode !== confirmPasscode) {
+    toast.error("Passcodes do not match. Please try again.");
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      toast.error("Session expired. Please log in again.");
+      navigate("/business-login");
       return;
     }
 
-    try {
-      const token = localStorage.getItem('token'); // Get token from localStorage if using token-based auth
-      const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/set-passcode`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify({ passcode }),
-       credentials: "include", // Include cookies if using session-based auth
-      });
+    const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/set-passcode`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json", 
+        "Authorization": `Bearer ${token}` 
+      },
+      body: JSON.stringify({ passcode }),
+      credentials: "include",
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (data.success) {
-        toast.success("Passcode set successfully!");
-        navigate("/banking"); // Redirect to the dashboard or another page
-      } else {
-        toast.error("Failed to set passcode. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error setting passcode:", error);
-      toast.error("An error occurred. Please try again.");
+    if (data.success) {
+      toast.success("Passcode set successfully!");
+      const redirectTo = location.state?.redirectTo; // grab where they originally wanted to go
+      navigate(redirectTo || "/inside-dashboard");   // land there, or dashboard as fallback
+    } else {
+      toast.error("Failed to set passcode. Please try again.");
     }
-  };
+
+  } catch (error) {
+    console.error("Error setting passcode:", error);
+    toast.error("An error occurred. Please try again.");
+  }
+};
 
   return (
     <div className={styles.createPasscodeContainer}>

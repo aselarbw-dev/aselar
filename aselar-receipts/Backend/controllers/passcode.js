@@ -36,10 +36,9 @@ const passcodeController=( async (req, res) => {
     try {
       // Fetch the user's stored passcode
       const user = await User.findById(userId);
-      if (!user.passcode) {
-        return res.status(401).json({ success: false, message: "Passcode not set." });
-      }
-  
+     if (!user.passcode) {
+  return res.status(404).json({ success: false, message: "Passcode not set." });
+}
       // Compare the entered passcode with the hashed passcode
       const isMatch = await bcrypt.compare(passcode, user.passcode);
   

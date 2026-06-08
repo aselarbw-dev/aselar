@@ -187,32 +187,49 @@ const Sidebar: React.FC<SidebarProps> = ({
       }
     }
   };
+const handleVerifyPasscode = async (enteredPasscode: string) => {
+  try {
+    const token = localStorage.getItem('token');
 
-  const handleVerifyPasscode = async (enteredPasscode: string) => {
-    try {
-      const token=localStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/verify-passcode`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify({ passcode: enteredPasscode }),
-        credentials: "include",
-      });
-      const data = await response.json();
-
-      if (data.success) {
-        toast.success("Passcode verified!");
-        setIsPasscodeVerified(true);
-        setIsPasscodeModalOpen(false);
-        navigate(redirectTo);
-      } else {
-        toast.error("Invalid passcode. Please try again.");
-        logout()
-      }
-    } catch (error) {
-      console.error("Error verifying passcode:", error);
-      toast.error("An error occurred. Please try again.");
+    if (!token) {
+      toast.error("Session expired. Please log in again.");
+      logout();
+      return;
     }
-  };
+
+    const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/verify-passcode`, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json", 
+        "Authorization": `Bearer ${token}` 
+      },
+      body: JSON.stringify({ passcode: enteredPasscode }),
+      credentials: "include",
+    });
+
+    const data = await response.json();
+
+    if (response.status === 404) {
+      toast.info("Please set up your passcode first.");
+      setIsPasscodeModalOpen(false);
+      navigate("/create-passcode", { state: { redirectTo } });
+      return;
+    }
+
+    if (data.success) {
+      toast.success("Passcode verified!");
+      setIsPasscodeVerified(true);
+      setIsPasscodeModalOpen(false);
+      navigate(redirectTo);
+    } else {
+      toast.error("Invalid passcode. Please try again.");
+    }
+
+  } catch (error) {
+    console.error("Error verifying passcode:", error);
+    toast.error("An error occurred. Please try again.");
+  }
+};
 
 const signOut = async (): Promise<void> => {
   try {

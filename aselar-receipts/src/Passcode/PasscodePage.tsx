@@ -24,7 +24,7 @@ const handleSetPasscode = async () => {
 
     if (!token) {
       toast.error("Session expired. Please log in again.");
-      navigate("/business-login");
+      navigate("/sign-in");
       return;
     }
 
@@ -40,11 +40,11 @@ const handleSetPasscode = async () => {
 
     const data = await response.json();
 
-    if (data.success) {
-      toast.success("Passcode set successfully!");
-      const redirectTo = location.state?.redirectTo; // grab where they originally wanted to go
-      navigate(redirectTo || "/inside-dashboard");   // land there, or dashboard as fallback
-    } else {
+   if (data.success) {
+  toast.success("Passcode set successfully!");
+  const redirectTo = location.state?.redirectTo;
+  navigate(redirectTo || "/banking"); // onboarding continues to banking, dashboard redirect only if coming from inside
+} else {
       toast.error("Failed to set passcode. Please try again.");
     }
 

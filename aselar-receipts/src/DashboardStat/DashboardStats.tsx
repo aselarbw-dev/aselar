@@ -124,20 +124,7 @@ const DashboardStats: React.FC = () => {
         </div>
       </div>
 
-      {/* Optional: Add a quick actions row or charts here if you want 
-      
-      <div className={styles.actionsRow}>
-        <Link to="/quick-quote">
-          <button className={styles.actionButton}>New Quote</button>
-        </Link>
-        <Link to="/quick-invoice">
-          <button className={styles.actionButton}>New Invoice</button>
-        </Link>
-        <Link to="/quick-category-receipt">
-          <button className={styles.actionButton}>New Receipt</button>
-        </Link>
-      </div>
-      */}
+    
       
     </div>
   );

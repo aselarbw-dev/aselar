@@ -1,27 +1,27 @@
-.quote{
-   margin: 0 auto;
-    margin-top: 10rem;
-    padding: 10px;
-    display: flex;
-    flex-direction: column; /* Better content flow */
-    height:auto;
-    overflow: visible;
-   background: linear-gradient(145deg, #ffffff, #f8f9fa);
-   width:100%;
-    width:750px;
-    min-height: 300px;
-      height: auto;
+
+.quote {
+  margin: 0 auto;
+  margin-top: 10rem;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(145deg, #ffffff, #f8f9fa);
+  width: 100%;
+  max-width: 750px;
+  min-height: 300px;
+  height: auto;
   overflow: visible;
   border-radius: 16px;
-  box-shadow: 
+  box-shadow:
     0 20px 40px rgba(0, 0, 0, 0.1),
     0 8px 16px rgba(0, 0, 0, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.2);
-    
+  position: relative;
 }
-.quote::before{
-    content: '';
+
+.quote::before {
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
@@ -29,9 +29,22 @@
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.3), transparent);
 }
-.header{
-     font-size:24px;
-     text-transform: uppercase;
+
+/* ── Title bar ── */
+.quoteTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px 12px;
+  border-bottom: 2px solid rgba(99, 102, 241, 0.1);
+  margin-bottom: 16px;
+}
+
+.header {
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
   color: #1e293b;
   letter-spacing: 0.5px;
   margin: 0;
@@ -40,178 +53,254 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-.headers{
-     display: flex;
-  justify-content: space-around;
-  align-items: center;
+
+/* ── Quote content wrapper ── */
+.quoteContent {
+  padding: 0 8px;
+}
+
+/* ── Header row — grid matching input rows ── */
+.headers {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 0.8fr 0.8fr;
+  gap: 8px;
   background: #3b82f6;
-  padding: 16px;
+  padding: 14px 16px;
   border-radius: 12px;
-  margin-bottom: 16px;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
-}
-.headers h4{
-    color:white;
-    margin-right: 35px;
-}
-.flexInvoice{
-      display: flex;
-  justify-content: space-around;
-  align-items: center;
   margin-bottom: 12px;
-  padding: 12px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.headers h4 {
+  color: white;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Input rows — grid matching header exactly ── */
+.flexInvoice {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 0.8fr 0.8fr auto;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 10px 12px;
   background: white;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   border: 1px solid rgba(226, 232, 240, 0.8);
   transition: all 0.2s ease;
 }
-.flexInvoice>input{
- width: 140px;
-  margin: 4px;
-  padding: 12px;
-  text-align: center;
-  border: 2px solid rgba(226, 232, 240, 0.6);
-  border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  background: rgba(248, 250, 252, 0.8);
-}
+
 .flexInvoice:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   transform: translateY(-1px);
 }
-.flexInvoice>textarea{
-       width: 180px;
-  margin: 4px;
-  padding: 12px;
+
+.flexInvoice > input,
+.flexInvoice > textarea {
+  width: 100%;
+  min-width: 0; /* prevents grid blowout */
+  padding: 10px 8px;
   text-align: center;
   border: 2px solid rgba(226, 232, 240, 0.6);
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.2s ease;
   background: rgba(248, 250, 252, 0.8);
+  box-sizing: border-box;
+  font-family: inherit;
 }
-.buttons{
-    display:flex;
-    justify-content: space-around;
-    align-items: center;
-    padding:20px;
+
+.flexInvoice > textarea {
+  min-height: 60px;
+  text-align: left;
+  resize: vertical;
 }
-.print{
-    width:190px;
-    height:40px;
-    background-color: orangered;
-    padding:10px;
-    color:white;
-    cursor: pointer;
-    border: none;
-    outline:none;
-    border-radius: 8px;
-    margin:5px;
-}
-.sms{
-    width:150px;
-    height:40px;
-    background-color: blue;
-    padding:10px;
-    color:white;
-    cursor: pointer;
-    border: none;
-    outline:none;
-    border-radius: 8px;
-    margin:5px;
-}
-.add{
-    width:100px;
-    height:40px;
-    background-color: red;
-    padding:10px;
-    color:white;
-    cursor: pointer;
-    border: none;
-    outline:none;
-    border-radius: 8px;
-    margin:5px;
-}
-.delete{
-    cursor: pointer;
-}
-.total{
-    display:flex;
-    justify-content: center;
-    align-items: center;
-}
-.actualTotal{
-    color:orangered;
-    font-size: 25px;
-}
-.senders{
-    position: absolute;
-    top:67%;
-    left:42%;
-    width:200px;
-    height:90px;
-   box-shadow: 0px 5px 26px 8px rgba(193, 198, 207, 0.66);
-    border-radius: 4px;
-    background-color: #fff;
-    padding:8px;
-}
-.senders input{
-    width:100%;
-    padding:3px;
+
+.flexInvoice > input:focus,
+.flexInvoice > textarea:focus {
   outline: none;
-    margin:2px;
-    text-align: center;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  background: white;
 }
-.senders button{
-    width:100%;
-    height:40px;
-    padding:2px;
-    margin:2px;
-    cursor: pointer;
-    background-color: blue;
-    color:white;
-    border-radius: 4px;
-    border: none;
-    outline: none;
+
+/* Trash icon */
+.flexInvoice svg {
+  justify-self: center;
+  cursor: pointer;
+  flex-shrink: 0;
 }
+
+.delete {
+  cursor: pointer;
+}
+
+/* ── Balance area ── */
+.balanceArea {
+  background: linear-gradient(145deg, #f8fafc, #e2e8f0);
+  padding: 24px;
+  border-radius: 12px;
+  margin: 20px 0;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.subtotal,
+.vat,
+.total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+.subtotal h4,
+.vat h4,
+.total h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+
+.total {
+  border-bottom: none;
+  background: linear-gradient(135deg, #059669, #10b981);
+  margin: 8px -24px -24px;
+  padding: 16px 24px;
+  border-radius: 0 0 12px 12px;
+}
+
+.total h4 {
+  color: white;
+}
+
+.bold {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+/* ── Buttons ── */
+.buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 20px 12px;
+}
+
+.print {
+  height: 45px;
+  padding: 0 20px;
+  background: linear-gradient(135deg, #ea580c, #f97316);
+  color: white;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.print:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(234, 88, 12, 0.4);
+}
+
+.recent {
+  height: 45px;
+  padding: 0 20px;
+  border: none;
+  cursor: pointer;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: white;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.recent:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+}
+
+.receivers {
+  height: 45px;
+  padding: 0 20px;
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+  color: white;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+  white-space: nowrap;
+}
+
+.receivers:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+}
+
+.add {
+  height: 45px;
+  padding: 0 20px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+  color: white;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.add:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.4);
+}
+
+/* ── Save button ── */
 .saveButton {
-     padding: 12px 24px;
+  height: 45px;
+  padding: 0 20px;
   border: none;
-  margin:3px;
   cursor: pointer;
   border-radius: 10px;
   font-weight: 600;
   font-size: 14px;
   transition: all 0.2s ease;
-  }
-  .recent{
-    padding: 12px 24px;
-  border: none;
-  margin:3px;
-  cursor: pointer;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  background-color: green;
-  color:white;
-  
-  }
-  
- .receivers{
-   width:190px;
-    height:40px;
-   background: #10b981;
-    padding:10px;
-    color:white;
-    cursor: pointer;
-    border: none;
-    outline:none;
-    border-radius: 8px;
-    margin:5px;
- }
+  white-space: nowrap;
+}
+
 .inactive {
   background: linear-gradient(135deg, #9ca3af, #6b7280);
   color: white;
@@ -228,42 +317,221 @@
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
 }
-  .quoteTitle{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+
+/* ── Senders popup ── */
+.senders {
+  position: absolute;
+  top: 68%;
+  left: 42%;
+  width: 220px;
+  height: auto;
+  box-shadow: 0px 5px 26px 8px rgba(193, 198, 207, 0.66);
+  border-radius: 10px;
+  background-color: #fff;
+  padding: 16px;
+  z-index: 10;
+}
+
+.senders input {
+  width: 100%;
+  padding: 8px;
+  outline: none;
+  margin: 4px 0;
+  text-align: center;
+  border: 2px solid rgba(226, 232, 240, 0.6);
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.senders button {
+  width: 100%;
+  height: 40px;
+  padding: 4px;
+  margin: 4px 0;
+  cursor: pointer;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: white;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  font-weight: 600;
+}
+
+/* ════════════════════════════════════
+   RESPONSIVE
+════════════════════════════════════ */
+
+/* ── Tablet: up to 768px ── */
+@media (max-width: 768px) {
+  .quote {
+    margin-top: 6rem;
+    padding: 12px;
+    width: 100%;
   }
-  
-  .active {
-    background-color: yellow;
-    color: black;
+
+  .header {
+    font-size: 16px;
   }
- .balanceArea{
-    background: linear-gradient(145deg, #f8fafc, #e2e8f0);
-  padding: 24px;
-  border-radius: 12px;
-  margin: 20px 0;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  .headers {
+    grid-template-columns: 1fr 1.4fr 0.8fr 0.8fr;
+    padding: 10px 8px;
+    gap: 4px;
+  }
+
+  .headers h4 {
+    font-size: 12px;
+  }
+
+  .flexInvoice {
+    grid-template-columns: 1fr 1.4fr 0.8fr 0.8fr auto;
+    padding: 8px 6px;
+    gap: 4px;
+  }
+
+  .flexInvoice > input,
+  .flexInvoice > textarea {
+    padding: 8px 4px;
+    font-size: 12px;
+  }
+
+  .flexInvoice > textarea {
+    min-height: 48px;
+  }
+
+  .balanceArea {
+    padding: 16px 12px;
+  }
+
+  .total {
+    margin: 8px -12px -16px;
+    padding: 14px 12px;
+  }
+
+  .subtotal h4,
+  .vat h4,
+  .total h4 {
+    font-size: 13px;
+  }
+
+  .buttons {
+    gap: 8px;
+    padding: 16px 8px;
+  }
 }
-.subtotal{
-  display: flex;
-    justify-content: space-between;
-    align-items: center;  
-    padding: 12px 0;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+
+/* ── Mobile: up to 480px ── */
+@media (max-width: 480px) {
+  .quote {
+    margin-top: 5rem;
+    padding: 8px;
+  }
+
+  .quoteTitle {
+    padding: 6px 8px 10px;
+  }
+
+  .header {
+    font-size: 13px;
+    letter-spacing: 0;
+  }
+
+  .quoteContent {
+    padding: 0 4px;
+  }
+
+  /* Hide static header — placeholders act as labels */
+  .headers {
+    display: none;
+  }
+
+  /* 2-column grid; description spans full width */
+  .flexInvoice {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 6px;
+    padding: 10px 8px;
+  }
+
+  .flexInvoice > textarea {
+    grid-column: 1 / -1;
+    min-height: 52px;
+    text-align: left;
+  }
+
+  /* Trash icon full width at bottom */
+  .flexInvoice svg {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+
+  .flexInvoice > input,
+  .flexInvoice > textarea {
+    padding: 10px 6px;
+    font-size: 13px;
+  }
+
+  .balanceArea {
+    padding: 12px 10px;
+  }
+
+  .total {
+    margin: 8px -10px -12px;
+    padding: 12px 10px;
+  }
+
+  .subtotal h4,
+  .vat h4,
+  .total h4 {
+    font-size: 13px;
+  }
+
+  .bold {
+    font-size: 15px;
+  }
+
+  /* Buttons: 2-per-row */
+  .buttons {
+    gap: 8px;
+    padding: 14px 6px;
+    justify-content: center;
+  }
+
+  .print,
+  .recent,
+  .receivers,
+  .add,
+  .saveButton {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 120px;
+    max-width: 160px;
+    height: 42px;
+    font-size: 13px;
+    padding: 0 12px;
+    justify-content: center;
+  }
+
+  .senders {
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 260px;
+  }
 }
-.vat{
-   display: flex;
-    justify-content: space-between;
-    align-items: center;    
-    padding: 12px 0;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
-}
-.total{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+
+/* ── Very small phones: up to 360px ── */
+@media (max-width: 360px) {
+  .header {
+    font-size: 12px;
+  }
+
+  .print,
+  .recent,
+  .receivers,
+  .add,
+  .saveButton {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
 }

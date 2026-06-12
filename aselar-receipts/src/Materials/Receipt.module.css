@@ -42,13 +42,13 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
-  padding-bottom: 12px;
+  padding: 8px 12px 12px;
   border-bottom: 2px solid rgba(99, 102, 241, 0.1);
 }
 
 .receiptTitle h4 {
   text-align: center;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
   text-transform: uppercase;
   color: #1e293b;
@@ -61,39 +61,48 @@
 }
 
 .receiptForm {
-  padding: 24px;
+  padding: 16px;
   background: rgba(248, 250, 252, 0.5);
   border-radius: 12px;
   border: 1px solid rgba(226, 232, 240, 0.6);
 }
 
+/* ── Titles header row — grid so it always aligns with inputs ── */
 .titles {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 8px;
   background: #3b82f6;
-  padding: 16px;
+  padding: 14px 16px;
   border-radius: 12px;
-  margin-bottom: 16px;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+  margin-bottom: 12px;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.titles div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .titles h4 {
   color: white;
   text-align: center;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   text-transform: capitalize;
   margin: 0;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
+/* ── Input rows — grid matching titles exactly ── */
 .flexInputs {
-  display: flex;
-  justify-content: space-around;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr auto;
+  gap: 6px;
   align-items: center;
-  margin-bottom: 12px;
-  padding: 12px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
   background: white;
   border-radius: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -107,15 +116,16 @@
 }
 
 .flexInputs input {
-  width: 140px;
-  margin: 4px;
-  padding: 12px;
+  width: 100%;
+  min-width: 0; /* critical — prevents grid cell blowout */
+  padding: 10px 6px;
   text-align: center;
   border: 2px solid rgba(226, 232, 240, 0.6);
   border-radius: 8px;
   font-size: 14px;
   transition: all 0.2s ease;
   background: rgba(248, 250, 252, 0.8);
+  box-sizing: border-box;
 }
 
 .flexInputs input:focus {
@@ -123,6 +133,13 @@
   border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
   background: white;
+}
+
+/* Trash icon cell */
+.flexInputs svg {
+  justify-self: center;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .calculations {
@@ -174,7 +191,8 @@
   font-size: 16px;
   font-weight: 600;
   background: white;
-  min-width: 180px;
+  min-width: 0;
+  width: 180px;
 }
 
 .cash input:focus {
@@ -185,16 +203,16 @@
 
 .buttons {
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
   margin-top: 24px;
 }
 
 .print {
-  width: 110px;
   height: 45px;
+  padding: 0 20px;
   border-radius: 12px;
   background: linear-gradient(135deg, #dc2626, #ef4444);
   color: white;
@@ -205,6 +223,7 @@
   font-size: 14px;
   transition: all 0.2s ease;
   box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+  white-space: nowrap;
 }
 
 .print:hover {
@@ -213,8 +232,8 @@
 }
 
 .sms {
-  width: 110px;
   height: 45px;
+  padding: 0 20px;
   border-radius: 12px;
   background: linear-gradient(135deg, #2563eb, #3b82f6);
   color: white;
@@ -225,50 +244,36 @@
   font-size: 14px;
   transition: all 0.2s ease;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  white-space: nowrap;
 }
-.sales{
-  padding: 12px 24px;
+
+.sms:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+}
+
+.sales {
+  height: 45px;
+  padding: 0 20px;
   border: none;
-  color:white;
+  color: white;
   cursor: pointer;
   border-radius: 10px;
   font-weight: 600;
   font-size: 14px;
   transition: all 0.2s ease;
   background-color: #059669;
-}
-.sms:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+  white-space: nowrap;
 }
 
-.whatsapp {
-  width: 110px;
-  height: 45px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #059669, #10b981);
-  color: white;
-  border: none;
-  outline: none;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.whatsapp:hover {
+.sales:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
 }
 
 .addCell {
-  width: 110px;
   height: 45px;
+  padding: 0 20px;
   border-radius: 12px;
   background: linear-gradient(135deg, #ea580c, #f97316);
   color: white;
@@ -283,6 +288,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
+  white-space: nowrap;
 }
 
 .addCell:hover {
@@ -291,13 +297,15 @@
 }
 
 .saveButton {
-  padding: 12px 24px;
+  height: 45px;
+  padding: 0 20px;
   border: none;
   cursor: pointer;
   border-radius: 10px;
   font-weight: 600;
   font-size: 14px;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .inactive {
@@ -322,8 +330,8 @@
   padding: 8px;
   border-radius: 6px;
   transition: all 0.2s ease;
-  background-color:red;
-  color:white;
+  background-color: red;
+  color: white;
 }
 
 .delete:hover {
@@ -345,6 +353,7 @@
   background: white;
   padding: 20px;
   border: 1px solid rgba(226, 232, 240, 0.8);
+  z-index: 10;
 }
 
 .senders input {
@@ -356,6 +365,7 @@
   border: 2px solid rgba(226, 232, 240, 0.6);
   border-radius: 8px;
   font-size: 14px;
+  box-sizing: border-box;
 }
 
 .senders input:focus {
@@ -422,19 +432,7 @@
   display: block;
 }
 
-.arrow {
-  padding: 8px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  color: #111;
-}
-
-.arrow:hover {
-  background: rgba(99, 102, 241, 0.1);
-  transform: scale(1.1);
-}
-
-/* Discount Popup Styles */
+/* Discount Popup */
 .discountPopup {
   position: fixed;
   top: 0;
@@ -540,73 +538,193 @@
   box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
 }
 
-/* Responsive Design */
+/* ════════════════════════════════════
+   RESPONSIVE
+════════════════════════════════════ */
+
+/* ── Tablet: 600px–768px ── */
 @media (max-width: 768px) {
   .container {
     padding: 10px;
+    align-items: flex-start;
   }
-  
+
   .mainReceipt {
     width: 100%;
-    margin-top: 1rem;
-    padding: 20px;
+    margin-top: 80px;
+    padding: 12px;
   }
-  
+
+  .receiptTitle h4 {
+    font-size: 16px;
+  }
+
+  .receiptForm {
+    padding: 10px 8px;
+  }
+
+  /* Keep 4-column grid but tighten spacing */
   .titles {
-    flex-direction: column;
-    gap: 8px;
+    padding: 10px 8px;
+    gap: 4px;
+    border-radius: 8px;
   }
-  
+
   .titles h4 {
-    margin: 4px 0;
+    font-size: 12px;
   }
-  
+
   .flexInputs {
-    flex-direction: column;
+    grid-template-columns: 1fr 1fr 1fr 1fr auto;
+    padding: 8px 6px;
+    gap: 4px;
+  }
+
+  .flexInputs input {
+    padding: 8px 4px;
+    font-size: 12px;
+    border-radius: 6px;
+  }
+
+  .calculations {
+    padding: 16px 12px;
+  }
+
+  .total:last-child, .balance:last-child {
+    margin: 8px -12px -16px;
+    padding: 14px 12px;
+  }
+
+  .calculations h3 {
+    font-size: 14px;
+  }
+
+  .calculations div {
+    font-size: 15px;
+  }
+
+  .cash input {
+    width: 130px;
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .buttons {
     gap: 8px;
   }
-  
-  .flexInputs input {
-    width: 100%;
-    max-width: 300px;
-  }
-  
-  .buttons {
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .buttons button {
-    width: 100%;
-    max-width: 200px;
-  }
-  
+
   .discountContent {
     width: 90%;
     max-width: 350px;
     padding: 24px;
   }
-  
+
   .senders {
     width: 90%;
-    max-width: 250px;
+    max-width: 260px;
   }
 }
 
+/* ── Mobile: up to 480px ── */
 @media (max-width: 480px) {
+  .mainReceipt {
+    margin-top: 72px;
+    padding: 8px;
+  }
+
+  .receiptTitle {
+    padding: 6px 8px 10px;
+  }
+
   .receiptTitle h4 {
-    font-size: 18px;
-  }
-  
-  .titles h4 {
     font-size: 14px;
+    letter-spacing: 0;
   }
-  
+
+  .receiptForm {
+    padding: 8px 6px;
+  }
+
+  /* On very small screens: hide the static header row,
+     placeholders in the inputs act as labels instead */
+  .titles {
+    display: none;
+  }
+
+  /* Switch to 2-column grid: Product+Qty on row 1, Unit+Price on row 2 */
+  .flexInputs {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 6px;
+    padding: 10px;
+    border-radius: 8px;
+  }
+
+  /* Trash icon spans full width, sits at the end */
+  .flexInputs svg {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+
+  .flexInputs input {
+    padding: 10px 6px;
+    font-size: 13px;
+  }
+
+  /* Calculations tighter */
+  .calculations {
+    padding: 12px 10px;
+  }
+
+  .total:last-child, .balance:last-child {
+    margin: 8px -10px -12px;
+    padding: 12px 10px;
+  }
+
   .calculations h3 {
+    font-size: 13px;
+  }
+
+  .calculations div {
     font-size: 14px;
   }
-  
-  .calculations div {
-    font-size: 16px;
+
+  .cash {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .cash input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Buttons: 2-per-row wrap */
+  .buttons {
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .print,
+  .sms,
+  .addCell,
+  .sales,
+  .saveButton {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 120px;
+    max-width: 160px;
+    height: 42px;
+    font-size: 13px;
+    padding: 0 12px;
+  }
+
+  .discountContent {
+    width: 92%;
+    padding: 20px 16px;
+  }
+
+  .senders {
+    width: 92%;
   }
 }

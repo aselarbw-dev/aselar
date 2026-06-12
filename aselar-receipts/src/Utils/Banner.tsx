@@ -73,10 +73,7 @@ const Banner = ({ isCollapsed }: BannerProps) => {
   }
 
   return (
-    <div className={bannerStyles.theCoverForAll}
-  style={{
-    left: isCollapsed ? '80px' : '280px'
-  }}>
+   <div className={`${bannerStyles.theCoverForAll} ${isCollapsed ? bannerStyles.collapsed : ''}`}>
       <div className={bannerStyles.categories}>
         <div className={bannerStyles.welcomeNote}>
           {user && (
@@ -97,7 +94,7 @@ const Banner = ({ isCollapsed }: BannerProps) => {
 
         <div className={bannerStyles.actionSection}>
           <div className={bannerStyles.notifications}>
-            <Link to="/files-bunker" className={bannerStyles.iconButton}>
+            <Link to="/files-bunker" className={bannerStyles.iconButton} title="Go to Files Bunker">
               <FaFile color="blue" size={24}/>
             </Link>             
           </div>
@@ -106,7 +103,7 @@ const Banner = ({ isCollapsed }: BannerProps) => {
 
           <div className={`${bannerStyles.calculatorShow} ${bannerStyles.dropdownContainer}`}>
             {showContent && (
-              <div className={bannerStyles.dropdown}>
+              <div className={bannerStyles.dropdown} title="Calculator">
                 <Calculator/>
               </div>
             )}
@@ -116,7 +113,7 @@ const Banner = ({ isCollapsed }: BannerProps) => {
           </div>
 
           <div className={bannerStyles.settings}>
-            <Link to="/files-uploads" className={bannerStyles.iconButton}>
+            <Link to="/files-uploads" className={bannerStyles.iconButton} title="Go to Files Uploads">
               <FaFileUpload color="blue" size={24} /> 
             </Link>
           </div>

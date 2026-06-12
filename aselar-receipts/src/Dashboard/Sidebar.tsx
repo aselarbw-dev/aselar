@@ -161,11 +161,15 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   // Close mobile menu when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-        setMobileMenuOpen(false);
-      }
-    };
+   const handleClickOutside = (event: MouseEvent) => {
+  const target = event.target as Node;
+  // Don't close if clicking the toggle button itself
+  if (sidebarRef.current && !sidebarRef.current.contains(target)) {
+    const btn = document.querySelector(`.${sideStyles.mobileMenuButton}`);
+    if (btn && btn.contains(target)) return; // ← add this
+    setMobileMenuOpen(false);
+  }
+};
 
     if (mobileMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);

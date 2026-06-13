@@ -15,14 +15,15 @@ interface Addition {
 }
 
 const PaySlip: React.FC = () => {
-  const [basicSalary, setBasicSalary] = useState<string>('');
-  const [vat, setVat] = useState<string>('');
-  const [deductions, setDeductions] = useState<Deduction[]>([]);
-  const [additions, setAdditions] = useState<Addition[]>([]);
-  const [balance, setBalance] = useState<number>(0);
+  const [employeeName, setEmployeeName] = useState<string>('');
+  const [employeeId, setEmployeeId]     = useState<string>('');
+  const [basicSalary, setBasicSalary]   = useState<string>('');
+  const [vat, setVat]                   = useState<string>('');
+  const [deductions, setDeductions]     = useState<Deduction[]>([]);
+  const [additions, setAdditions]       = useState<Addition[]>([]);
+  const [balance, setBalance]           = useState<number>(0);
   const navigate = useNavigate();
 
-  // Handle basic salary input
   const handleBasicSalaryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (!isNaN(Number(value)) && Number(value) >= 0) {
@@ -32,7 +33,6 @@ const PaySlip: React.FC = () => {
     }
   };
 
-  // Handle VAT input
   const handleVatChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     if (!isNaN(Number(value)) && Number(value) >= 0) {
@@ -42,115 +42,92 @@ const PaySlip: React.FC = () => {
     }
   };
 
-  // Add a new deduction field
-  const handleAddDeduction = () => {
-    setDeductions([...deductions, { label: '', amount: '' }]);
-  };
+  const handleAddDeduction = () => setDeductions([...deductions, { label: '', amount: '' }]);
+  const handleAddAddition  = () => setAdditions([...additions,   { label: '', amount: '' }]);
 
-  // Add a new addition field
-  const handleAddAddition = () => {
-    setAdditions([...additions, { label: '', amount: '' }]);
-  };
-
-  // Handle deduction label change
   const handleDeductionLabelChange = (index: number, value: string) => {
-    const updatedDeductions = [...deductions];
-    updatedDeductions[index].label = value;
-    setDeductions(updatedDeductions);
+    const updated = [...deductions];
+    updated[index].label = value;
+    setDeductions(updated);
   };
 
-  // Handle deduction amount change
   const handleDeductionAmountChange = (index: number, value: string) => {
     if (!isNaN(Number(value)) && Number(value) >= 0) {
-      const updatedDeductions = [...deductions];
-      updatedDeductions[index].amount = value;
-      setDeductions(updatedDeductions);
+      const updated = [...deductions];
+      updated[index].amount = value;
+      setDeductions(updated);
     } else {
       toast.error('Deduction amount must be a non-negative number.');
     }
   };
 
-  // Handle addition label change
   const handleAdditionLabelChange = (index: number, value: string) => {
-    const updatedAdditions = [...additions];
-    updatedAdditions[index].label = value;
-    setAdditions(updatedAdditions);
+    const updated = [...additions];
+    updated[index].label = value;
+    setAdditions(updated);
   };
 
-  // Handle addition amount change
   const handleAdditionAmountChange = (index: number, value: string) => {
     if (!isNaN(Number(value)) && Number(value) >= 0) {
-      const updatedAdditions = [...additions];
-      updatedAdditions[index].amount = value;
-      setAdditions(updatedAdditions);
+      const updated = [...additions];
+      updated[index].amount = value;
+      setAdditions(updated);
     } else {
       toast.error('Addition amount must be a non-negative number.');
     }
   };
 
-  // Handle deletion of a deduction
-  const handleDeleteDeduction = (index: number) => {
-    const updatedDeductions = deductions.filter((_, i) => i !== index);
-    setDeductions(updatedDeductions);
-  };
+  const handleDeleteDeduction = (index: number) =>
+    setDeductions(deductions.filter((_, i) => i !== index));
 
-  // Handle deletion of an addition
-  const handleDeleteAddition = (index: number) => {
-    const updatedAdditions = additions.filter((_, i) => i !== index);
-    setAdditions(updatedAdditions);
-  };
+  const handleDeleteAddition = (index: number) =>
+    setAdditions(additions.filter((_, i) => i !== index));
 
-  // Calculate balance whenever basicSalary, vat, deductions, or additions change
   React.useEffect(() => {
-    const totalDeductions = deductions.reduce((sum, deduction) => sum + (Number(deduction.amount) || 0), 0);
-    const totalAdditions = additions.reduce((sum, addition) => sum + (Number(addition.amount) || 0), 0);
-    const calculatedBalance = (Number(basicSalary) || 0) + totalAdditions - totalDeductions - (Number(vat) || 0);
-    setBalance(calculatedBalance);
+    const totalDeductions = deductions.reduce((sum, d) => sum + (Number(d.amount) || 0), 0);
+    const totalAdditions  = additions.reduce((sum, a)  => sum + (Number(a.amount) || 0), 0);
+    setBalance((Number(basicSalary) || 0) + totalAdditions - totalDeductions - (Number(vat) || 0));
   }, [basicSalary, vat, deductions, additions]);
 
-  // Handle posting the payslip
   const handlePost = async () => {
     const paySlipData = {
-      employeeName: (document.getElementById('employeeName') as HTMLInputElement).value,
-      employeeId: (document.getElementById('employeeId') as HTMLInputElement).value,
+      employeeName,
+      employeeId,
       basicSalary: Number(basicSalary),
       vat: Number(vat),
       deductions: deductions.map((d) => ({ label: d.label, amount: Number(d.amount) })),
-      additions: additions.map((a) => ({ label: a.label, amount: Number(a.amount) })),
-      balance: balance,
+      additions:  additions.map((a)  => ({ label: a.label, amount: Number(a.amount) })),
+      balance,
     };
 
     try {
       const response = await fetch('http://localhost:5002/api/pay-slips', {
         method: 'POST',
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(paySlipData),
       });
 
       if (response.ok) {
         toast.success('Payslip posted successfully!');
+        setEmployeeName('');
+        setEmployeeId('');
         setBasicSalary('');
         setVat('');
         setDeductions([]);
         setAdditions([]);
         setBalance(0);
-        (document.getElementById('employeeName') as HTMLInputElement).value = '';
-        (document.getElementById('employeeId') as HTMLInputElement).value = '';
       } else {
         toast.error('Error posting payslip.');
       }
-    } catch (error) {
+    } catch {
       toast.error('Error posting payslip.');
     }
   };
 
-  // Fetch the latest payslip and navigate to the template
   const handleFetchLatestPaySlip = async () => {
     try {
-      const response = await fetch('http://localhost:5002/api/latest-payslip',{
+      const response = await fetch('http://localhost:5002/api/latest-payslip', {
         credentials: 'include',
       });
       if (response.ok) {
@@ -159,7 +136,7 @@ const PaySlip: React.FC = () => {
       } else {
         toast.error('Error fetching latest payslip.');
       }
-    } catch (error) {
+    } catch {
       toast.error('Error fetching latest payslip.');
     }
   };
@@ -168,18 +145,33 @@ const PaySlip: React.FC = () => {
     <div className={styles.paySlipCover}>
       <div className={styles.wrapper}>
         <div className={styles.slip}>
+
           <div className={styles.mainHeader}>
             <h3 className={styles.paySlipHeader}>PaySlip</h3>
             <div className={styles.name}>
               <label htmlFor="employeeName">Employee Name</label>
-              <input type="text" id="employeeName" placeholder="Enter employee or payee's name" />
+              <input
+                type="text"
+                id="employeeName"
+                placeholder="Enter employee or payee's name"
+                value={employeeName}
+                onChange={(e) => setEmployeeName(e.target.value)}
+              />
             </div>
             <div className={styles.empd}>
               <label htmlFor="employeeId">Employee ID</label>
-              <input type="text" id="employeeId" placeholder="Enter employee ID or code" />
+              <input
+                type="text"
+                id="employeeId"
+                placeholder="Enter employee ID or code"
+                value={employeeId}
+                onChange={(e) => setEmployeeId(e.target.value)}
+              />
             </div>
           </div>
+
           <h4>Salary Breakdown</h4>
+
           <div className={styles.paySlipBody}>
             <div className={styles.salary}>
               <label htmlFor="basicSalary">Basic Salary</label>
@@ -191,6 +183,7 @@ const PaySlip: React.FC = () => {
                 onChange={handleBasicSalaryChange}
               />
             </div>
+
             <div className={styles.taxation}>
               <label htmlFor="vat">Value Added Tax</label>
               <input
@@ -201,71 +194,55 @@ const PaySlip: React.FC = () => {
                 onChange={handleVatChange}
               />
             </div>
-            {/* Deductions */}
+
             {deductions.map((deduction, index) => (
               <div key={index} className={styles.deduction}>
                 <input
                   type="text"
-                  placeholder="deducted payments"
+                  placeholder="Deduction label"
                   value={deduction.label}
                   onChange={(e) => handleDeductionLabelChange(index, e.target.value)}
                 />
                 <input
                   type="text"
-                  placeholder="deducted amount"
+                  placeholder="Amount"
                   value={deduction.amount}
                   onChange={(e) => handleDeductionAmountChange(index, e.target.value)}
                 />
-                <span
-                  className={styles.deleteButton}
-                  onClick={() => handleDeleteDeduction(index)}
-                >
-                  ×
-                </span>
+                <span className={styles.deleteButton} onClick={() => handleDeleteDeduction(index)}>×</span>
               </div>
             ))}
-            {/* Additions */}
+
             {additions.map((addition, index) => (
               <div key={index} className={styles.addition}>
                 <input
                   type="text"
-                  placeholder="added payments"
+                  placeholder="Addition label"
                   value={addition.label}
                   onChange={(e) => handleAdditionLabelChange(index, e.target.value)}
                 />
                 <input
                   type="text"
-                  placeholder="added amount"
+                  placeholder="Amount"
                   value={addition.amount}
                   onChange={(e) => handleAdditionAmountChange(index, e.target.value)}
                 />
-                <span
-                  className={styles.deleteButton}
-                  onClick={() => handleDeleteAddition(index)}
-                >
-                  ×
-                </span>
+                <span className={styles.deleteButton} onClick={() => handleDeleteAddition(index)}>×</span>
               </div>
             ))}
+
             <div className={styles.paybuttons}>
-              <button className={styles.deductions} onClick={handleAddDeduction}>
-                Deductions
-              </button>
-              <button className={styles.additions} onClick={handleAddAddition}>
-                Additions
-              </button>
-              <button className={styles.post} onClick={handlePost}>
-                Post
-              </button>
-              <button className={styles.sendSlip} onClick={handleFetchLatestPaySlip}>
-                Send Payslip
-              </button>
+              <button className={styles.deductions} onClick={handleAddDeduction}>Deductions</button>
+              <button className={styles.additions}  onClick={handleAddAddition}>Additions</button>
+              <button className={styles.post}       onClick={handlePost}>Post</button>
+              <button className={styles.sendSlip}   onClick={handleFetchLatestPaySlip}>Send Payslip</button>
             </div>
-            {/* Display Balance */}
+
             <div className={styles.balance}>
-              <h4>Balance: {balance.toFixed(2)}</h4>
+              <h4>Balance: BWP {balance.toFixed(2)}</h4>
             </div>
           </div>
+
         </div>
       </div>
     </div>

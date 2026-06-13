@@ -1,308 +1,362 @@
 /* Clean Elegant Ledger Styles */
 .ledger {
-      margin: 0 auto;
-    margin-top: 10rem;
-    padding: 30px;
-    display: flex;
-    flex-direction: column; /* Better content flow */
-    height:auto;
-    background: #ffffff;
-    width: 750px;
-    min-height: 480px;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    overflow: hidden;
+  margin: 0 auto;
+  margin-top: 6rem;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  background: #ffffff;
+  width: min(750px, 100%);
+  min-height: 480px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .main {
-    padding: 20px;
+  padding: 12px;
 }
 
 .ledgerDisplay {
-    background: #fafafa;
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 12px;
-    border: 1px solid #e0e0e0;
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid #e0e0e0;
 }
 
 .ledgerTitle {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f0f0f0;
 }
 
 .ledgerHeader {
-    text-align: center;
-    font-size: 28px;
-    font-weight: 600;
-    color: #2c3e50;
-    margin: 0;
-    letter-spacing: -0.3px;
+  text-align: center;
+  font-size: clamp(18px, 4vw, 28px);
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0;
+  letter-spacing: -0.3px;
 }
 
+/* Always two-column: Debit | Title Input | Credit */
 .display {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    margin-bottom: 12px;
-    padding: 10px 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 10px 0;
+  gap: 6px;
 }
 
 .display h4 {
-    font-size: 18px;
-    font-weight: 600;
-    color: #34495e;
-    margin: 0;
+  font-size: clamp(13px, 3vw, 18px);
+  font-weight: 600;
+  color: #34495e;
+  margin: 0;
+  white-space: nowrap;
 }
 
 .display input {
-    text-align: center;
-    padding: 10px 16px;
-    border: 2px solid #e0e0e0;
-    border-radius: 6px;
-    background: #ffffff;
-    color: #2c3e50;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    outline: none;
+  text-align: center;
+  padding: 8px 10px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #2c3e50;
+  font-size: clamp(11px, 2.5vw, 14px);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  outline: none;
+  min-width: 0;
+  flex: 1;
+  max-width: 160px;
 }
 
 .display input:focus {
-    border-color: #3498db;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
 .display input::placeholder {
-    color: #95a5a6;
+  color: #95a5a6;
 }
 
+/* Always side-by-side double-entry grid */
 .displayBody {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    background: #ffffff;
-    overflow-y: auto;
-    max-height: 180px;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #e0e0e0;
-    margin-bottom: 12px;
-}
-
-.debit::-webkit-scrollbar, 
-.credit::-webkit-scrollbar {
-    width: 4px;
-}
-
-.debit::-webkit-scrollbar-track, 
-.credit::-webkit-scrollbar-track {
-    background: #f8f9fa;
-    border-radius: 2px;
-}
-
-.debit::-webkit-scrollbar-thumb, 
-.credit::-webkit-scrollbar-thumb {
-    background: #bdc3c7;
-    border-radius: 2px;
-}
-
-.debit::-webkit-scrollbar-thumb:hover, 
-.credit::-webkit-scrollbar-thumb:hover {
-    background: #95a5a6;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background: #ffffff;
+  overflow-y: auto;
+  max-height: 180px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  margin-bottom: 12px;
+  gap: 8px;
 }
 
 .debit, .credit {
-    flex: 1;
-    padding: 0 8px;
-    max-height: 150px;
-    overflow-y: auto;
+  flex: 1;
+  min-width: 0;
+  padding: 0 4px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.debit::-webkit-scrollbar,
+.credit::-webkit-scrollbar {
+  width: 4px;
+}
+
+.debit::-webkit-scrollbar-track,
+.credit::-webkit-scrollbar-track {
+  background: #f8f9fa;
+  border-radius: 2px;
+}
+
+.debit::-webkit-scrollbar-thumb,
+.credit::-webkit-scrollbar-thumb {
+  background: #bdc3c7;
+  border-radius: 2px;
 }
 
 .debit h3, .credit h3 {
-    color: #2c3e50;
-    font-size: 14px;
-    font-weight: 600;
-    margin-top: 10px;
-    padding-top: 8px;
-    border-top: 1px solid #ecf0f1;
+  color: #2c3e50;
+  font-size: clamp(11px, 2.5vw, 14px);
+  font-weight: 600;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #ecf0f1;
 }
 
 .flex {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    padding: 8px 12px;
-    background: #f8f9fa;
-    border-radius: 6px;
-    border: 1px solid #e9ecef;
-    transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+  padding: 6px 8px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  transition: all 0.2s ease;
+  gap: 4px;
 }
 
 .flex:hover {
-    background: #e9ecef;
-    border-color: #dee2e6;
+  background: #e9ecef;
+  border-color: #dee2e6;
 }
 
 .flex p {
-    margin: 0;
-    color: #495057;
-    font-size: 14px;
-    font-weight: 500;
+  margin: 0;
+  color: #495057;
+  font-size: clamp(10px, 2.2vw, 14px);
+  font-weight: 500;
+  word-break: break-word;
+  flex: 1;
+  min-width: 0;
 }
 
 .line {
-    width: 2px;
-    height: 140px;
-    background: #bdc3c7;
-    margin: 0 auto;
-    border-radius: 1px;
+  width: 2px;
+  align-self: stretch;
+  background: #bdc3c7;
+  border-radius: 1px;
+  flex-shrink: 0;
 }
 
 .removeButton {
-    cursor: pointer;
-    padding: 2px;
-    border-radius: 3px;
-    transition: all 0.2s ease;
-    opacity: 0.6;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+  flex-shrink: 0;
 }
 
 .removeButton:hover {
-    opacity: 1;
-    background: rgba(231, 76, 60, 0.1);
+  opacity: 1;
+  background: rgba(231, 76, 60, 0.1);
 }
 
 .balance {
-    text-align: center;
-    padding: 10px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
-    margin-top: 8px;
+  text-align: center;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+  margin-top: 8px;
 }
 
 .balance h2 {
-    color: #2c3e50;
-    font-size: 16px;
-    font-weight: 600;
-    margin: 0;
+  color: #2c3e50;
+  font-size: clamp(12px, 3vw, 16px);
+  font-weight: 600;
+  margin: 0;
 }
 
+/* Submit panel — stacks on very small screens */
 .submitPanel {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    margin: 10px 0;
-    padding: 12px;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 10px 0;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
 }
 
 .inputs {
-    display: flex;
-    gap: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .inputs > input {
-    padding: 10px 16px;
-    border: 2px solid #e0e0e0;
-    border-radius: 6px;
-    background: #ffffff;
-    color: #2c3e50;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    outline: none;
-    width: 160px;
+  padding: 10px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #2c3e50;
+  font-size: clamp(12px, 2.5vw, 14px);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  outline: none;
+  width: 100%;
+  max-width: 160px;
+  min-width: 100px;
+  flex: 1;
+  box-sizing: border-box;
 }
 
 .inputs > input:focus {
-    border-color: #3498db;
-    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
 .inputs > input::placeholder {
-    color: #95a5a6;
+  color: #95a5a6;
 }
 
 .buttons {
-    display: flex;
-    gap: 8px;
-    margin: 0;
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .post, .bought, .sold {
-    width: 70px;
-    height: 36px;
-    border: none;
-    cursor: pointer;
-    color: white;
-    font-weight: 600;
-    font-size: 13px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-    outline: none;
+  width: 62px;
+  height: 36px;
+  border: none;
+  cursor: pointer;
+  color: white;
+  font-weight: 600;
+  font-size: clamp(11px, 2.5vw, 13px);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  outline: none;
 }
 
 .post {
-    background: #3498db;
+  background: #3498db;
 }
 
 .post:hover {
-    background: #2980b9;
-    transform: translateY(-1px);
+  background: #2980b9;
+  transform: translateY(-1px);
 }
 
 .bought {
-    background: #e74c3c;
+  background: #e74c3c;
 }
 
 .bought:hover {
-    background: #c0392b;
-    transform: translateY(-1px);
+  background: #c0392b;
+  transform: translateY(-1px);
 }
 
 .sold {
-    background: #27ae60;
+  background: #27ae60;
 }
 
 .sold:hover {
-    background: #229954;
-    transform: translateY(-1px);
+  background: #229954;
+  transform: translateY(-1px);
 }
 
 .saveButton {
-    padding: 8px 16px;
-    border: none;
-    cursor: pointer;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 13px;
-    transition: all 0.2s ease;
-    outline: none;
+  padding: 7px 13px;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: clamp(11px, 2.5vw, 13px);
+  transition: all 0.2s ease;
+  outline: none;
+  white-space: nowrap;
 }
 
 .inactive {
-    background: #95a5a6;
-    color: white;
-    cursor: not-allowed;
+  background: #95a5a6;
+  color: white;
 }
 
 .active {
-    background: #f39c12;
-    color: white;
+  background: #f39c12;
+  color: white;
 }
 
 .active:hover {
-    background: #e67e22;
-    transform: translateY(-1px);
+  background: #e67e22;
+  transform: translateY(-1px);
 }
 
-/* Clean, minimal styling - no excessive effects */
+/* Responsive tweaks — layout stays double-entry, just shrinks */
+@media (max-width: 600px) {
+  .ledger {
+    margin-top: 4rem;
+    border-radius: 8px;
+  }
+
+  .submitPanel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .inputs {
+    flex-direction: row;
+  }
+
+  .buttons {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 380px) {
+  .display {
+    gap: 4px;
+  }
+
+  .display h4 {
+    font-size: 12px;
+  }
+
+  .post, .bought, .sold {
+    width: 54px;
+    height: 34px;
+  }
+}

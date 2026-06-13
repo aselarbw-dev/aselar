@@ -14,7 +14,6 @@ import {
   FaWallet,
   FaRobot,
   FaMoneyCheck,
-  FaUser,
   FaChevronRight,
   FaLock,
 } from "react-icons/fa";
@@ -105,11 +104,6 @@ const links: SidebarLink[] = [
     path: "/payments",
     icon: <FaMoneyCheck />,
     protected: true,
-  },
-  {
-    title: "Give us feedback",
-    path: "/feedback",
-    icon: <FaUser />,
   },
   {
     title: "Account",

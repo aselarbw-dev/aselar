@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import styles from './FeedbackButton.module.css';
-
+import { toast } from 'react-toastify';
 const RATINGS = ['😞', '😕', '😐', '😊', '🤩'];
 
 const FeedbackButton = () => {
@@ -44,7 +44,7 @@ const FeedbackButton = () => {
 
       setSubmitted(true);
     } catch {
-      alert('Something went wrong. Please try again.');
+      toast.error('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }

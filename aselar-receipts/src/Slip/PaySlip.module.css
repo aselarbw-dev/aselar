@@ -1,131 +1,255 @@
-.slip{
-    position: absolute;
-    top:18%;
-    left:35%;
-    font-family: 'Arial', sans-serif;
-    width: 600px;
-    margin: 0 auto;
-    padding: 20px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    background-color: #ffffff;
-}
-.paySlipHeader{
-    text-align: center;
-    font-size: 35px;
-    padding:5px;
-}
-.name{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin:5px;
+/* PaySlip — responsive, white/blue */
 
+.paySlipCover {
+  min-height: 100vh;
+  padding: 5rem 1rem 2rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: #f0f4f8;
+  box-sizing: border-box;
 }
-.name input{
-    padding:10px;
-    width:300px;
-    border-radius: 4px;
-    margin-left: 5px;
-    
+
+.wrapper {
+  width: 100%;
+  max-width: 620px;
 }
-.empd{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin:5px;
+
+.slip {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  width: 100%;
+  padding: 28px 24px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  background-color: #ffffff;
+  box-sizing: border-box;
 }
-.empd input{
-    padding:10px;
-    width:300px;
-    border-radius: 4px;
-    margin-left: 5px;
+
+/* Header */
+.mainHeader {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f0f4f8;
 }
-.paySlipCover h4{
-    text-align: center;
-    padding:10px;
+
+.paySlipHeader {
+  text-align: center;
+  font-size: clamp(22px, 5vw, 32px);
+  font-weight: 700;
+  color: #1a2a4a;
+  margin: 0 0 16px 0;
+  letter-spacing: -0.5px;
 }
-.salary{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin:5px;
+
+/* Field rows */
+.name,
+.empd,
+.salary,
+.taxation {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
 }
-.salary input{
-    padding:10px;
-    width:300px;
-    border-radius: 4px;
-    margin-left: 5px;
+
+.name label,
+.empd label,
+.salary label,
+.taxation label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a5568;
+  white-space: nowrap;
+  min-width: 110px;
 }
-.taxation{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin:5px; 
+
+.name input,
+.empd input,
+.salary input,
+.taxation input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #2c3e50;
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
-.taxation input{
-    padding:10px;
-    width:300px;
-    border-radius: 4px;
-    margin-left: 5px;
+
+.name input:focus,
+.empd input:focus,
+.salary input:focus,
+.taxation input:focus {
+  border-color: #0D6EFD;
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+  background: #fff;
 }
-.deductions{
-    width:100px;
-    height:40px;
-    border-radius: 12px;
-    background-color: red;
-    color:white;
-    border: none;
-    outline:none;
-    cursor: pointer; 
-    padding:5px;
+
+.name input::placeholder,
+.empd input::placeholder,
+.salary input::placeholder,
+.taxation input::placeholder {
+  color: #a0aec0;
 }
-.additions{
-    width:100px;
-    height:40px;
-    border-radius: 12px;
-    background-color: forestgreen;
-    color:white;
-    border: none;
-    outline:none;
-    cursor: pointer; 
-    padding:5px;
+
+/* Section heading */
+.slip h4 {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #0D6EFD;
+  padding: 10px 0 6px;
+  margin: 0;
 }
-.post{
-    width:150px;
-    height:40px;
-    border-radius: 12px;
-    background-color: blue;
-    color:white;
-    border: none;
-    outline:none;
-    cursor: pointer; 
-    padding:5px;
+
+/* Deduction / Addition rows */
+.deduction,
+.addition {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: nowrap;
 }
-.addition,.deduction{
-    margin:5px;
+
+.deduction input,
+.addition input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 7px;
+  background: #f8fafc;
+  color: #2c3e50;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
 }
-.addition input,.deduction input{
-    padding:3px;
+
+.deduction input:focus,
+.addition input:focus {
+  border-color: #0D6EFD;
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.08);
+  background: #fff;
 }
+
 .deleteButton {
-    color: red;
-    cursor: pointer;
-    font-size: 25px;
-    margin-left: 8px;
-  }
-  
-  .deleteButton:hover {
-    color: darkred;
-  }
-.sendSlip{
-    padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
+  color: #e74c3c;
   cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s;
-  background-color: #25d366;
+  font-size: 22px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color 0.2s;
+  padding: 0 2px;
+}
+
+.deleteButton:hover {
+  color: #c0392b;
+}
+
+/* Buttons row */
+.paybuttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 16px 0 12px;
+}
+
+.deductions,
+.additions,
+.post,
+.sendSlip {
+  height: 38px;
+  border: none;
+  border-radius: 8px;
   color: white;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  padding: 0 16px;
+  transition: opacity 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+
+.deductions:hover,
+.additions:hover,
+.post:hover,
+.sendSlip:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.deductions {
+  background: #e74c3c;
+}
+
+.additions {
+  background: #27ae60;
+}
+
+.post {
+  background: #0D6EFD;
+}
+
+.sendSlip {
+  background: #25d366;
+}
+
+/* Balance */
+.balance {
+  text-align: center;
+  padding: 12px;
+  background: #f0f4f8;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  margin-top: 4px;
+}
+
+.balance h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a2a4a;
+  margin: 0;
+  text-transform: none;
+  letter-spacing: 0;
+  padding: 0;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .slip {
+    padding: 20px 14px;
+  }
+
+  .name label,
+  .empd label,
+  .salary label,
+  .taxation label {
+    min-width: 90px;
+    font-size: 12px;
+  }
+
+  .paybuttons {
+    gap: 6px;
+  }
+
+  .deductions,
+  .additions,
+  .post,
+  .sendSlip {
+    font-size: 12px;
+    padding: 0 12px;
+  }
 }

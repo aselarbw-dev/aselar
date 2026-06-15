@@ -407,7 +407,8 @@ const EmailUpload = async (req, res) => {
       </div>
     `;
 await sendEmail({
-  to: email,
+  to: email,                    // ← customer's email (required)
+  cc: companyInfo?.emailBusiness || null,   // ← add this line
   subject: `Receipt #${receiptsNumber} - ${companyInfo?.nameOfBusiness || 'Your Business'}`,
   html: emailBody,
   attachments: [{

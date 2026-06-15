@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import styles from "./Delivery.module.css";
 import { toast } from 'react-toastify';
-import {useNavigate,Link} from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom";
+
 interface DebtProps {
   fullName: string;
   location: string;
   amount: number;
   issuersName: string;
-  message: string; // Added message field
+  message: string;
 }
 
 const Delivery: React.FC = () => {
@@ -16,12 +17,12 @@ const Delivery: React.FC = () => {
     location: '',
     amount: 0,
     issuersName: '',
-    message: '' // Added message field
+    message: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
-  const navigate=useNavigate()
+  const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -33,44 +34,31 @@ const Delivery: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if(!debtData.fullName || !debtData.location || !debtData.amount || !debtData.issuersName || !debtData.message){
+    if (!debtData.fullName || !debtData.location || !debtData.amount || !debtData.issuersName || !debtData.message) {
       toast.error("Please fill in all fields.");
-      return; // Added return to prevent submission
+      return;
     }
     setIsSubmitting(true);
     setSubmitMessage('');
-  
+
     try {
-      // Replace with your actual backend endpoint
       const response = await fetch('http://localhost:5012/api/debt-note', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-           Accept: "application/json",
-        },
-        credentials: 'include', // Include cookies if needed
+        headers: { 'Content-Type': 'application/json', Accept: "application/json" },
+        credentials: 'include',
         body: JSON.stringify(debtData)
       });
 
       if (response.ok) {
         const result = await response.json();
-        setSubmitMessage(result.message || 'Debt collection note submitted successfully!');
         toast.success("Debt collection note submitted successfully!");
-        navigate("/debt-delivery")
-        // Reset form
-        setDebtData({
-          fullName: '',
-          location: '',
-          amount: 0,
-          issuersName: '',
-          message: '' // Reset message field
-        });
+        navigate("/debt-delivery");
+        setDebtData({ fullName: '', location: '', amount: 0, issuersName: '', message: '' });
       } else {
         const errorData = await response.json();
         setSubmitMessage(`Error: ${errorData.message || 'Submission failed'}`);
       }
     } catch (error) {
-      console.error('Submission error:', error);
       setSubmitMessage('Network error. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -78,86 +66,111 @@ const Delivery: React.FC = () => {
   };
 
   return (
-    <div className={styles.container}>
-      <div className={styles.wrapper}>
-          {submitMessage && (
-            <div className={`${styles.message} ${submitMessage.includes('Error') ? styles.error : styles.success}`}>
-              {submitMessage}
-            </div>
-          )}
-        <h4>Debt Collection Note</h4>
+    <div className={styles.pageWrapper}>
+      <div className={styles.card}>
+
+        {submitMessage && (
+          <div className={`${styles.message} ${submitMessage.includes('Error') ? styles.error : styles.success}`}>
+            {submitMessage}
+          </div>
+        )}
+
+        {/* Title row — matches Ledger's header row with Save button */}
+        <div className={styles.cardHeader}>
+          <h4 className={styles.title}>Debt Collection Note</h4>
+        </div>
+
         <form onSubmit={handleSubmit} className={styles.form}>
-          <div className={styles.formGroup}>
-            <label htmlFor="fullName">Full Name</label>
-            <input 
-              type="text" 
+
+          {/* Each row: label left, input right — same as Ledger's Debit/Credit label layout */}
+          <div className={styles.fieldRow}>
+            <label htmlFor="fullName" className={styles.fieldLabel}>Full Name</label>
+            <input
+              className={styles.fieldInput}
+              type="text"
               id="fullName"
               name="fullName"
               value={debtData.fullName}
               onChange={handleInputChange}
-              placeholder='Enter full name' 
+              placeholder="Enter full name"
               required
             />
           </div>
-          
-          <div className={styles.formGroup}>
-            <label htmlFor="location">Location</label>
-            <input 
-              type="text" 
+
+          <div className={styles.fieldRow}>
+            <label htmlFor="location" className={styles.fieldLabel}>Location</label>
+            <input
+              className={styles.fieldInput}
+              type="text"
               id="location"
               name="location"
               value={debtData.location}
               onChange={handleInputChange}
-              placeholder='Enter location' 
+              placeholder="Enter location"
               required
             />
           </div>
-          
-          <div className={styles.formGroup}>
-            <label htmlFor="amount">Amount</label>
-            <input 
-              type="number" 
+
+          <div className={styles.fieldRow}>
+            <label htmlFor="amount" className={styles.fieldLabel}>Amount</label>
+            <input
+              className={styles.fieldInput}
+              type="number"
               id="amount"
               name="amount"
               value={debtData.amount}
               onChange={handleInputChange}
-              placeholder='Enter amount'
+              placeholder="Enter amount"
               min="0"
               step="0.01"
               required
             />
           </div>
-          
-          <div className={styles.formGroup}>
-            <label htmlFor="issuersName">Issuers Name</label>
-            <input 
-              type="text" 
+
+          <div className={styles.fieldRow}>
+            <label htmlFor="issuersName" className={styles.fieldLabel}>Issuer's Name</label>
+            <input
+              className={styles.fieldInput}
+              type="text"
               id="issuersName"
               name="issuersName"
               value={debtData.issuersName}
               onChange={handleInputChange}
-              placeholder='Enter issuers name' 
+              placeholder="Enter issuer's name"
               required
             />
           </div>
 
-          <div className={styles.formGroup}>
-            <label htmlFor="message">Message to Client</label>
-            <textarea 
+          <div className={styles.fieldRow}>
+            <label htmlFor="message" className={styles.fieldLabel}>Message to Client</label>
+            <textarea
+              className={`${styles.fieldInput} ${styles.textarea}`}
               id="message"
               name="message"
               value={debtData.message}
               onChange={handleInputChange}
-              placeholder='Enter message to the client who owes the debt'
-              rows={4}
+              placeholder="Enter message to the client who owes the debt"
+              rows={3}
               required
             />
           </div>
-          
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Submitting...' : 'Submit'}
-          </button>
-          <Link to="/debt-delivery"><button>Recent</button></Link>
+
+          {/* Button row — Submit (blue, matches Ledger's Post), Recent (teal, matches Credit) */}
+          <div className={styles.buttonRow}>
+            <button
+              type="submit"
+              className={`${styles.btn} ${styles.btnSubmit}`}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit'}
+            </button>
+            <Link to="/debt-delivery" className={styles.btnLink}>
+              <button type="button" className={`${styles.btn} ${styles.btnRecent}`}>
+                Recent
+              </button>
+            </Link>
+          </div>
+
         </form>
       </div>
     </div>

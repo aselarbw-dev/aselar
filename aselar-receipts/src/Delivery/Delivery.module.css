@@ -1,61 +1,225 @@
-.container{
-      margin: 0 auto;
-    margin-top: 10rem;
-    padding: 30px;
-    display: flex;
-    flex-direction: column; /* Better content flow */
-    height:auto;
-    background: linear-gradient(145deg, #ffffff, #f8f9fa);
-    width:650px;
-    min-height: 520px;
+/* ── Page wrapper: same centering as /ledger ── */
+.pageWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 2rem 1rem;
+  min-height: calc(100vh - 80px); /* leaves room for top nav */
+}
+
+/* ── Card: matches Ledger's white card ── */
+.card {
+  width: 100%;
+  max-width: 700px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.04),
+    0 10px 20px rgba(0, 0, 0, 0.06);
+  padding: 1.75rem 2rem;
+  margin-top: 1.5rem;
+}
+
+/* ── Card header: title left, matches Ledger's "Accounts Ledgers + Save" row ── */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+/* ── Form ── */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Field row: label left (~30%), input right (~70%) — mirrors Ledger's label/entry rows ── */
+.fieldRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.fieldRow:last-of-type {
+  border-bottom: none;
+}
+
+.fieldLabel {
+  flex: 0 0 140px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.fieldInput {
+  flex: 1;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.9rem;
+  color: #111827;
+  background: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.fieldInput:focus {
+  border-color: #3b82f6;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+.fieldInput::placeholder {
+  color: #9ca3af;
+}
+
+.textarea {
+  resize: none;
+  line-height: 1.5;
+  align-self: flex-start; /* keep label vertically top-aligned */
+}
+
+/* ── Button row: matches Ledger's Debit / Credit / Post row ── */
+.buttonRow {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.btnLink {
+  flex: 1;
+  display: contents; /* lets the inner button take the flex sizing */
+}
+
+.btn {
+  flex: 1;
+  height: 44px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.btn:hover {
+  opacity: 0.88;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Blue — matches Ledger's "Post" button */
+.btnSubmit {
+  background-color: #3b82f6;
+  color: #fff;
+}
+
+/* Teal — matches Ledger's "Credit" button */
+.btnRecent {
+  background-color: #0d9488;
+  color: #fff;
+  width: 100%;
+}
+
+/* ── Feedback messages ── */
+.message {
+  padding: 0.65rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.error {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.success {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+/* ── Responsive ── */
+
+/* Tablet */
+@media (max-width: 768px) {
+  .card {
+    padding: 1.25rem 1.25rem;
+    margin-top: 1rem;
+  }
+
+  .fieldLabel {
+    flex: 0 0 110px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Mobile — stack label above input */
+@media (max-width: 480px) {
+  .pageWrapper {
+    padding: 1rem 0.5rem;
+  }
+
+  .card {
+    padding: 1rem;
     border-radius: 8px;
-    border-radius: 16px;
-  box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.1),
-    0 8px 16px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-.formGroup{
-    display:flex;
-    justify-content: center;
-    align-items: center;
-}
-.wrapper h4{
-    text-align: center;
-    font-size: 35px;
-    color: #111;
-}
-.formGroup label{
-    width:100%;
-}
-.formGroup input{
-    margin:5px;
-    width:100%;
-    padding:10px;
-}
-.formGroup textarea{
-    width:100%;
-    padding:10px;
-    resize: none; 
-}
-.form button{
-    width:100%;
-    height:50px;
-    padding:10px;
-    cursor: pointer;
-    color:white;
-    background-color: #3b82f6;
-    outline: none;
-    border: none;
-    border-radius: 6px;
-    margin:5px;
-}
-.error{
-    color:red;
-    text-align: center;
-}
-.success{
-    color:forestgreen;
-    text-align: center;
+  }
+
+  .fieldRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    padding: 0.65rem 0;
+  }
+
+  .fieldLabel {
+    flex: unset;
+    font-size: 0.82rem;
+  }
+
+  .fieldInput {
+    width: 100%;
+  }
+
+  .buttonRow {
+    flex-direction: column;
+  }
+
+  .btnLink {
+    display: block;
+  }
+
+  .btnRecent {
+    width: 100%;
+  }
+
+  .title {
+    font-size: 1.3rem;
+  }
 }

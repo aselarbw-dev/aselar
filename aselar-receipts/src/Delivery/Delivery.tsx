@@ -54,6 +54,7 @@ const Delivery: React.FC = () => {
         toast.success("Debt collection note submitted successfully!");
         navigate("/debt-delivery");
         setDebtData({ fullName: '', location: '', amount: 0, issuersName: '', message: '' });
+        console.log("Debt collection note submitted:", result);
       } else {
         const errorData = await response.json();
         setSubmitMessage(`Error: ${errorData.message || 'Submission failed'}`);

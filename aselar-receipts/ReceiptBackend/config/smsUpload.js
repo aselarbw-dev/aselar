@@ -559,8 +559,8 @@ const EmailUpload = async (req, res) => {
 
     // Send Email
    await sendEmail({
-      to: email,                    // ← customer's email (required)
-  cc: companyInfo?.emailBusiness || null,   // ← add this line
+     to: email,                    // ← customer's email (required)
+  cc: companyInfo?.emailBusiness || null,   // ← add this line                  // ← customer's email (required)
       html: emailBody,  
       attachments: [{
     filename: filename,

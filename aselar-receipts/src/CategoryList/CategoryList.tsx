@@ -18,6 +18,8 @@ interface ExpiringItem extends Item {
   daysLeft: number;
 }
 
+const CATEGORIES_PER_PAGE = 6; // tweak to taste
+
 const CategoryList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const categories = useSelector((state: RootState) => state.inventory.categories);
@@ -40,6 +42,9 @@ const CategoryList: React.FC = () => {
   // NEW: Expiry modal state
   const [showExpiryModal, setShowExpiryModal] = useState(false);
   const [expiringItems, setExpiringItems] = useState<ExpiringItem[]>([]);
+
+  // NEW: Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
 
   const handleToggleItemForm = (categoryId: string) => {
     setSelectedCategory(selectedCategory === categoryId ? null : categoryId);
@@ -123,6 +128,14 @@ const CategoryList: React.FC = () => {
     }
   }, [categories]);
 
+  // NEW: Clamp current page if categories shrink (e.g. after a delete) so we don't get stuck on an empty page
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(categories.length / CATEGORIES_PER_PAGE));
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [categories.length, currentPage]);
+
   // Helper to format date
   const formatDate = (dateStr: string) => {
     if (!dateStr) return 'No expiry';
@@ -133,11 +146,20 @@ const CategoryList: React.FC = () => {
     });
   };
 
+  // NEW: Pagination derived values
+  const totalPages = Math.max(1, Math.ceil(categories.length / CATEGORIES_PER_PAGE));
+  const startIndex = (currentPage - 1) * CATEGORIES_PER_PAGE;
+  const paginatedCategories = categories.slice(startIndex, startIndex + CATEGORIES_PER_PAGE);
+
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.min(Math.max(page, 1), totalPages));
+  };
+
   // FIXED: Add key to outer map (redundant but ensures no warning)
   return (
     <div className={styles.container}>
       <div className={styles.grid}>
-        {categories.map((category, catIndex) => (  // FIXED: Added catIndex as fallback key
+        {paginatedCategories.map((category, catIndex) => (  // FIXED: Added catIndex as fallback key
           <div key={category._id || catIndex} className={styles.card}>
             <div className={styles.cardHeader}>
               <div className={styles.cardActions}>
@@ -233,6 +255,43 @@ const CategoryList: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {/* NEW: Pagination controls */}
+      {totalPages > 1 && (
+        <div className={styles.pagination}>
+          <button
+            className={styles.pageButton}
+            onClick={() => goToPage(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            Prev
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <span key={page} className={styles.pageNumber}>
+              <button
+                className={`${styles.pageButton} ${page === currentPage ? styles.pageButtonActive : ''}`}
+                onClick={() => goToPage(page)}
+              >
+                {page}
+              </button>
+            </span>
+          ))}
+
+          {/* Mobile-only fallback label, hidden on larger screens via CSS */}
+          <span className={styles.pageInfo}>
+            Page {currentPage} of {totalPages}
+          </span>
+
+          <button
+            className={styles.pageButton}
+            onClick={() => goToPage(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {/* NEW: Expiry Modal */}
       {showExpiryModal && (

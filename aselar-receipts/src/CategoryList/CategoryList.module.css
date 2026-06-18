@@ -1,4 +1,3 @@
-
 .beverage{
   position: relative;
     width:220px;
@@ -29,22 +28,35 @@
   .grid{
     display:flex;
     justify-content: space-around;
-    align-items: center;
+    align-items: flex-start;
     flex-wrap:wrap;
- 
+    width: 100%;
+    box-sizing: border-box;
   }
  
 
 
   .card {
     position: relative;
-    min-width: 300px;
+    width: 100%;
+    min-width: 0;
     max-width: 500px;
+    flex: 1 1 300px;
     background-color: #ffff;
     border-radius: 6px;
     padding: 0.7rem;
     margin: 3px;
     box-shadow: 0px 5px 26px 8px rgba(193, 198, 207, 0.66);
+    box-sizing: border-box;
+  }
+
+  /* Below this, a 300px min-width card forces horizontal overflow on most
+     phones, so let the card shrink to fill the available width instead. */
+  @media (max-width: 480px) {
+    .card {
+      flex: 1 1 100%;
+      margin: 3px 0;
+    }
   }
   
   .removeButton {
@@ -130,6 +142,8 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 16px;
+  box-sizing: border-box;
 }
 
 .expiryModal {
@@ -137,8 +151,18 @@
   padding: 2rem;
   border-radius: 8px;
   max-width: 400px;
+  width: 100%;
   text-align: center;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 480px) {
+  .expiryModal {
+    padding: 1.25rem;
+  }
 }
 
 .expiryModal h3 {
@@ -163,4 +187,68 @@
 
 .modalButton:hover {
   background: #0056b3;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+  padding: 0 8px;
+}
+
+.pageButton {
+  padding: 6px 12px;
+  border: 1px solid #0b5577;
+  border-radius: 4px;
+  background: white;
+  color: #0b5577;
+  cursor: pointer;
+  font-size: 0.9em;
+  min-width: 36px;
+  min-height: 36px;
+}
+
+.pageButton:hover:not(:disabled) {
+  background: #0b5577;
+  color: white;
+}
+
+.pageButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pageButtonActive {
+  background: #0b5577;
+  color: white;
+}
+
+.pageInfo {
+  display: none;
+}
+
+/* Below this width, drop the row of individual page-number buttons and
+   show "Page X of Y" plus Prev/Next instead — a row of many small buttons
+   does not fit comfortably on a phone screen. */
+@media (max-width: 480px) {
+  .pageNumber {
+    display: none;
+  }
+
+  .pageInfo {
+    display: inline-block;
+    font-size: 0.85em;
+    color: #0b5577;
+    font-weight: 600;
+    padding: 0 4px;
+  }
+
+  .pageButton {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1em;
+  }
 }

@@ -7,7 +7,8 @@ import {
   faTrash,
   faTimes,
   faExclamationTriangle,
-  faDownload
+  faDownload,
+  faCalculator
 } from '@fortawesome/free-solid-svg-icons';
 import { ClipLoader } from 'react-spinners';
 import jsPDF from 'jspdf';
@@ -116,6 +117,57 @@ const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
   );
 };
 
+interface TotalsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  totalSales: number;
+  totalReceipts: number;
+  totalCash: number;
+}
+
+const TotalsModal: React.FC<TotalsModalProps> = ({
+  isOpen,
+  onClose,
+  totalSales,
+  totalReceipts,
+  totalCash
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <FontAwesomeIcon icon={faCalculator} className={styles.warningIcon} />
+          <h3>Sales Summary</h3>
+          <button className={styles.closeButton} onClick={onClose}>
+            <FontAwesomeIcon icon={faTimes} />
+          </button>
+        </div>
+        <div className={styles.modalBody}>
+          <div className={styles.totalsPanel}>
+            <div className={styles.totalsPanelItem}>
+              <span className={styles.totalsPanelLabel}>Total Receipts</span>
+              <span className={styles.totalsPanelValue}>{totalReceipts}</span>
+            </div>
+            <div className={styles.totalsPanelItem}>
+              <span className={styles.totalsPanelLabel}>Total Sales (BWP)</span>
+              <span className={styles.totalsPanelValue}>{totalSales.toFixed(2)}</span>
+            </div>
+            <div className={styles.totalsPanelItem}>
+              <span className={styles.totalsPanelLabel}>Total Cash Received (BWP)</span>
+              <span className={styles.totalsPanelValue}>{totalCash.toFixed(2)}</span>
+            </div>
+          </div>
+          <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.75rem' }}>
+            Totals are calculated across all receipts on record, not just the current page.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AllReceipts: React.FC = () => {
   const [receipts, setReceipts] = useState<ReceiptData[]>([]);
   const [businessData, setBusinessData] = useState<BusinessData | null>(null);
@@ -134,7 +186,16 @@ const AllReceipts: React.FC = () => {
     receiptId: '',
     receiptName: ''
   });
-  
+
+  // Aggregate totals across ALL receipts (not just the current page)
+  const [totalsModalOpen, setTotalsModalOpen] = useState<boolean>(false);
+  const [aggregateTotals, setAggregateTotals] = useState<{
+    totalSales: number;
+    totalCash: number;
+    count: number;
+  }>({ totalSales: 0, totalCash: 0, count: 0 });
+  const [totalsLoading, setTotalsLoading] = useState<boolean>(false);
+
   const receiptRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   // Fetch business and profile data once on mount
@@ -186,6 +247,43 @@ const AllReceipts: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Fetches every receipt (across all pages) to compute an accurate grand total.
+  // Falls back gracefully if the backend doesn't support a "fetch all" query.
+  const fetchAggregateTotals = async () => {
+    setTotalsLoading(true);
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}api/all-receipts`, {
+        headers: { "Authorization": `Bearer ${localStorage.getItem('token')}` },
+        params: { page: 1, limit: 10000 },
+        withCredentials: true,
+      });
+
+      const allReceipts: ReceiptData[] = response.data.receipts || response.data || [];
+
+      const totals = allReceipts.reduce(
+        (acc, r) => {
+          acc.totalSales += parseFloat(r.grandTotal || '0') || 0;
+          acc.totalCash += parseFloat(r.cash || '0') || 0;
+          acc.count += 1;
+          return acc;
+        },
+        { totalSales: 0, totalCash: 0, count: 0 }
+      );
+
+      setAggregateTotals(totals);
+    } catch (error) {
+      console.error('Failed to fetch aggregate totals:', error);
+      toast.error('Failed to calculate totals');
+    } finally {
+      setTotalsLoading(false);
+    }
+  };
+
+  const handleShowTotals = () => {
+    setTotalsModalOpen(true);
+    fetchAggregateTotals();
   };
 
   const exportReceiptToPDF = (receipt: ReceiptData, profile: ProfileData | null, business: BusinessData | null) => {
@@ -345,7 +443,7 @@ const AllReceipts: React.FC = () => {
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
-        <ClipLoader size={50} color="#6366f1" />
+        <ClipLoader size={50} color="#0f3460" />
         <p>Loading your receipts...</p>
       </div>
     );
@@ -375,6 +473,10 @@ const AllReceipts: React.FC = () => {
           <Link to="/receipt-template">
             <button className={styles.buttonRecent}>Recent Receipt</button>
           </Link>
+          <button className={styles.buttonTotals} onClick={handleShowTotals}>
+            <FontAwesomeIcon icon={faCalculator} />
+            <span>Sales Totals</span>
+          </button>
         </div>
       </div>
 
@@ -552,6 +654,14 @@ const AllReceipts: React.FC = () => {
         onConfirm={handleDelete}
         onCancel={closeDeleteModal}
         isDeleting={!!deletingId}
+      />
+
+      <TotalsModal
+        isOpen={totalsModalOpen}
+        onClose={() => setTotalsModalOpen(false)}
+        totalSales={aggregateTotals.totalSales}
+        totalCash={aggregateTotals.totalCash}
+        totalReceipts={totalsLoading ? totalReceipts : aggregateTotals.count}
       />
     </div>
   );

@@ -1,11 +1,6 @@
-/* Enhanced AllReceipts.module.css */
-
 .cover {
   min-height: 100vh;
-  background:radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 40% 80%, rgba(120, 219, 255, 0.3) 0%, transparent 50%),
-    linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
+  background: #f5f5f7;
   padding: 2rem;
 }
 
@@ -25,31 +20,31 @@
 }
 
 .pageTitle {
-  color: white;
-  font-size: 2.5rem;
+  color: #0D6EFD;
+  font-size: 2.25rem;
   font-weight: 700;
   margin: 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .statsCards {
   display: flex;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .statCard {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 1rem 1.5rem;
   text-align: center;
   min-width: 120px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .statNumber {
   display: block;
-  color: white;
+  color: #0f3460;
   font-size: 2rem;
   font-weight: 700;
   line-height: 1;
@@ -57,7 +52,7 @@
 
 .statLabel {
   display: block;
-  color: rgba(255, 255, 255, 0.8);
+  color: #64748b;
   font-size: 0.75rem;
   font-weight: 500;
   text-transform: uppercase;
@@ -69,58 +64,89 @@
   display: flex;
   gap: 1rem;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .buttonReceipt,
 .buttonRecent {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: #0D6EFD;
+  border: none;
   color: white;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
   font-weight: 600;
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   cursor: pointer;
 }
 
 .buttonReceipt:hover,
 .buttonRecent:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  background: #163d6e;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 52, 96, 0.25);
+}
+
+.buttonTotals {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f3460;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.buttonTotals:hover {
+  background: #f1f5f9;
+  border-color: #0f3460;
+  transform: translateY(-1px);
 }
 
 .receiptsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
 
 .receiptCard {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
   overflow: hidden;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
 }
 
 .receiptCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
 }
 
 .cardPreview {
-  height: 540px;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  height: 360px;
+  background: #fafafa;
+  border-bottom: 1px solid #e2e8f0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1rem;
+}
+
+/* Slim scrollbar so the fixed-height preview doesn't look broken when content overflows */
+.cardPreview::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cardPreview::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
 }
 
 .fileIcon {
@@ -130,7 +156,7 @@
 
 .cardInfo {
   padding: 1rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .cardTitle {
@@ -161,10 +187,8 @@
   gap: 0.75rem;
 }
 
-.downloadButton {
+.actionButton {
   flex: 1;
-  background: #10b981;
-  color: white;
   border: none;
   padding: 0.75rem;
   border-radius: 8px;
@@ -177,8 +201,13 @@
   gap: 0.5rem;
 }
 
+.downloadButton {
+  background: #0f3460;
+  color: white;
+}
+
 .downloadButton:hover {
-  background: #059669;
+  background: #163d6e;
   transform: translateY(-1px);
 }
 
@@ -189,7 +218,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(15, 23, 42, 0.5);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -205,11 +234,48 @@
   max-width: 400px;
   width: 100%;
   text-align: center;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
   animation: modalSlideIn 0.3s ease-out;
 }
-.modalFooter{
-  display:flex;
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  color: #1e293b;
+}
+
+.modalBody {
+  margin-bottom: 1.5rem;
+}
+
+.modalBody p {
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0.35rem 0;
+}
+
+.receiptId {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  font-family: monospace;
+}
+
+.warningText {
+  color: #ef4444 !important;
+  font-weight: 600;
+}
+
+.modalFooter {
+  display: flex;
+  gap: 1rem;
 }
 
 @keyframes modalSlideIn {
@@ -223,39 +289,14 @@
   }
 }
 
-.modalIcon {
-  margin-bottom: 1rem;
-}
-
-.modalTitle {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 1rem 0;
-}
-
-.modalMessage {
-  color: #64748b;
-  line-height: 1.5;
-  margin-bottom: 0.5rem;
-}
-
-.modalReceiptId {
-  color: #94a3b8;
-  font-size: 0.875rem;
-  margin-bottom: 2rem;
-  font-family: monospace;
-}
-
-.modalActions {
-  display: flex;
-  gap: 1rem;
+.warningIcon {
+  color: #f59e0b;
 }
 
 .cancelButton {
   flex: 1;
-  background: rgb(137, 146, 146);
-  color: #ffffff;
+  background: #e2e8f0;
+  color: #1e293b;
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
@@ -265,7 +306,7 @@
 }
 
 .cancelButton:hover:not(:disabled) {
-  background: rgb(80, 86, 86);
+  background: #cbd5e1;
 }
 
 .cancelButton:disabled {
@@ -297,18 +338,21 @@
   opacity: 0.7;
   cursor: not-allowed;
 }
-.closeButton{
-  background: #ef4444;
-  color: white;
-   border: none;
-  padding: 0.55rem 1rem;
-  border-radius: 8px;
-  font-weight: 600;
+
+.closeButton {
+  background: transparent;
+  color: #94a3b8;
+  border: none;
+  padding: 0.25rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-size: 1rem;
 }
-.closeButton:hover{
-   background: #ab0d0d;
+
+.closeButton:hover {
+  color: #1e293b;
 }
 
 .spinner {
@@ -332,28 +376,36 @@
   align-items: center;
   gap: 1rem;
   margin: 2rem 0;
+  flex-wrap: wrap;
 }
 
-.pageButton {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
+.paginationButton {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
-.pageButton:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px);
+.paginationButton:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #0f3460;
 }
 
-.pageButton:disabled {
+.paginationButton:disabled,
+.paginationButton.disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.pageInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .pageNumbers {
@@ -362,26 +414,30 @@
 }
 
 .pageNumber {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  padding: 0.75rem 1rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #1e293b;
+  padding: 0.6rem 0.9rem;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   min-width: 40px;
 }
 
 .pageNumber:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: #f1f5f9;
 }
 
 .pageNumber.active {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.5);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  background: #0f3460;
+  color: white;
+  border-color: #0f3460;
+}
+
+.pageText {
+  color: #64748b;
+  font-size: 0.85rem;
 }
 
 /* Loading States */
@@ -391,14 +447,15 @@
   align-items: center;
   justify-content: center;
   min-height: 50vh;
-  color: white;
+  color: #1e293b;
+  background: #f5f5f7;
 }
 
 .loadingSpinner {
   width: 40px;
   height: 40px;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top: 4px solid white;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #0f3460;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -411,7 +468,7 @@
   align-items: center;
   justify-content: center;
   min-height: 50vh;
-  color: white;
+  color: #1e293b;
   text-align: center;
 }
 
@@ -421,21 +478,19 @@
 }
 
 .retryButton {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: #0f3460;
+  border: none;
   color: white;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   margin-top: 1rem;
 }
 
 .retryButton:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px);
+  background: #163d6e;
 }
 
 /* Empty State */
@@ -445,7 +500,7 @@
   align-items: center;
   justify-content: center;
   min-height: 50vh;
-  color: white;
+  color: #1e293b;
   text-align: center;
 }
 
@@ -461,31 +516,61 @@
 }
 
 .noDataContainer p {
-  opacity: 0.8;
+  color: #64748b;
   margin-bottom: 2rem;
 }
 
 .createButton {
-  background: rgba(16, 185, 129, 0.9);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: #0D6EFD;
+  border: none;
   color: white;
   padding: 1rem 2rem;
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   text-decoration: none;
   display: inline-block;
 }
 
 .createButton:hover {
-  background: rgba(16, 185, 129, 1);
+  background: #163d6e;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px rgba(15, 52, 96, 0.25);
 }
 
-/* Hidden receipt content for printing */
+/* Totals summary panel */
+.totalsPanel {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.totalsPanelItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.totalsPanelLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+}
+
+.totalsPanelValue {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f3460;
+}
+
+/* Receipt content (inside fixed-height scrollable preview) */
 .wrapper {
   font-family: 'Courier New', monospace;
   font-size: 12px;
@@ -506,12 +591,21 @@
   height: 50px;
   margin-right: 15px;
   object-fit: contain;
+  flex-shrink: 0;
+}
+
+.text {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .text h4 {
   margin: 2px 0;
   font-size: 11px;
   font-weight: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .receiptHeader {
@@ -538,11 +632,17 @@
   padding: 8px 0;
   border-bottom: 1px solid #ddd;
   font-weight: bold;
+  position: sticky;
+  top: 0;
+  background: #fafafa;
 }
 
 .items h4 {
   margin: 0;
   font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .itemsContainer {
@@ -555,10 +655,21 @@
   gap: 10px;
   padding: 5px 0;
   border-bottom: 1px dotted #ccc;
+  min-width: 0;
 }
 
 .contentsOfReceipts:last-child {
   border-bottom: none;
+}
+
+.productName,
+.quantity,
+.unit,
+.price {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .divider {
@@ -575,6 +686,20 @@
   justify-content: space-between;
   margin: 5px 0;
   font-weight: bold;
+  gap: 0.5rem;
+}
+
+.totalHeader {
+  flex-shrink: 0;
+}
+
+.totalAmount,
+.paidAmount,
+.balanceAmount {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
 }
 
 .security {
@@ -585,6 +710,9 @@
 .security h4 {
   margin: 2px 0;
   font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .footer {
@@ -618,42 +746,50 @@
   .cover {
     padding: 1rem;
   }
-  
+
   .topTitles {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .headerLeft {
     align-items: center;
     text-align: center;
   }
-  
+
   .statsCards {
     justify-content: center;
   }
-  
+
   .headerActions {
     justify-content: center;
   }
-  
+
   .receiptsGrid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 1rem;
   }
-  
-  .pageTitle {
-    font-size: 2rem;
+
+  .cardPreview {
+    height: 300px;
   }
-  
+
+  .pageTitle {
+    font-size: 1.75rem;
+  }
+
   .pagination {
-    flex-wrap: wrap;
     gap: 0.5rem;
   }
-  
+
   .modal {
     margin: 1rem;
     padding: 1.5rem;
+  }
+
+  .totalsPanel {
+    justify-content: center;
+    text-align: center;
   }
 }
 
@@ -661,17 +797,38 @@
   .receiptsGrid {
     grid-template-columns: 1fr;
   }
-  
+
   .cardActions {
     flex-direction: column;
   }
-  
+
   .statsCards {
     flex-direction: column;
     width: 100%;
   }
-  
+
   .statCard {
     min-width: unset;
+  }
+
+  .headerActions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .headerActions > * {
+    width: 100%;
+  }
+
+  .buttonReceipt,
+  .buttonRecent,
+  .buttonTotals {
+    width: 100%;
+    text-align: center;
+  }
+
+  .totalsPanel {
+    flex-direction: column;
+    gap: 1rem;
   }
 }

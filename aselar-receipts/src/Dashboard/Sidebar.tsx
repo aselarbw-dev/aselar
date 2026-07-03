@@ -88,7 +88,7 @@ const links: SidebarLink[] = [
     protected: true,
   },
   {
-    title: "Avelar AI",
+    title: "Aselar AI",
     path: "/aselar-chat-ai",
     icon: <FaRobot />,
     badge: "NEW",

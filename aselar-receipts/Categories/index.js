@@ -18,11 +18,12 @@ app.use(cookieParser())
 
 app.use(cors(
     {
-        origin:['http://localhost:5173',
+        origin:['https://aselarbw.com',
+          'http://localhost:5173',
          process.env.FRONTEND_URL,
     'https://aselar.vercel.app',
       ],
-        
+        //https://aselarbw.com
       credentials: true,
        methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept']

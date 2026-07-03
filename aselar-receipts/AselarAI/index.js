@@ -20,8 +20,10 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 // ─────────────────────────────────────────
 // Middleware
 // ─────────────────────────────────────────
+//'https://aselarbw.com',
+   // 'https://aselar.vercel.app'
 app.use(cors({
-  origin: ['http://localhost:5173',
+  origin: ['https://aselarbw.com',
            process.env.FRONTEND_URL,
            'https://aselar.vercel.app'
          ],

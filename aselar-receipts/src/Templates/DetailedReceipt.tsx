@@ -66,6 +66,12 @@ const DetailedReceipt: React.FC = () => {
   const [scannedUrl, setScannedUrl] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const beepRef = useRef<HTMLAudioElement | null>(null);
+
+useEffect(() => {
+  beepRef.current = new Audio(beep);
+  beepRef.current.load();
+}, []);
   let animationFrameId: number;
 
   // CHANGE 2: initialise the hook
@@ -154,8 +160,10 @@ const DetailedReceipt: React.FC = () => {
         if (code) {
           setScannedUrl(code.data);
           stopQRScanner();
-          const beepSound = new Audio(beep);
-          beepSound.play().catch(() => {});
+          if (beepRef.current) {
+  beepRef.current.currentTime = 0;
+  beepRef.current.play().catch((err) => console.error('Beep play failed:', err));
+}
           toast.success('QR code scanned successfully!');
         } else {
           animationFrameId = requestAnimationFrame(scanQRCode);

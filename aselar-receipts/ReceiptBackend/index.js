@@ -20,9 +20,10 @@ app.use(cookieParser());
 app.use(cors({
   origin: [
     'https://aselarbw.com',
+    'https://aselar.vercel.app',
     'http://localhost:5173',
            process.env.FRONTEND_URL,
-           'https://aselar.vercel.app'
+           
          ],
   credentials: true
 }));

@@ -1,7 +1,7 @@
 // controllers/bankingController.js
 const Banking = require('../models/bankingModel');
 
-// Create new banking details - NO validations, NO duplicate check, NO masking
+// Create new banking details
 const createBankingDetails = async (req, res) => {
   try {
     const {
@@ -13,11 +13,10 @@ const createBankingDetails = async (req, res) => {
       accountType,
     } = req.body;
 
-    // Create new banking details (no trimming enforced, no required checks)
     const bankingDetails = new Banking({
       accountName: accountName || '',
       bankName: bankName || '',
-      accountNumber: accountNumber || '',
+      accountNumber, // required now — no fallback to ''
       branchName: branchName || '',
       swiftCode: swiftCode ? swiftCode.toUpperCase() : '',
       accountType: accountType || 'checking',
@@ -26,7 +25,6 @@ const createBankingDetails = async (req, res) => {
 
     const savedBanking = await bankingDetails.save();
 
-    // Return ACTUAL data without any masking
     res.status(201).json({
       success: true,
       message: 'Banking details created successfully',
@@ -34,7 +32,7 @@ const createBankingDetails = async (req, res) => {
         id: savedBanking._id,
         accountName: savedBanking.accountName,
         bankName: savedBanking.bankName,
-        accountNumber: savedBanking.accountNumber,        // FULL unmasked
+        accountNumber: savedBanking.accountNumber,
         branchName: savedBanking.branchName,
         swiftCode: savedBanking.swiftCode,
         accountType: savedBanking.accountType,
@@ -47,12 +45,22 @@ const createBankingDetails = async (req, res) => {
   } catch (error) {
     console.error('Error creating banking details:', error);
 
-    // Only handle critical errors (no validation errors returned)
+    // Duplicate within the SAME user's own records (compound index: user + accountNumber)
     if (error.code === 11000) {
       return res.status(409).json({
         success: false,
-        message: 'Account number already exists',
+        message: 'You already have banking details saved with this account number',
         error: 'DUPLICATE_ACCOUNT_NUMBER'
+      });
+    }
+
+    // Missing/invalid required fields (e.g. accountNumber not provided)
+    if (error.name === 'ValidationError') {
+      const firstError = Object.values(error.errors)[0]?.message || 'Validation failed';
+      return res.status(400).json({
+        success: false,
+        message: firstError,
+        error: 'VALIDATION_ERROR'
       });
     }
 
@@ -64,7 +72,7 @@ const createBankingDetails = async (req, res) => {
   }
 };
 
-// Get all banking details (with pagination) - returns full unmasked data
+// Get all banking details (with pagination)
 const getAllBankingDetails = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -72,7 +80,7 @@ const getAllBankingDetails = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const filters = {};
-    
+
     if (req.user && req.user._id) {
       filters.user = req.user._id;
     }
@@ -91,7 +99,7 @@ const getAllBankingDetails = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: bankingDetails,   // Full data, no masking, no select exclusion
+      data: bankingDetails,
       pagination: {
         currentPage: page,
         totalPages: Math.ceil(total / limit),
@@ -112,7 +120,7 @@ const getAllBankingDetails = async (req, res) => {
   }
 };
 
-// Get banking details by ID - returns full unmasked data
+// Get banking details by ID
 const getBankingDetailsById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -129,12 +137,12 @@ const getBankingDetailsById = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: bankingDetails.toObject()   // Full actual data, no masking
+      data: bankingDetails.toObject()
     });
 
   } catch (error) {
     console.error('Error fetching banking details:', error);
-    
+
     if (error.name === 'CastError') {
       return res.status(400).json({
         success: false,
@@ -150,22 +158,21 @@ const getBankingDetailsById = async (req, res) => {
   }
 };
 
-// Update banking details - no validation enforcement
+// Update banking details
 const updateBankingDetails = async (req, res) => {
   try {
     const { id } = req.params;
     const updates = { ...req.body };
 
-    // Remove protected fields
     delete updates._id;
     delete updates.__v;
     delete updates.createdAt;
-    delete updates.user; // Prevent changing owner
+    delete updates.user;
 
     const bankingDetails = await Banking.findByIdAndUpdate(
       id,
       { ...updates, updatedAt: Date.now() },
-      { new: true }
+      { new: true, runValidators: true } // enforce required/validation on updates too
     );
 
     if (!bankingDetails) {
@@ -178,7 +185,7 @@ const updateBankingDetails = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Banking details updated successfully',
-      data: bankingDetails.toObject()   // Full unmasked data
+      data: bankingDetails.toObject()
     });
 
   } catch (error) {
@@ -191,6 +198,23 @@ const updateBankingDetails = async (req, res) => {
       });
     }
 
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: 'You already have banking details saved with this account number',
+        error: 'DUPLICATE_ACCOUNT_NUMBER'
+      });
+    }
+
+    if (error.name === 'ValidationError') {
+      const firstError = Object.values(error.errors)[0]?.message || 'Validation failed';
+      return res.status(400).json({
+        success: false,
+        message: firstError,
+        error: 'VALIDATION_ERROR'
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: 'Internal server error',
@@ -199,7 +223,7 @@ const updateBankingDetails = async (req, res) => {
   }
 };
 
-// Delete banking details (unchanged)
+// Delete banking details
 const deleteBankingDetails = async (req, res) => {
   try {
     const { id } = req.params;
@@ -236,7 +260,7 @@ const deleteBankingDetails = async (req, res) => {
   }
 };
 
-// Update verification status (kept basic check for safety)
+// Update verification status
 const updateVerificationStatus = async (req, res) => {
   try {
     const { id } = req.params;
@@ -282,10 +306,10 @@ const updateVerificationStatus = async (req, res) => {
   }
 };
 
-// Get most recent banking details - returns full unmasked accountNumber
+// Get most recent banking details for the logged-in user
 const getMostRecentBankingDetails = async (req, res) => {
   try {
-    const mostRecentBanking = await Banking.findOne({ 
+    const mostRecentBanking = await Banking.findOne({
       user: req.user._id,
       isActive: true
     })
@@ -306,7 +330,7 @@ const getMostRecentBankingDetails = async (req, res) => {
       data: {
         id: mostRecentBanking._id,
         bankName: mostRecentBanking.bankName,
-        accountNumber: mostRecentBanking.accountNumber,   // FULL unmasked
+        accountNumber: mostRecentBanking.accountNumber,
         branchName: mostRecentBanking.branchName,
         swiftCode: mostRecentBanking.swiftCode,
         accountName: mostRecentBanking.accountName,

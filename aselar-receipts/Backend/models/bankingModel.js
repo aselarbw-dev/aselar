@@ -12,9 +12,10 @@ const bankingSchema = new mongoose.Schema({
   },
   accountNumber: {
     type: String,
-    default: '',
-    unique: true,                    // Kept to prevent duplicate account numbers
-    // No required, no regex, no length restrictions
+    required: [true, 'Account number is required'],
+    trim: true,
+    // NOTE: no `unique: true` here anymore — uniqueness is now enforced
+    // per-user via the compound index below, not globally across all users.
   },
   branchName: {
     type: String,
@@ -23,12 +24,10 @@ const bankingSchema = new mongoose.Schema({
   swiftCode: {
     type: String,
     default: '',
-    // No uppercase enforcement, no length or regex validation
   },
   accountType: {
     type: String,
     default: 'checking',
-    // No strict enum - user can put anything (including empty)
   },
   isActive: {
     type: Boolean,
@@ -37,30 +36,27 @@ const bankingSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    // Required removed - more flexible now
+    required: true, // banking details must always belong to a user
   },
   verificationStatus: {
     type: String,
-    enum: ['pending', 'verified', 'rejected'],   // Kept this for safety
+    enum: ['pending', 'verified', 'rejected'],
     default: 'pending'
   }
 }, {
-  timestamps: true   // Automatically handles createdAt and updatedAt
+  timestamps: true
 });
 
-// Removed getMaskedAccountNumber method (we now return real data)
-
-// Static method to find by account number (still useful)
-bankingSchema.statics.findByAccountNumber = function(accountNumber) {
-  return this.findOne({ accountNumber });
+// Static method to find by account number scoped to a user (safer than global lookup)
+bankingSchema.statics.findByAccountNumberForUser = function(userId, accountNumber) {
+  return this.findOne({ user: userId, accountNumber });
 };
 
-// Virtual for display name (kept as it's useful)
+// Virtual for display name
 bankingSchema.virtual('displayName').get(function() {
   return `${this.accountName || 'N/A'} - ${this.bankName || 'N/A'}`;
 });
 
-// Ensure virtuals are included and clean output
 bankingSchema.set('toJSON', {
   virtuals: true,
   transform: function(doc, ret) {
@@ -70,9 +66,14 @@ bankingSchema.set('toJSON', {
 });
 
 // Indexes for performance
-bankingSchema.index({ accountNumber: 1 });
 bankingSchema.index({ user: 1 });
 bankingSchema.index({ createdAt: -1 });
+
+// KEY FIX: uniqueness is scoped to (user, accountNumber), not accountNumber alone.
+// This lets different users each have valid account numbers (even overlapping
+// digit-for-digit) without colliding, while still preventing one user from
+// saving a duplicate of their own account number twice.
+bankingSchema.index({ user: 1, accountNumber: 1 }, { unique: true });
 
 const Banking = mongoose.model('Banking', bankingSchema);
 

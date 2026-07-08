@@ -50,12 +50,11 @@ const Banking: React.FC<BankingProps> = () => {
         setSubmitStatus(null);
 
         try {
+            const token = localStorage.getItem('token');
             const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/banking`, {
                 method: 'POST',
                 credentials: 'include',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+               headers:{ 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                 body: JSON.stringify(bankingData),
             });
 

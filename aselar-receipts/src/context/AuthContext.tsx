@@ -1,6 +1,6 @@
 // context/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAutoLogout } from '../Hooks/useAutoLogout';
 
 export interface User {
@@ -27,13 +27,32 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+// Routes that are part of the onboarding flow — auto-logout should be
+// suspended on these, since there's nothing sensitive to protect yet
+// and a user reading/typing for more than 2 minutes shouldn't get bounced
+// mid-signup. Adjust these paths to match your actual router config exactly.
+const ONBOARDING_ROUTES = [
+  
+  '/verify-business',
+  '/business-signup',
+  "/set-passcode",
+  '/banking',
+  '/user-agreements',
+  
+];
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showWarning, setShowWarning] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const isAuthenticated = !!user;
+
+  const isOnboarding = ONBOARDING_ROUTES.some(route =>
+    location.pathname.startsWith(route)
+  );
 
   // Handle logout warning
   const handleWarning = () => {
@@ -106,12 +125,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   // Use auto logout hook with warning support
+  // Disabled while on onboarding routes — see ONBOARDING_ROUTES above.
   useAutoLogout({
     timeout: 2 * 60 * 1000, // 2 minutes
     warningTime: 30 * 1000, // 30 seconds warning
     onWarning: handleWarning,
     onLogout: handleLogout,
-    isAuthenticated
+    isAuthenticated,
+    enabled: !isOnboarding,
   });
 
   const value: AuthContextType = {

@@ -106,8 +106,6 @@ const requireAuth = (req, res, next) => {
     });
   }
 };
-//console.log(generateToken(1))
-// create controller for registration
 const registerBusiness = asyncHandler(async(req, res) => {
     // extract parameters from the request body
     const {nameOfBusiness, password, emailBusiness, businessPhone} = req.body
@@ -175,11 +173,27 @@ const registerBusiness = asyncHandler(async(req, res) => {
             profilePicture: result.secure_url // Save the Cloudinary URL
         })
 
-        // Generate Token
-        const token = generateToken(user._id);
+        // Create a real session (same mechanism login uses) so this token
+        // carries a sessionId that /validate-session and /extend-session
+        // can actually find in activeSessions. Previously this used a bare
+        // generateToken(user._id) with no sessionId, which meant every
+        // freshly-signed-up user failed session validation immediately.
+        const { sessionId } = createSession(res, user);
+
+        // Update session with user agent (same as loginBusiness does)
+        const session = activeSessions.get(sessionId);
+        if (session) {
+            session.userAgent = req.headers['user-agent'];
+        }
+
+        const token = jwt.sign(
+            { id: user._id, sessionId },
+            process.env.JWT_SECRET,
+            { expiresIn: "1d" }
+        );
         console.log(token)
-        
-        // Send HTTP-only cookie
+
+        // Send HTTP-only cookie (kept as-is for any cookie-dependent paths still in use)
         res.cookie("token", token, {
             path: "/",
             httpOnly: true,
@@ -213,7 +227,6 @@ const registerBusiness = asyncHandler(async(req, res) => {
         throw error;
     }
 })
-
 // Enhanced login controller with rate limiting
 const loginBusiness = asyncHandler(async(req, res) => {
     const {emailBusiness, password} = req.body

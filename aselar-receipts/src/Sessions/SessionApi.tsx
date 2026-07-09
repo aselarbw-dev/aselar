@@ -1,10 +1,11 @@
 // services/sessionApi.ts
 
-
-// Create headers for requests (cookies are sent automatically)
+// Create headers for requests (adds Bearer token; cookies still sent as fallback)
 const createHeaders = (): HeadersInit => {
+  const token = localStorage.getItem('token');
   return {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` })
   };
 };
 
@@ -12,7 +13,7 @@ const createHeaders = (): HeadersInit => {
 const createFetchOptions = (method: string, body?: any): RequestInit => {
   return {
     method,
-    credentials: 'include', // This ensures cookies are sent with requests
+    credentials: 'include',
     headers: createHeaders(),
     ...(body && { body: JSON.stringify(body) })
   };
@@ -21,7 +22,7 @@ const createFetchOptions = (method: string, body?: any): RequestInit => {
 // Lock user session
 export const lockUserSession = async (reason: 'inactivity' | 'navigation' = 'inactivity') => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/lock`, 
+    const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/lock`,
       createFetchOptions('POST', { reason })
     );
 
@@ -36,7 +37,7 @@ export const lockUserSession = async (reason: 'inactivity' | 'navigation' = 'ina
 // Check session status
 export const checkSessionStatus = async () => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/status`, 
+    const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/status`,
       createFetchOptions('GET')
     );
 
@@ -50,43 +51,19 @@ export const checkSessionStatus = async () => {
 
 // Clear cookies and redirect to login
 export const clearSessionAndRedirect = () => {
-  // Clear the authentication cookie
   document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + window.location.hostname;
   document.cookie = 'authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + window.location.hostname;
-  
-  // Clear any localStorage items you might have
-  localStorage.removeItem('token'); // Adjust based on what you store
-  
-  // Redirect to login page
-  window.location.href = '/sign-in'; // Adjust your login route
+  localStorage.removeItem('token');
+  window.location.href = '/sign-in';
 };
 
 // Enhanced logout function
 export const logoutUser = async () => {
   try {
-    // Lock session on server
     await lockUserSession('navigation');
-    
-    // Clear cookies and redirect
     clearSessionAndRedirect();
   } catch (error) {
     console.error('Error during logout:', error);
-    // Even if server call fails, clear cookies
     clearSessionAndRedirect();
   }
 };
-{/* 
-  export const unlockUserSession = async () => {
-  try {
-    const response = await fetch('/api/unlock', 
-      createFetchOptions('POST')
-    );
-
-    const data = await response.json();
-    return { success: response.ok, data };
-  } catch (error) {
-    console.error('Error unlocking session:', error);
-    return { success: false, error };
-  }
-};
-  */}

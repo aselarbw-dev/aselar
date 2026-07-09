@@ -37,17 +37,19 @@ const navigate=useNavigate()
       try {
 
         
-        const response= await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/verify-business`,{
-            method:"POST",
-            mode:"cors",
-            body:JSON.stringify(formData),
-          credentials:"include",
-            headers:{
-                  "Content-Type":"application/json",
-                  'Accept': 'application/json'
-            }
-            
-       })
+      const token = localStorage.getItem('token');
+
+const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/verify-business`, {
+    method: "POST",
+    mode: "cors",
+    body: JSON.stringify(formData),
+    credentials: "include",
+    headers: {
+        "Content-Type": "application/json",
+        'Accept': 'application/json',
+        ...(token && { "Authorization": `Bearer ${token}` })
+    }
+})
        const data=await response.json()
        console.log(data)
       toast.success("Successfully boarded profile.")

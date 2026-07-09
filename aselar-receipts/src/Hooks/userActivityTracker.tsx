@@ -58,14 +58,16 @@ export const useActivityTracker = ({
     if (!enabled) return;
 
     // Activity events
-    const events = [
-      'mousedown',
-      'mousemove', 
-      'keypress',
-      'scroll',
-      'touchstart',
-      'click'
-    ];
+   const events = [
+  'mousedown',
+  'mousemove', 
+  'keypress',
+  'scroll',
+  'touchstart',
+  'touchmove',
+  'click',
+  'input'
+];
 
     // Set up activity listeners
     events.forEach(event => {

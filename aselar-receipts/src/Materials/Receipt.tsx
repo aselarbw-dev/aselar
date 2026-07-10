@@ -159,15 +159,12 @@ const Receipt: React.FC = () => {
           discountType: discount.isPercentage ? "percentage" : "fixed"
         }),
       };
-  
+     const token= localStorage.getItem('token');
       const response = await fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}/api/quick-receipt`, {
         method: "POST",
         credentials: "include",
         mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
+                    headers:{ 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload),
       });
   

@@ -33,9 +33,9 @@ interface AuthProviderProps {
 // mid-signup. Adjust these paths to match your actual router config exactly.
 const ONBOARDING_ROUTES = [
   
-  '/verify-business',
-  '/business-signup',
-  "/set-passcode",
+  '/get-started',
+  '/sign-up',
+  "/create-passcode",
   '/banking',
   '/user-agreements',
   

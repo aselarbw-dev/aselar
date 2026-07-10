@@ -17,13 +17,18 @@ const protect = asyncHandler(async (req, res, next) => {
       });
     }
 
-    const token = req.cookies.token;
+    // Check Authorization header first, fall back to cookie
+    let token;
+    if (req.headers.authorization?.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies?.token) {
+      token = req.cookies.token;
+    }
 
     if (!token) {
       return res.status(401).json({
-       
         message: 'Access token required',
-                sessionExpired: true 
+        sessionExpired: true 
       });
     }
 

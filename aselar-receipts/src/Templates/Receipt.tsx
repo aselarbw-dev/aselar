@@ -274,7 +274,7 @@ const Receipt: React.FC = () => {
         }
       };
 
-      const response = await fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}/api/generate-qr`, {
+      const response = await fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}api/generate-qr`, {
         method: 'POST',
         credentials: 'include',
         headers: { 

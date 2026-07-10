@@ -160,7 +160,7 @@ const Receipt: React.FC = () => {
         }),
       };
      const token= localStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}/api/quick-receipt`, {
+      const response = await fetch(`${import.meta.env.VITE_RECEIPT_BACKEND_SERVICE_URL}api/quick-receipt`, {
         method: "POST",
         credentials: "include",
         mode: "cors",

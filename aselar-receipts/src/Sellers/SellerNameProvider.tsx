@@ -1,30 +1,11 @@
 // SellerNameProvider.tsx
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import styles from './SellerNameProvider.module.css';
+import styles from './SellerNameProvider.module.css'; // Assuming you have a CSS module for styling
 
 const getTodayDate = (): string => {
   const today = new Date();
   return today.toISOString().slice(0, 10); // YYYY-MM-DD format
 };
-
-// Decode the JWT payload to get the user id, without needing a verification
-// library on the frontend — we're just reading the payload, the backend
-// already verifies the signature on every request.
-const getUserIdFromToken = (): string | null => {
-  const token = localStorage.getItem('token');
-  if (!token) return null;
-
-  try {
-    const payloadBase64 = token.split('.')[1];
-    const payload = JSON.parse(atob(payloadBase64));
-    return payload.id || null;
-  } catch (err) {
-    console.error('Failed to decode token payload:', err);
-    return null;
-  }
-};
-
-const getSellerKey = (userId: string, date: string) => `sellerName_${userId}_${date}`;
 
 interface SellerContextType {
   sellerName: string;
@@ -45,14 +26,8 @@ const SellerNameProvider: React.FC<SellerNameProviderProps> = ({ children }) => 
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
-    const userId = getUserIdFromToken();
-    if (!userId) {
-      // No valid session yet — don't prompt, let auth flow handle redirect
-      return;
-    }
-
     const today = getTodayDate();
-    const storedName = localStorage.getItem(getSellerKey(userId, today));
+    const storedName = localStorage.getItem(`sellerName_${today}`);
     if (storedName) {
       setSellerName(storedName);
     } else {
@@ -67,24 +42,17 @@ const SellerNameProvider: React.FC<SellerNameProviderProps> = ({ children }) => 
       setError('Seller name is required for the day.');
       return;
     }
-
-    const userId = getUserIdFromToken();
-    if (!userId) {
-      setError('Session not found. Please log in again.');
-      return;
-    }
-
     const today = getTodayDate();
 
-    // LocalStorage save — now scoped per user, not just per date
-    localStorage.setItem(getSellerKey(userId, today), trimmedName);
+    // LocalStorage save (unchanged)
+    localStorage.setItem(`sellerName_${today}`, trimmedName);
     setSellerName(trimmedName);
     setShowPrompt(false);
     setError('');
 
     // Submit to server
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token'); // Assuming token is stored in localStorage
       const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/seller`, {
         method: 'POST',
         headers: { 
@@ -92,14 +60,17 @@ const SellerNameProvider: React.FC<SellerNameProviderProps> = ({ children }) => 
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ name: trimmedName, date: today }),
-        credentials: 'include',
+        credentials: 'include', // Include cookies/auth if needed
       });
       if (!response.ok) {
         throw new Error(`Server error: ${response.status}`);
       }
+      // Optional: Handle response if needed (e.g., const data = await response.json();)
       console.log('Seller saved to server');
     } catch (err) {
+      // Don't block UI—localStorage is primary; server is secondary
       console.error('Server save failed:', err);
+      // Optional: Set a non-blocking warning state/toast here
     }
   };
 

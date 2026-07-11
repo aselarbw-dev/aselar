@@ -178,15 +178,23 @@ const Receipt: React.FC = () => {
       console.log('Receipt created:', data);
       
       setInputs([]);
-      setSubtraction({ value: 0 });
-      setSubtotal(0);
-      setVatAmount(0);
-      setTotalAfterVat(0);
-      setDiscount({ name: '', value: 0, isPercentage: false });
-      setShow(false);                    // Reset SMS input too
-      localStorage.clear();
-      
-      navigate("/receipt-template");
+setSubtraction({ value: 0 });
+setSubtotal(0);
+setVatAmount(0);
+setTotalAfterVat(0);
+setDiscount({ name: '', value: 0, isPercentage: false });
+setShow(false);
+
+// Only clear this component's own draft data — NOT the whole localStorage,
+// which would wipe the auth token, user data, and seller name too.
+localStorage.removeItem('inputs');
+localStorage.removeItem('total');
+localStorage.removeItem('vatAmount');
+localStorage.removeItem('totalAfterVat');
+localStorage.removeItem('subtraction');
+localStorage.removeItem('discount');
+
+navigate("/receipt-template");
     } catch (error) {
       console.error('Submit error:', error);
       toast.error(`Error submitting receipt: ${error instanceof Error ? error.message : 'Unknown error'}`);

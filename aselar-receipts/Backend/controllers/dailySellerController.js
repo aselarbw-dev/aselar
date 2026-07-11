@@ -41,18 +41,16 @@ exports.createDailySeller = async (req, res) => {
 exports.getMostRecentForDay = async (req, res) => {
   try {
     const { date } = req.params;
-    const { userId } = req.query; // Optional filter
+    const userId = req.user._id; // from protect middleware, not query param
 
     if (!date) {
       return res.status(400).json({ error: 'Date is required' });
     }
 
-    let query = { date };
-    if (userId) {
-      query.user = userId;
-    }
+    const seller = await DailySeller.findOne({ date, user: userId })
+      .sort({ timestamp: -1 })
+      .populate('user', 'name');
 
-    const seller = await DailySeller.findOne(query).sort({ timestamp: -1 }).populate('user', 'name');
     if (!seller) {
       return res.status(404).json({ error: 'No seller found for this date' });
     }
@@ -62,7 +60,6 @@ exports.getMostRecentForDay = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
-
 // GET /all - All sellers (optional ?userId=..., ?startDate=..., ?endDate=...)
 exports.getAllDailySellers = async (req, res) => {
   try {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styles from './ReceiversForm.module.css';
-import {toast} from "react-toastify"
+import { toast } from "react-toastify"
+
 interface ReceiverFormProps {
   submitUrl: string;
   onSuccess?: () => void;
@@ -17,6 +18,7 @@ const ReceiverForm: React.FC<ReceiverFormProps> = ({ submitUrl, onSuccess }) => 
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [visible, setVisible] = useState(true); // NEW: controls whether the form renders at all
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -29,31 +31,34 @@ const ReceiverForm: React.FC<ReceiverFormProps> = ({ submitUrl, onSuccess }) => 
     setMessage(null);
 
     try {
-      const token=localStorage.getItem('token')
+      const token = localStorage.getItem('token')
       const res = await fetch(submitUrl, {
         method: 'POST',
         body: JSON.stringify(formData),
         credentials: 'include',
-        headers: { "Content-Type": "application/json",
+        headers: {
+          "Content-Type": "application/json",
           Accept: "application/json",
           "Authorization": `Bearer ${token}`
         },
-        
       });
-console.log('Response status:', res.status);
-    console.log('Response headers:', res.headers);
 
-     if (!res.ok) {
-      const errorText = await res.text();
-      console.log('Error response:', errorText);
-      setMessage(`Submission failed: ${errorText}`);
-      return;
-    }
+      console.log('Response status:', res.status);
+      console.log('Response headers:', res.headers);
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.log('Error response:', errorText);
+        setMessage(`Submission failed: ${errorText}`);
+        return;
+      }
+
       if (res.ok) {
         setMessage('Submitted successfully.');
         setFormData({ companyName: '', addressedTo: '', email: '', phone: '', preparedBy: '' });
         onSuccess?.();
         toast.success("Receiver information submitted successfully!");
+        setVisible(false); // NEW: unmount the form so it stops covering the items behind it
       } else {
         setMessage('Submission failed. Try again.');
       }
@@ -64,6 +69,8 @@ console.log('Response status:', res.status);
       setLoading(false);
     }
   };
+
+  if (!visible) return null; // NEW: form is gone from the DOM once submitted successfully
 
   return (
     <form className={styles.form} onSubmit={handleSubmit}>

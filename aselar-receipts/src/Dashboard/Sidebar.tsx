@@ -3,6 +3,7 @@ import sideStyles from "./Sidebar.module.css";
 import { RiMenu3Line, RiCloseLine } from "react-icons/ri";
 import { MdAccountBox, MdInventory2 } from "react-icons/md";
 import { MdOutlineReceiptLong } from "react-icons/md";
+import { FaUser } from "react-icons/fa";
 //import SessionExpiredModal from "../Sessions/SessionExpiredModal";
 //import { useActivityTracker } from '../Hooks/userActivityTracker';
 //import { lockUserSession, clearSessionAndRedirect } from '../Sessions/SessionApi';
@@ -366,6 +367,7 @@ const signOut = async (): Promise<void> => {
             onClick={signOut}
             title={isCollapsed ? "Logout" : ''}
           >
+            <FaUser/>
             <span className={sideStyles.logoutIcon}></span>
             {!isCollapsed && <span>Logout</span>}
           </button>

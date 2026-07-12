@@ -358,7 +358,20 @@
 .logoutIcon {
   font-size: 16px;
 }
+/* Fix: footer/logout button padding was too large for the 80px collapsed width,
+   squeezing the icon down to ~8px of usable space and making it look missing. */
+.collapsed .footer {
+  padding: 20px 8px;
+}
 
+.collapsed .logoutButton {
+  padding: 12px 0;
+  gap: 0;
+}
+
+.collapsed .navLink {
+  padding: 12px 8px;
+}
 /* Main Content */
 .mainContent {
   margin-left: var(--sidebar-width);

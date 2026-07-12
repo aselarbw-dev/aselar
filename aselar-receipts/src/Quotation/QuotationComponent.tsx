@@ -706,7 +706,7 @@ const QuotationComponent: React.FC = () => {
             <div style={{ textAlign: 'center' }}>
               <h3>Scan this QR code with your mobile device</h3>
               <img src={qrCodeData.qrCodeBase64} alt="QR Code" style={{ width: '200px', height: '200px', margin: '10px 0' }} />
-              <a href={qrCodeData.downloadUrl} download="quotation.pdf" style={{ display: 'block', marginTop: '10px', color: '#007bff' }}>Direct Download PDF</a>
+              <a href={qrCodeData.downloadUrl} download="quotation.pdf" style={{ display: 'block', marginTop: '10px', color: '#007bff', textDecoration: 'none' }}>Direct Download PDF</a>
             </div>
           )}
           <div style={{ textAlign: 'center' }}>
@@ -718,7 +718,7 @@ const QuotationComponent: React.FC = () => {
             <div style={{ textAlign: 'center' }}>
               <h3>PDF Preview</h3>
               <embed src={scannedUrl} type="application/pdf" width="100%" height="400px" style={{ border: '1px solid #ccc', marginTop: '10px' }} />
-              <a href={scannedUrl} download="quotation.pdf" style={{ display: 'block', marginTop: '10px', color: '#007bff' }}>Download Scanned PDF</a>
+              <a href={scannedUrl} download="quotation.pdf" style={{ display: 'block', marginTop: '10px', color: '#007bff', textDecoration: 'none' }}>Download Scanned PDF</a>
             </div>
           )}
           <button onClick={closeQRModal} style={{ marginTop: '20px', padding: '10px 20px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Close</button>

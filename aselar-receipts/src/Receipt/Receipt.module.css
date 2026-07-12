@@ -1,77 +1,114 @@
+* {
+  box-sizing: border-box;
+}
+
 .receipt {
-    background-color: #ffffff;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    max-width: 400px;
-    margin: 20px auto;
-  }
-  
-  .receipt h3 {
-    font-size: 20px;
-    margin-bottom: 16px;
-    color: #333;
-    text-align: center;
-  }
-  
-  .items {
-    margin-bottom: 20px;
-  }
-  
-  .item {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid #e0e0e0;
-    font-size: 14px;
-    color: #333;
-  }
-  
-  .item:last-child {
-    border-bottom: none;
-  }
-  
-  .totals {
-    margin-top: 20px;
-  }
-  
-  .totals div {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    font-size: 16px;
-    color: #333;
-  }
-  
-  .totals input {
-    width: 100px;
-    padding: 8px;
-    border: 1px solid #e0e0e0;
-    border-radius: 4px;
-    font-size: 14px;
-    text-align: right;
-  }
-  
-  .totals input:focus {
-    outline: none;
-    border-color: #007bff;
-  }
-  .removeButton{
-    background-color: red;
-    color: white;
-    width:40px;
-    height:30px;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    text-align: center;
-  }
-  .discountButton{
-background-color: #4CAF50;
-    color: white;
-    width:40px;
-    height:30px;
-    border: none;
-    outline: none;
-    cursor: pointer;
-  }
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  width: 100%;
+  margin: 20px auto;
+}
+
+.receipt h3 {
+  font-size: 20px;
+  margin-bottom: 16px;
+  color: #333;
+  text-align: center;
+}
+
+.items {
+  margin-bottom: 20px;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 14px;
+  color: #333;
+  flex-wrap: wrap;
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+/* Added: needed to stop the item name from forcing the row wider than the card */
+.itemDetails {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;      /* allows text to actually shrink/wrap instead of overflowing */
+  flex: 1 1 140px;
+  word-break: break-word;
+}
+
+.itemActions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;    /* buttons keep their size, never get squeezed oddly */
+}
+
+.itemPrice {
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 13px;
+}
+
+.totals {
+  margin-top: 20px;
+}
+
+.totals div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 16px;
+  color: #333;
+}
+
+.totals input {
+  width: 100px;
+  max-width: 40%;    /* prevents it crowding the label on very narrow screens */
+  padding: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: right;
+}
+
+.totals input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.removeButton {
+  background-color: red;
+  color: white;
+  width: 40px;
+  height: 30px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  text-align: center;
+  border-radius: 4px;
+}
+
+.discountButton {
+  background-color: #4CAF50;
+  color: white;
+  width: 40px;
+  height: 30px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  border-radius: 4px;
+}

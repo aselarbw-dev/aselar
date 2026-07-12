@@ -28,6 +28,53 @@ interface DiscountData {
   isPercentage: boolean;
 }
 
+// MOVED OUT of Receipt so it's a stable component reference across renders —
+// this stops the input from losing focus (and appearing to "freeze") on every keystroke.
+interface DiscountPopupProps {
+  discount: DiscountData;
+  setDiscount: React.Dispatch<React.SetStateAction<DiscountData>>;
+  setShowDiscountPopup: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const DiscountPopup: React.FC<DiscountPopupProps> = ({ discount, setDiscount, setShowDiscountPopup }) => {
+  return (
+    <div className={receipts.discountPopup}>
+      <div className={receipts.discountContent}>
+        <h4>Apply Discount</h4>
+        <input
+          type="text"
+          placeholder="Discount Name"
+          value={discount.name}
+          onChange={(e) => setDiscount({ ...discount, name: e.target.value })}
+        />
+        <input
+          type="number"
+          placeholder="Value"
+          value={discount.value}
+          onChange={(e) => setDiscount({ ...discount, value: parseFloat(e.target.value) || 0 })}
+          step="0.01"
+          min="0"
+        />
+        <label>
+          <input
+            type="checkbox"
+            checked={discount.isPercentage}
+            onChange={(e) => setDiscount({ ...discount, isPercentage: e.target.checked })}
+          />
+          Percentage Discount
+        </label>
+        <div className={receipts.discountButtons}>
+          <button onClick={() => setShowDiscountPopup(false)}>Apply</button>
+          <button onClick={() => {
+            setDiscount({ name: '', value: 0, isPercentage: false });
+            setShowDiscountPopup(false);
+          }}>Remove</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Receipt: React.FC = () => {
   const [inputs, setInputs] = useState<InputField[]>([]);
   const [subtotal, setSubtotal] = useState<number>(0);
@@ -48,11 +95,11 @@ const Receipt: React.FC = () => {
   });
   
   const navigate = useNavigate();
-
-  const showSendersNumber = () => {
+{/*  const showSendersNumber = () => {
     setShow(!show);
   };
-
+*/}
+ 
   const handleAddInputs = () => {
     if (inputs.length > 6) {
       toast.error("Quick Receipts is only for 5 items, use inventory.");
@@ -203,45 +250,6 @@ navigate("/receipt-template");
     }
   };
 
-  const DiscountPopup = () => {
-    return (
-      <div className={receipts.discountPopup}>
-        <div className={receipts.discountContent}>
-          <h4>Apply Discount</h4>
-          <input
-            type="text"
-            placeholder="Discount Name"
-            value={discount.name}
-            onChange={(e) => setDiscount({...discount, name: e.target.value})}
-          />
-          <input
-            type="number"
-            placeholder="Value"
-            value={discount.value}
-            onChange={(e) => setDiscount({...discount, value: parseFloat(e.target.value) || 0})}
-            step="0.01"
-            min="0"
-          />
-          <label>
-            <input
-              type="checkbox"
-              checked={discount.isPercentage}
-              onChange={(e) => setDiscount({...discount, isPercentage: e.target.checked})}
-            />
-            Percentage Discount
-          </label>
-          <div className={receipts.discountButtons}>
-            <button onClick={() => setShowDiscountPopup(false)}>Apply</button>
-            <button onClick={() => {
-              setDiscount({ name: '', value: 0, isPercentage: false });
-              setShowDiscountPopup(false);
-            }}>Remove</button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className={receipts.container}>
       {loading && <Spinner />}
@@ -345,13 +353,13 @@ navigate("/receipt-template");
             <button className={receipts.print} onClick={submitData}>
               Compose 
             </button>
-
-            <button 
+  {/* <button 
               className={receipts.sms} 
               onClick={showSendersNumber}
             >
               SMS
-            </button>
+            </button>*/}
+            
 
             <button 
               className={receipts.sms} 
@@ -389,7 +397,13 @@ navigate("/receipt-template");
         </div>
       </div>
 
-      {showDiscountPopup && <DiscountPopup />}
+      {showDiscountPopup && (
+        <DiscountPopup
+          discount={discount}
+          setDiscount={setDiscount}
+          setShowDiscountPopup={setShowDiscountPopup}
+        />
+      )}
     </div>
   );
 };

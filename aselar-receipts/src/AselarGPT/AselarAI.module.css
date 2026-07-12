@@ -181,6 +181,11 @@
 .sessionItem:hover .deleteBtn { opacity: 1; }
 .deleteBtn:hover { background: #FEE2E2; color: #EF4444; }
 
+/* ── Sidebar backdrop (mobile overlay dismiss) ─── */
+.sidebarBackdrop {
+  display: none;
+}
+
 /* ── Main ──────────────────────────────────────── */
 .main {
   flex: 1;
@@ -585,6 +590,14 @@
   .sidebarOpen {
     transform: translateX(0);
     opacity: 1;
+  }
+
+  .sidebarBackdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    z-index: 90; /* sits below .sidebar's z-index: 100, above everything else */
   }
 
   .messagesArea { padding: 20px 16px; }

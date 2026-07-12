@@ -346,6 +346,7 @@
   transform: translateX(-50%);
   width: 280px;
   height: auto;
+  box-sizing: border-box; /* NEW — same fix */
   box-shadow: 
     0 20px 40px rgba(0, 0, 0, 0.15),
     0 8px 16px rgba(0, 0, 0, 0.1);
@@ -452,6 +453,7 @@
   padding: 32px;
   border-radius: 16px;
   width: 400px;
+  box-sizing: border-box; /* NEW — keeps padding inside the width, prevents overflow on narrow phones */
   box-shadow: 
     0 20px 40px rgba(0, 0, 0, 0.2),
     0 8px 16px rgba(0, 0, 0, 0.1);

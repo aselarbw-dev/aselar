@@ -97,11 +97,20 @@ export default function AselarAI() {
   isStreaming, isLoading, error,
   sendMessage, stopStreaming,
   newSession, loadSession, deleteSession,
-  regenerateLast,     // ← ADD THIS
+  regenerateLast,
 } = useAselarAI();
 
   const [input, setInput] = useState("");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // FIX: sidebar now starts closed on mobile and open on desktop,
+  // instead of always starting true (which covered the whole screen on mobile).
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.innerWidth > 768;
+    }
+    return true;
+  });
+
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -136,6 +145,24 @@ export default function AselarAI() {
     sendMessage(text);
   };
 
+  // FIX: helper so mobile auto-closes the overlay after these actions,
+  // instead of leaving it open and blocking the chat/input.
+  const closeSidebarOnMobile = () => {
+    if (typeof window !== "undefined" && window.innerWidth <= 768) {
+      setSidebarOpen(false);
+    }
+  };
+
+  const handleNewSession = () => {
+    newSession();
+    closeSidebarOnMobile();
+  };
+
+  const handleLoadSession = (id: string) => {
+    loadSession(id);
+    closeSidebarOnMobile();
+  };
+
   const isEmpty = messages.length === 0;
 
   return (
@@ -144,7 +171,7 @@ export default function AselarAI() {
       <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : styles.sidebarClosed}`}>
         <div className={styles.sidebarHeader}>
           <span className={styles.sidebarTitle}>Chat History</span>
-          <button className={styles.newChatBtn} onClick={newSession} title="New chat">
+          <button className={styles.newChatBtn} onClick={handleNewSession} title="New chat">
             <IconPlus />
           </button>
         </div>
@@ -157,7 +184,7 @@ export default function AselarAI() {
             <div
               key={s._id}
               className={`${styles.sessionItem} ${activeSessionId === s._id ? styles.sessionItemActive : ""}`}
-              onClick={() => loadSession(s._id)}
+              onClick={() => handleLoadSession(s._id)}
             >
               <div className={styles.sessionIcon}><IconChat /></div>
               <div className={styles.sessionMeta}>
@@ -178,6 +205,11 @@ export default function AselarAI() {
         </div>
       </aside>
 
+      {/* FIX: backdrop that closes the sidebar when tapped, only relevant/visible on mobile via CSS */}
+      {sidebarOpen && (
+        <div className={styles.sidebarBackdrop} onClick={() => setSidebarOpen(false)} />
+      )}
+
       {/* ── Main chat area ── */}
       <main className={styles.main}>
         {/* Header */}
@@ -190,7 +222,7 @@ export default function AselarAI() {
             <h1>Aselar <span>AI</span></h1>
             <span className={styles.badge}>NEW</span>
           </div>
-          <button className={styles.newChatBtnHeader} onClick={newSession}>
+          <button className={styles.newChatBtnHeader} onClick={handleNewSession}>
             <IconPlus /> New Chat
           </button>
         </header>

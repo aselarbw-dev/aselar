@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import styles from './Receipt.module.css';
 
 interface ReceiptItem {
@@ -37,14 +37,24 @@ const Receipt: React.FC<ReceiptProps> = ({
   onApplyGlobalDiscount
 }) => {
   const [discountPercent, setDiscountPercent] = React.useState<number>(0);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Handle discount percentage change
   const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Math.min(100, Math.max(0, Number(e.target.value) || 0));
-    setDiscountPercent(value);
-    if (onApplyGlobalDiscount) {
-      onApplyGlobalDiscount(value);
+    setDiscountPercent(value); // updates instantly, input stays responsive
+
+    // Clear any pending update so we don't fire multiple times while typing
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
     }
+
+    // Only push to parent (triggers full POS tree re-render) after typing pauses
+    debounceRef.current = setTimeout(() => {
+      if (onApplyGlobalDiscount) {
+        onApplyGlobalDiscount(value);
+      }
+    }, 400);
   };
 
   return (

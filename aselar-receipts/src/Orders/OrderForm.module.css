@@ -1,14 +1,9 @@
-/* ── Fonts ────────────────────────────────────────────────────────────────── */
-/* Serif for brand/headings (matches "Aselar" / "Receipt" styling in the app),
-   Inter for body text (matches the rest of the sidebar/menu UI). */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&display=swap');
-
 /* ── Wrapper ──────────────────────────────────────────────────────────────── */
 .wrapper {
   min-height: 100vh;
   background: #f7f8fa;
   padding: 40px 20px 80px;
-  font-family: 'Inter', sans-serif;
+  
 }
 
 .container {
@@ -31,23 +26,26 @@
 }
 
 .brand {
-  font-family: 'Playfair Display', serif;
   font-weight: 800;
   font-size: 1.15rem;
-  color: #1a2540;
+  color: #3b82f6;
+  letter-spacing: 0.02em;
 }
 
 .title {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(1.7rem, 5vw, 2.3rem);
-  font-weight: 800;
-  color: #1a2540;
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  font-weight: 700;
   letter-spacing: -0.01em;
   margin-bottom: 10px;
+  color: #1e293b;
+  background: linear-gradient(135deg, #1e293b, #475569);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .subtitle {
-  color: #5a6478;
+  color: #64748b;
   font-size: 0.97rem;
   margin-bottom: 26px;
 }
@@ -67,7 +65,7 @@
   gap: 7px;
   font-size: 0.82rem;
   font-weight: 600;
-  color: #a7adba;
+  color: #94a3b8;
   transition: color 0.2s;
 }
 
@@ -75,47 +73,47 @@
   width: 23px;
   height: 23px;
   border-radius: 50%;
-  background: #eceef2;
+  background: #eef2f7;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.74rem;
   font-weight: 700;
-  color: #5a6478;
+  color: #64748b;
   transition: all 0.2s;
 }
 
 .stepActive {
-  color: #2557d6;
+  color: #3b82f6;
 }
 
 .stepActive span {
-  background: #2557d6;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
   color: white;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
 }
 
 .stepDivider {
   width: 40px;
   height: 2px;
-  background: #e2e5ec;
+  background: #e2e8f0;
   margin: 0 8px;
 }
 
 /* ── Sections ─────────────────────────────────────────────────────────────── */
 .section {
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #e2e5ec;
+  background: linear-gradient(145deg, #ffffff, #f8f9fa);
+  border-radius: 14px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
   padding: 26px;
   margin-bottom: 18px;
-  box-shadow: 0 1px 3px rgba(20, 30, 60, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .sectionTitle {
-  font-family: 'Playfair Display', serif;
   font-size: 1.05rem;
   font-weight: 700;
-  color: #1a2540;
+  color: #1e293b;
   margin-bottom: 18px;
   display: flex;
   align-items: center;
@@ -123,7 +121,7 @@
 }
 
 .sectionTitle svg {
-  color: #2557d6;
+  color: #3b82f6;
   flex-shrink: 0;
 }
 
@@ -141,27 +139,27 @@
 }
 
 .itemCount {
-  font-family: 'Inter', sans-serif;
   font-size: 0.76rem;
-  font-weight: 600;
-  background: #eef1f8;
-  color: #2557d6;
+  font-weight: 700;
+  background: #3b82f6;
+  color: white;
   padding: 3px 10px;
-  border-radius: 4px;
+  border-radius: 999px;
   margin-left: 8px;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
 }
 
 .totalBadge {
   font-size: 0.88rem;
-  color: #5a6478;
+  color: #64748b;
   background: #f7f8fa;
-  border: 1px solid #e2e5ec;
-  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   padding: 6px 14px;
 }
 
 .totalBadge strong {
-  color: #2557d6;
+  color: #3b82f6;
 }
 
 /* ── Grid / Fields ────────────────────────────────────────────────────────── */
@@ -184,48 +182,49 @@
 .field label {
   font-size: 0.83rem;
   font-weight: 600;
-  color: #1a2540;
+  color: #1e293b;
 }
 
 .field label span {
-  color: #2557d6;
+  color: #3b82f6;
   margin-left: 2px;
 }
 
 .field input,
 .field select {
   padding: 10px 13px;
-  border: 1px solid #dadfe8;
-  border-radius: 6px;
+  border: 2px solid rgba(226, 232, 240, 0.8);
+  border-radius: 8px;
   font-size: 0.92rem;
-  color: #1a2540;
-  background: white;
-  font-family: 'Inter', sans-serif;
+  color: #1e293b;
+  background: rgba(248, 250, 252, 0.6);
+  font-family: inherit;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: all 0.2s ease;
   -webkit-appearance: none;
   appearance: none;
 }
 
 .field input:focus,
 .field select:focus {
-  border-color: #2557d6;
-  box-shadow: 0 0 0 3px rgba(37, 87, 214, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+  background: white;
 }
 
 .field input:disabled,
 .field select:disabled {
-  background: #f7f8fa;
-  color: #8890a0;
+  background: #f1f5f9;
+  color: #94a3b8;
   cursor: not-allowed;
 }
 
 .field input::placeholder {
-  color: #a7adba;
+  color: #94a3b8;
 }
 
 .field select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235a6478' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 38px;
@@ -240,7 +239,7 @@
   padding: 0 12px 8px;
   font-size: 0.72rem;
   font-weight: 700;
-  color: #8890a0;
+  color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-bottom: 1px solid #eceef2;
@@ -251,27 +250,27 @@
 .itemsList {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   margin-bottom: 14px;
 }
 
 .itemRow {
-  border-radius: 6px;
-  border: 1px solid #eceef2;
-  background: #fbfbfc;
+  border-radius: 10px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  background: white;
   overflow: hidden;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
 }
 
 .itemRowActive {
-  border-color: #2557d6;
-  box-shadow: 0 0 0 3px rgba(37, 87, 214, 0.08);
-  background: white;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .itemRowConfirmed {
-  border-color: #d6ddec;
-  background: #f5f6fa;
+  border-color: #dbe4f0;
+  background: #f8fafc;
 }
 
 /* Collapsed item row */
@@ -283,17 +282,18 @@
 }
 
 .itemNumber {
-  width: 25px;
-  height: 25px;
-  background: #eef1f8;
+  width: 26px;
+  height: 26px;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.76rem;
   font-weight: 700;
-  color: #2557d6;
+  color: white;
   flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
 }
 
 .itemSummary {
@@ -305,28 +305,28 @@
   display: block;
   font-size: 0.91rem;
   font-weight: 600;
-  color: #1a2540;
+  color: #1e293b;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .itemName em {
-  color: #a7adba;
+  color: #94a3b8;
   font-style: italic;
 }
 
 .itemMeta {
   display: block;
   font-size: 0.79rem;
-  color: #5a6478;
+  color: #64748b;
   margin-top: 2px;
 }
 
 .itemLineTotal {
   font-size: 0.88rem;
   font-weight: 700;
-  color: #1a2540;
+  color: #1e293b;
   white-space: nowrap;
 }
 
@@ -350,7 +350,7 @@
 .itemExpandedNum {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #2557d6;
+  color: #3b82f6;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -359,20 +359,22 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 12px;
-  background: #2557d6;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
   color: white;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   font-size: 0.81rem;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+  transition: all 0.15s ease;
 }
 
 .doneBtn:hover {
-  background: #1c44ad;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.4);
 }
 
 .itemFields {
@@ -398,23 +400,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f2f4f8;
-  border: 1px solid #dadfe8;
-  border-radius: 5px;
-  color: #2557d6;
+  background: #f1f5f9;
+  border: 1px solid #dfe6ef;
+  border-radius: 8px;
+  color: #3b82f6;
   cursor: pointer;
-  transition: all 0.15s;
-  font-family: 'Inter', sans-serif;
+  transition: all 0.15s ease;
+  font-family: inherit;
   gap: 5px;
   font-size: 0.81rem;
   font-weight: 500;
   width: auto;
-  padding: 5px 10px;
+  padding: 6px 11px;
 }
 
 .actionBtn:hover:not(:disabled) {
-  background: #eef1f8;
-  border-color: #2557d6;
+  background: #e8f0fe;
+  border-color: #3b82f6;
 }
 
 .actionBtn:disabled {
@@ -423,39 +425,40 @@
 }
 
 .actionBtnDelete {
-  color: #b03a2e;
-  background: #fdf0ee;
-  border-color: #f0c9c3;
+  color: #dc2626;
+  background: #fef2f2;
+  border-color: #fecaca;
 }
 
 .actionBtnDelete:hover:not(:disabled) {
-  background: #fbe0db;
-  border-color: #b03a2e;
+  background: #fee2e2;
+  border-color: #dc2626;
 }
 
 /* Add item button */
 .addItemBtn {
   width: 100%;
-  padding: 11px;
-  background: #f7f8fa;
-  border: 1px dashed #c3cadb;
-  border-radius: 6px;
-  color: #2557d6;
+  padding: 12px;
+  background: linear-gradient(135deg, #ea580c, #f97316);
+  border: none;
+  border-radius: 10px;
+  color: white;
   font-size: 0.89rem;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: inherit;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.15s;
+  box-shadow: 0 3px 10px rgba(234, 88, 12, 0.25);
+  transition: all 0.2s ease;
   margin-top: 4px;
 }
 
 .addItemBtn:hover {
-  background: #eef1f8;
-  border-color: #2557d6;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(234, 88, 12, 0.35);
 }
 
 /* ── Status banners ───────────────────────────────────────────────────────── */
@@ -463,11 +466,11 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 13px 18px;
-  background: #eef6ee;
-  border: 1px solid #2e8b3d;
-  border-radius: 6px;
-  color: #206a2b;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #ecfdf3, #d1fae5);
+  border: 1px solid #10b981;
+  border-radius: 10px;
+  color: #047857;
   font-size: 0.89rem;
   font-weight: 500;
   margin-bottom: 18px;
@@ -475,25 +478,25 @@
 
 .confirmedBanner svg {
   flex-shrink: 0;
-  color: #2e8b3d;
+  color: #059669;
 }
 
 .editAgainBtn {
   margin-left: auto;
-  padding: 4px 12px;
+  padding: 5px 13px;
   background: white;
-  border: 1px solid #2e8b3d;
-  border-radius: 5px;
-  color: #2e8b3d;
+  border: 1px solid #059669;
+  border-radius: 8px;
+  color: #059669;
   font-size: 0.79rem;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
 }
 
 .editAgainBtn:hover {
-  background: #2e8b3d;
+  background: #059669;
   color: white;
 }
 
@@ -501,11 +504,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px;
-  background: #fdf0ee;
-  border: 1px solid #f0c9c3;
-  border-radius: 6px;
-  color: #b03a2e;
+  padding: 13px 16px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  color: #dc2626;
   font-size: 0.87rem;
   margin-bottom: 16px;
 }
@@ -513,7 +516,7 @@
 .hint {
   text-align: center;
   font-size: 0.83rem;
-  color: #a7adba;
+  color: #94a3b8;
   margin-bottom: 16px;
 }
 
@@ -527,38 +530,40 @@
 
 .confirmBtn,
 .submitBtn {
-  padding: 13px 20px;
-  border-radius: 6px;
+  padding: 14px 20px;
+  border-radius: 12px;
   border: none;
   font-size: 0.95rem;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: inherit;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.15s;
+  transition: all 0.2s ease;
 }
 
-/* Mirrors the "Recent" button in the app — solid blue, secondary action */
 .confirmBtn {
-  background: #2557d6;
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
   color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .confirmBtn:hover:not(:disabled) {
-  background: #1c44ad;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.4);
 }
 
-/* Mirrors the "Compose Receipt" button in the app — solid green, primary action */
 .submitBtn {
-  background: #2e8b3d;
+  background: linear-gradient(135deg, #059669, #10b981);
   color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .submitBtn:hover:not(:disabled) {
-  background: #226e2e;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4);
 }
 
 .btnDisabled {
@@ -585,7 +590,7 @@
 .privacy {
   text-align: center;
   font-size: 0.79rem;
-  color: #a7adba;
+  color: #94a3b8;
 }
 
 /* ── Draft Banner ─────────────────────────────────────────────────────────── */
@@ -593,11 +598,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px;
-  background: #eef1f8;
-  border: 1px solid #c3cadb;
-  border-radius: 6px;
-  color: #1c44ad;
+  padding: 13px 16px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  color: #1d4ed8;
   font-size: 0.87rem;
   margin-bottom: 16px;
 }
@@ -606,7 +611,7 @@
   margin-left: auto;
   background: none;
   border: none;
-  color: #5a6478;
+  color: #64748b;
   cursor: pointer;
   font-size: 0.9rem;
   padding: 0 4px;
@@ -620,42 +625,42 @@
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  font-family: 'Inter', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
 .successCard {
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #e2e5ec;
+  background: linear-gradient(145deg, #ffffff, #f8f9fa);
+  border-radius: 16px;
+  border: 1px solid rgba(226, 232, 240, 0.8);
   padding: 44px 40px;
   max-width: 480px;
   width: 100%;
   text-align: center;
-  box-shadow: 0 2px 10px rgba(20, 30, 60, 0.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .successIcon {
   width: 72px;
   height: 72px;
-  background: #eef6ee;
+  background: linear-gradient(135deg, #059669, #10b981);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #2e8b3d;
+  color: white;
   margin: 0 auto 22px;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
 }
 
 .successCard h2 {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.55rem;
-  font-weight: 800;
-  color: #1a2540;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
   margin-bottom: 12px;
 }
 
 .successCard p {
-  color: #5a6478;
+  color: #64748b;
   line-height: 1.7;
   font-size: 0.96rem;
   margin-bottom: 20px;
@@ -671,29 +676,31 @@
 
 .successSummary span {
   padding: 6px 16px;
-  background: #eef1f8;
-  border-radius: 4px;
+  background: #eff6ff;
+  border-radius: 999px;
   font-size: 0.86rem;
   font-weight: 600;
-  color: #2557d6;
+  color: #3b82f6;
 }
 
 .resetBtn {
   width: 100%;
-  padding: 13px;
-  background: #2e8b3d;
+  padding: 14px;
+  background: linear-gradient(135deg, #059669, #10b981);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 12px;
   font-size: 0.95rem;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transition: all 0.2s ease;
 }
 
 .resetBtn:hover {
-  background: #226e2e;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4);
 }
 
 /* ── Responsive ───────────────────────────────────────────────────────────── */
@@ -739,18 +746,18 @@
 .lineTotalValue {
   font-size: 0.93rem;
   font-weight: 700;
-  color: #1a2540;
+  color: #1e293b;
 }
 
 .lineTotalBreakdown {
   font-size: 0.71rem;
-  color: #a7adba;
+  color: #94a3b8;
   margin-top: 1px;
 }
 
 .lineTotalEmpty {
   font-size: 0.9rem;
-  color: #dadfe8;
+  color: #cbd5e1;
 }
 
 /* ── Live line total in expanded/editing row ─────────────────────────────── */
@@ -758,9 +765,9 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #eef1f8;
-  border: 1px solid #c3cadb;
-  border-radius: 5px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
   padding: 5px 12px;
   margin-left: auto;
   margin-right: 10px;
@@ -769,7 +776,7 @@
 .editingLineTotalLabel {
   font-size: 0.73rem;
   font-weight: 600;
-  color: #5a6478;
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -777,8 +784,7 @@
 .editingLineTotalValue {
   font-size: 0.98rem;
   font-weight: 800;
-  color: #1a2540;
-  font-family: 'Playfair Display', serif;
+  color: #1e293b;
 }
 
 /* Column header for line total */
@@ -789,10 +795,11 @@
 /* ── Order Summary Panel ─────────────────────────────────────────────────── */
 .orderSummary {
   margin-top: 20px;
-  border: 1px solid #dadfe8;
-  border-radius: 6px;
+  border: 1px solid #dfe6ef;
+  border-radius: 12px;
   overflow: hidden;
   background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .summaryTitle {
@@ -804,7 +811,7 @@
   border-bottom: 1px solid #eceef2;
   font-size: 0.78rem;
   font-weight: 700;
-  color: #5a6478;
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.07em;
 }
@@ -828,27 +835,27 @@
 }
 
 .summaryRow:hover {
-  background: #fbfbfc;
+  background: #f8fafc;
 }
 
 .summaryRowNum {
   width: 21px;
   height: 21px;
-  background: #eef1f8;
+  background: #3b82f6;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.71rem;
   font-weight: 700;
-  color: #2557d6;
+  color: white;
   flex-shrink: 0;
 }
 
 .summaryRowName {
   font-size: 0.87rem;
   font-weight: 600;
-  color: #1a2540;
+  color: #1e293b;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -856,14 +863,14 @@
 
 .summaryRowCalc {
   font-size: 0.77rem;
-  color: #a7adba;
+  color: #94a3b8;
   white-space: nowrap;
 }
 
 .summaryRowTotal {
   font-size: 0.89rem;
   font-weight: 700;
-  color: #1a2540;
+  color: #1e293b;
   white-space: nowrap;
   text-align: right;
 }
@@ -873,26 +880,24 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
-  background: #1a2540;
-  border-top: 2px solid #2557d6;
+  padding: 16px;
+  background: linear-gradient(135deg, #059669, #10b981);
   gap: 12px;
 }
 
 .grandTotalRow > span:first-child {
   font-size: 0.87rem;
   font-weight: 600;
-  color: #b6c0dc;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .partialNote {
   font-style: italic;
-  color: #8890a0;
+  color: rgba(255, 255, 255, 0.7);
   font-weight: 400;
 }
 
 .grandTotalValue {
-  font-family: 'Playfair Display', serif;
   font-size: 1.3rem;
   font-weight: 800;
   color: white;

@@ -4,10 +4,11 @@
   padding: 2rem;
   border-radius: 1rem;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-  width:400px;
-  height:480px;
-  /*max-width: 600px;*/
-  top:15%;
+  box-sizing: border-box;      /* padding no longer adds to width */
+  width: 400px;
+  max-width: 90vw;             /* never wider than the viewport */
+  height: 480px;
+  top: 15%;
   left: 70%;
   margin: auto;
   font-family: 'Inter', sans-serif;
@@ -68,4 +69,15 @@
   text-align: center;
   color: green;
   font-weight: 500;
+}
+@media (max-width: 768px) {
+  .form {
+    left: 50%;
+    transform: translateX(-50%);
+    top: 5%;
+    width: 90vw;
+    height: auto;
+    min-height: 480px;
+    padding: 1.5rem;
+  }
 }

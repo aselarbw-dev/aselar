@@ -1,28 +1,69 @@
 /* src/components/ExpenseForm.module.css */
 .form {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
+  margin-top: 20px; /* baseline spacing above the form */
+  box-sizing: border-box;
+}
+
+.form div {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.form label {
+  margin-right: 10px;
+}
+
+.form input {
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+.form button {
+  padding: 5px 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.form button:hover {
+  background-color: #45a049;
+}
+
+/* ── Mobile ── */
+@media (max-width: 480px) {
+  .form {
+    margin-top: 70px; /* reserves space below a toggle button fixed near the top of the screen — adjust to match its actual height */
+    padding: 0 4px;
   }
-  
+
   .form div {
-    margin-bottom: 10px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
   }
-  
+
   .form label {
-    margin-right: 10px;
+    margin-right: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
   }
-  
+
   .form input {
-    padding: 5px;
+    width: 100%;
+    font-size: 16px; /* 16px prevents iOS/Android from auto-zooming in on focus */
+    padding: 10px;
   }
-  
+
   .form button {
-    padding: 5px 10px;
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    cursor: pointer;
+    width: 100%;
+    padding: 12px;
+    font-size: 0.95rem;
   }
-  
-  .form button:hover {
-    background-color: #45a049;
-  }
+}

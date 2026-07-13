@@ -1,38 +1,110 @@
-.summary{
-    display:flex;
+.summary {
+  display: flex;
   justify-content: space-around;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
 }
-.summary h4{
-    color:#0b5cff;
+
+.summary h4 {
+  color: #0b5cff;
+  margin: 0;
 }
-.estimatedProfits{
-    display:flex;
+
+.estimatedProfits {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-left: 6px;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.valuation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-left: 6px;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.allItems {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-left: 6px;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.itemsHeader,
+.profitsTitle {
+  white-space: nowrap;
+}
+
+.itemsValue {
+  font-size: 25px;
+  color: #0b5cff;
+  word-break: break-word;
+}
+
+.valuationHeader {
+  font-size: 25px;
+  color: #0b5cff;
+  word-break: break-word;
+}
+
+.profitsValue {
+  font-size: 25px;
+  color: #0b5cff;
+  word-break: break-word;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .summary {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .allItems {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-left: 0;
+    gap: 4px;
+    padding: 10px 0;
+    border-bottom: 1px solid #eef2f7;
+  }
+
+  .estimatedProfits,
+  .valuation {
+    width: 100%;
     justify-content: space-between;
-    align-items: center;
-    margin-left:6px;
+    margin-left: 0;
+  }
+
+  .itemsValue,
+  .valuationHeader,
+  .profitsValue {
+    font-size: 18px;
+  }
 }
-.valuation{
-    display:flex;
-    justify-content: space-between;
-    align-items: center; 
-    margin-left:6px;
-}
-.allItems{
-    display:flex;
-    justify-content: space-between;
-    align-items: center;   
-    margin-left:6px;
-}
-.itemsValue{
-    font-size: 25px;
-    color:#0b5cff;
-}
-.valuationHeader{
-    font-size: 25px;
-    color:#0b5cff; 
-}
-.profitsValue{
-    font-size: 25px;
-    color:#0b5cff; 
+
+@media (max-width: 400px) {
+  .itemsValue,
+  .valuationHeader,
+  .profitsValue {
+    font-size: 16px;
+  }
+
+  .summary h4 {
+    font-size: 14px;
+  }
 }

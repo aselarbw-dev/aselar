@@ -100,9 +100,9 @@ const DashboardStats: React.FC = () => {
     <div className={styles.dashboardStats}>
       <div className={styles.header}>
         <div className={styles.titleGroup}>
-          {/* */}
-          <span className={styles.eyebrow}>Overview</span>
-          <h1 className={styles.title}>Dashboard Stats</h1>
+          {/*<span className={styles.eyebrow}>Overview</span>
+          <h1 className={styles.title}>Dashboard Stats</h1> */}
+          
         </div>
         <button className={styles.refreshButton} onClick={handleRefresh}>
           ↺ Refresh Stats

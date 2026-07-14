@@ -98,11 +98,7 @@ const Banner = ({ isCollapsed }: BannerProps) => {
               <FaFile color="yellow" size={24}/>
             </a>             
           </div>
-<div className={bannerStyles.notifications}>
-            <Link to="/files-bunker" className={bannerStyles.iconButton} title="Go to Files Bunker">
-              <FaFile color="blue" size={24}/>
-            </Link>             
-          </div>
+
           
 
           <div className={`${bannerStyles.calculatorShow} ${bannerStyles.dropdownContainer}`}>

@@ -95,7 +95,7 @@ const Banner = ({ isCollapsed }: BannerProps) => {
         <div className={bannerStyles.actionSection}>
           <div className={bannerStyles.notifications}>
             <a href="https://aselar.netlify.app/" className={bannerStyles.iconButton} title="Aselar Documentation">
-              <FaFile color="yellow" size={24}/>
+              <FaFile color="brown" size={24}/>
             </a>             
           </div>
 

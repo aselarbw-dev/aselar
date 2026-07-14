@@ -98,7 +98,7 @@
     transform: translateX(-50%);
     width: 92%;
     max-width: none;
-    margin-bottom: 20px;   /* extra breathing room above the toggle */
+    margin-bottom: 10px;   /* extra breathing room above the toggle */
     padding: 10px;
     max-height: 70vh;      /* prevents it from stretching too tall and reaching the toggle from the top on short screens */
     overflow-y: auto;

@@ -1,0 +1,246 @@
+.card {
+  max-width: 720px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #dbe4f0;
+  box-shadow: 0 2px 10px rgba(15, 76, 148, 0.08);
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden;
+}
+
+.header {
+  text-align: center;
+  padding: 28px 24px 20px;
+  background: #ffffff;
+  border-bottom: 2px solid #0a5fbf;
+}
+
+.logoBadge {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  background: #0a5fbf;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+}
+
+.logoImage {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  border: 1px solid #dbe4f0;
+}
+
+.brand {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #0a5fbf;
+}
+
+.title {
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #4b5c72;
+}
+
+.sampleBanner {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #b02a2a;
+  background: #fdecec;
+  border: 1px solid #f3c9c9;
+  border-radius: 999px;
+}
+
+.businessName {
+  margin-top: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #12233d;
+}
+
+.period {
+  margin-top: 4px;
+  font-size: 13px;
+  font-style: italic;
+  color: #6b7280;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table td {
+  padding: 9px 20px;
+  border-bottom: 1px solid #eef1f6;
+}
+
+.sectionHeader td {
+  background: #0a5fbf;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 8px 20px;
+  border-bottom: none;
+}
+
+.rowShaded td {
+  background: #f4f8fd;
+}
+
+.label {
+  color: #374151;
+  text-align: left;
+}
+
+.amount {
+  color: #12233d;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rowTotal td {
+  font-weight: 700;
+  background: #e8f0fb;
+  border-bottom: 2px solid #c7d7ec;
+}
+
+.rowHighlight td {
+  font-weight: 800;
+  color: #0a5fbf;
+  background: #eaf2fc;
+  font-size: 15px;
+  border-bottom: 2px solid #c7d7ec;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  padding: 20px 24px;
+  border-top: 1px solid #eef1f6;
+}
+
+.btnPrimary,
+.btnSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1.5px solid #0a5fbf;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.btnPrimary {
+  background: #0a5fbf;
+  color: #ffffff;
+}
+
+.btnPrimary:hover {
+  background: #084b98;
+}
+
+.btnSecondary {
+  background: #ffffff;
+  color: #0a5fbf;
+}
+
+.btnSecondary:hover {
+  background: #eaf2fc;
+}
+
+.btnSecondary:disabled,
+.btnPrimary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.smsRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.smsInput {
+  padding: 9px 12px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1.5px solid #c7d7ec;
+  width: 160px;
+}
+
+.smsInput:focus {
+  outline: none;
+  border-color: #0a5fbf;
+}
+
+.smsError {
+  padding: 0 24px 14px;
+  color: #b02a2a;
+  font-size: 13px;
+}
+
+.explainer {
+  padding: 20px 24px 26px;
+  border-top: 1px solid #eef1f6;
+  color: #4b5563;
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.explainerHeading {
+  margin: 0 0 8px;
+  font-size: 15px;
+  color: #12233d;
+}
+
+.explainer p {
+  margin: 0 0 10px;
+}
+
+.explainer p:last-child {
+  margin-bottom: 0;
+}
+
+.explainer strong {
+  color: #12233d;
+}
+
+@media print {
+  .actions,
+  .sampleBanner,
+  .explainer {
+    display: none;
+  }
+
+  .card {
+    box-shadow: none;
+    border: none;
+  }
+}

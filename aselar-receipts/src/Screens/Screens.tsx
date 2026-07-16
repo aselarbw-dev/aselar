@@ -31,14 +31,14 @@ const PaySlip = lazy(() => import("../Slip/PaySlip"));
 const Agreements = lazy(() => import("../Agreements/Agreements"));
 const BalanceSheet = lazy(() => import("../Templates/BalanceSheet"));
 const POSContainer = lazy(() => import("../POSContainer/POSContainer"));
-
+const IncomeStatements = lazy(() => import("../Statements/IncomeStatement"));
 //const Board = lazy(() => import("../Board/Board"));
 const DashboardStats = lazy(() => import("../DashboardStat/DashboardStats"));
 const DeleteAccountButton = lazy(() => import("../Profile/DeleteAccountButton"));
 const GoodbyePage = lazy(() => import("../Profile/GoodbyePage"));
 const Inventory = lazy(() => import("../IVM/Inventory"));
 const Ledger = lazy(() => import("../Ledger/Ledger"));
-const IncomeStatement = lazy(() => import("../Templates/IncomeStatement"));
+//const IncomeStatement = lazy(() => import("../Templates/IncomeStatement"));
 const FileUpload = lazy(() => import("../Uploads/FileUpload"));
 const ReceiptTemplate = lazy(() => import("../Templates/Receipt"));
 
@@ -91,7 +91,7 @@ const Screens = () => {
         <Route path="/banking" element={<Banking />} />
         <Route path="/quotation-template" element={<QuotationComponent />} />
         <Route path="/all-search" element={<GPTS />} />
-        <Route path="/financial-statements" element={<IncomeStatement />} />
+        <Route path="/financial-statements" element={<IncomeStatements />} />
         <Route path="/generate-statement" element={<IncomeStatementGenerator />} />
         <Route path="/payslip-template" element={<PayslipTemplate />} />
         <Route path="/invoice-template" element={<InvoiceTemplate />} />

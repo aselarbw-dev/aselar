@@ -70,3 +70,19 @@ padding:10px;
 .wide{
     padding:4rem !important;
 }
+.rowGroup {
+  display: flex;
+  gap: 12px;
+}
+
+.rowGroup > div {
+  flex: 1;
+  min-width: 0; /* stops the input from overflowing the column when the placeholder text is long */
+}
+
+@media (max-width: 480px) {
+  .rowGroup {
+    flex-direction: column;
+    gap: 0;
+  }
+}

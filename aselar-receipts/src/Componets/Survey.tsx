@@ -8,11 +8,12 @@ import AselarWhite from "../assets/Asset 6.png"
  interface formSubmission{
    businessNature:string,
    place:string,
+   city:string,               // new
    businessNumber:string,
    businessDescription:string
   
  }
- const initialState:formSubmission={businessNature:"",place:"",businessNumber:"",
+ const initialState:formSubmission={businessNature:"",place:"",city:"",businessNumber:"",
       businessDescription:""}
 const Survey:React.FC = () => {
  const [formData,setFormData]=useState<formSubmission>(initialState)
@@ -29,9 +30,10 @@ const navigate=useNavigate()
      
     const handleSubmit = async(e: React.ChangeEvent<HTMLFormElement>) => {
       e.preventDefault();
-      if(!formData.businessNature || !formData.place || !formData.businessNumber 
+      if(!formData.businessNature || !formData.place || !formData.city || !formData.businessNumber 
             || ! formData.businessDescription){
                     toast.error("Please enter necessary required information..")
+                    return  // note: added this — see flag below
   }
            setLoading(true)
       try {
@@ -87,14 +89,26 @@ const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/verify
                         
                         />
              </div>
-             <div className={surveryStyles.formDetails}>
-                   <label htmlFor="physical">Place of Work</label>
-                   <input type="text" placeholder="eg plot 123,unit 01,extension 123" 
-                   id="physical"
-                   name="place"
-                    onChange={handleChange} value={formData.place}
-                   />
+
+             <div className={surveryStyles.rowGroup}>
+                 <div className={surveryStyles.formDetails}>
+                       <label htmlFor="physical">Place of Work</label>
+                       <input type="text" placeholder="eg plot 123,unit 01,extension 123" 
+                       id="physical"
+                       name="place"
+                        onChange={handleChange} value={formData.place}
+                       />
+                 </div>
+                 <div className={surveryStyles.formDetails}>
+                       <label htmlFor="city">City / Town</label>
+                       <input type="text" placeholder="eg Gaborone,Francistown,Maun" 
+                       id="city"
+                       name="city"
+                        onChange={handleChange} value={formData.city}
+                       />
+                 </div>
              </div>
+
              <div className={surveryStyles.formDetails}>
                    <label htmlFor="phone">Business Contact</label>
                    <input type="text" placeholder="active business contact eg 70000000"

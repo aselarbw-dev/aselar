@@ -1,16 +1,17 @@
 const verifyBusinessModel = require("../models/businessModel.js");
 const asyncHandler = require("express-async-handler");
 
-// Controller function
+const geocodePlace = require("../middlewares/geocode"); // new import — the helper from earlier
+
 const verifyBusinessRegistration = asyncHandler(async (req, res) => {
-    const { businessNature, place, businessNumber, businessDescription } = req.body;
-    
+  const { businessNature, place, city, businessNumber, businessDescription } = req.body;
+                         
     // Validate input
-    if (!businessNature || !place || !businessNumber || !businessDescription) {
+    if (!businessNature || !place || !city || !businessNumber || !businessDescription) {
+        //                          
         res.status(400);
         throw new Error("You should enter all necessary data as requested.");
     }
-    
     // Check if user already has a business verification (using user ID from protect middleware)
     const existingVerification = await verifyBusinessModel.findOne({ user: req.user._id});
     if (existingVerification) {
@@ -24,6 +25,15 @@ const verifyBusinessRegistration = asyncHandler(async (req, res) => {
         res.status(400);
         throw new Error("This business number is already registered.");
     }
+
+    // NEW: attempt to geocode the address. Never blocks or throws — if this fails,
+    // registration still proceeds exactly as it did before.
+    let location;
+    try {
+        location = await geocodePlace(`${place}, Botswana`);
+    } catch (err) {
+        console.warn("Geocoding failed during registration:", err.message);
+    }
     
     // Create the business verification in DB with user association
     const createBusiness = await verifyBusinessModel.create({
@@ -31,8 +41,8 @@ const verifyBusinessRegistration = asyncHandler(async (req, res) => {
         businessNature,
         place,
         businessNumber,
-        businessDescription
-       
+        businessDescription,
+        ...(location && { location, geocodedAt: new Date() }), // NEW: only set if geocode succeeded
     });
     
     if (createBusiness) {
@@ -42,8 +52,12 @@ const verifyBusinessRegistration = asyncHandler(async (req, res) => {
             place: createBusiness.place,
             businessNumber: createBusiness.businessNumber,
             businessDescription: createBusiness.businessDescription,
-
             user: req.user._id.toString()
+            // NOTE: intentionally NOT adding location to this response —
+            // this is the private/authenticated response shape used by the
+            // logged-in user's own Profile.tsx. Keep it exactly as-is so
+            // nothing on that screen breaks. The public listing endpoint
+            // reads location straight from the DB separately.
         });
     } else {
         res.status(400);
@@ -116,9 +130,27 @@ const searchBusiness = asyncHandler(async (req, res) => {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 });
+// publicBusinessRoutes.js — new file, new route, existing routes untouched
+const publicBusinesses=asyncHandler( async (req, res) => {
+  const { industry, page = 1, limit = 12 } = req.query;
+  const query = industry ? { businessNature: new RegExp(`^${industry}$`, "i") } : {};
 
+  const [businesses, total] = await Promise.all([
+    verifyModel
+      .find(query)
+      .select("businessNature place businessDescription businessNumber location _id")
+      .populate("user", "nameOfBusiness profilePicture") // whitelist only — never password/email/phone
+      .skip((page - 1) * limit)
+      .limit(Number(limit))
+      .lean(),
+    verifyModel.countDocuments(query),
+  ]);
+
+  res.json({ businesses, total, page: Number(page), pages: Math.ceil(total / limit) });
+});
 module.exports = {
     verifyBusinessRegistration,
     searchBusiness,
-    getUserBusinessVerification
+    getUserBusinessVerification,
+    publicBusinesses
 };

@@ -39,6 +39,7 @@ const setupCookieSecurity = (app) => {
     origin: function (origin, callback) {
       const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173',
          'https://aselarbw.com',
+         'http://localhost:5173',
     'https://aselar.vercel.app'
       ];
       //https://aselarbw.com

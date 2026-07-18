@@ -132,15 +132,16 @@ const searchBusiness = asyncHandler(async (req, res) => {
     }
 });
 // publicBusinessRoutes.js — new file, new route, existing routes untouched
-const publicBusinesses=asyncHandler( async (req, res) => {
+const publicBusinesses = asyncHandler(async (req, res) => {
   const { industry, page = 1, limit = 12 } = req.query;
   const query = industry ? { businessNature: new RegExp(`^${industry}$`, "i") } : {};
 
   const [businesses, total] = await Promise.all([
     verifyBusinessModel
       .find(query)
-      .select("businessNature place businessDescription businessNumber location _id")
-      .populate("user", "nameOfBusiness profilePicture") // whitelist only — never password/email/phone
+      .select("businessNature place businessDescription businessNumber location user _id")
+      //                                                                    ^^^^ added
+      .populate("user", "nameOfBusiness profilePicture")
       .skip((page - 1) * limit)
       .limit(Number(limit))
       .lean(),

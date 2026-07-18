@@ -30,7 +30,7 @@ const verifyBusinessRegistration = asyncHandler(async (req, res) => {
     // registration still proceeds exactly as it did before.
     let location;
     try {
-        location = await geocodePlace(`${place}, Botswana`);
+        location = await geocodePlace(`${place}, ${city}, Botswana`);
     } catch (err) {
         console.warn("Geocoding failed during registration:", err.message);
     }
@@ -40,6 +40,7 @@ const verifyBusinessRegistration = asyncHandler(async (req, res) => {
         user: req.user._id,
         businessNature,
         place,
+        city,  
         businessNumber,
         businessDescription,
         ...(location && { location, geocodedAt: new Date() }), // NEW: only set if geocode succeeded
@@ -136,14 +137,14 @@ const publicBusinesses=asyncHandler( async (req, res) => {
   const query = industry ? { businessNature: new RegExp(`^${industry}$`, "i") } : {};
 
   const [businesses, total] = await Promise.all([
-    verifyModel
+    verifyBusinessModel
       .find(query)
       .select("businessNature place businessDescription businessNumber location _id")
       .populate("user", "nameOfBusiness profilePicture") // whitelist only — never password/email/phone
       .skip((page - 1) * limit)
       .limit(Number(limit))
       .lean(),
-    verifyModel.countDocuments(query),
+    verifyBusinessModel.countDocuments(query),
   ]);
 
   res.json({ businesses, total, page: Number(page), pages: Math.ceil(total / limit) });

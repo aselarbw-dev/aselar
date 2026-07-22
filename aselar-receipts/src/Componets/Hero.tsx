@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import Truck from "../assets/tractor-385681_1280.jpg";
 import Food from "../assets/cranes-7921948_1280.jpg";
@@ -9,7 +8,8 @@ import Herostyles from "./Hero.module.css";
 import {  FaFacebook, FaYoutube, FaInstagram, FaPlay, FaArrowRight } from "react-icons/fa";
 import { MdManageAccounts, MdSpeed, MdSecurity, MdPsychology } from "react-icons/md";
 import { Link } from "react-router-dom";
-
+import VideoModal from '../Video/VideoModal'
+import AselarVideo from '../assets/aselarmedia.mp4'
 const Hero: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [currentFeature, setCurrentFeature] = useState(0);
@@ -69,7 +69,10 @@ const Hero: React.FC = () => {
         
             </div>
             <div className={Herostyles.iconWrapper}>
-              <FaYoutube />
+               <a href="https://youtu.be/HmH7bdCUOhs" target="_blank" rel="noopener noreferrer">
+               <FaYoutube  color="white"/>
+              </a>
+              
             </div>
             <div className={Herostyles.iconWrapper}>
               <a href='https://www.instagram.com/aselar_bw/'>
@@ -91,13 +94,6 @@ const Hero: React.FC = () => {
 
               
               <div className={Herostyles.headlines}>
-                
-                {/* <h1 className={Herostyles.mainTitle}>
-                  A <span className={Herostyles.highlight}>transactional</span> storefront
-                </h1>
-                <h2 className={Herostyles.subTitle}>
-                  and <span className={Herostyles.highlightBlue}>document processing</span>
-                </h2>*/}
                 <h3 className={Herostyles.finalTitle}>
                A  <span className={Herostyles.highlightBlue}>transactional</span> storefront and document processing software for SMEs.
                 </h3>
@@ -146,6 +142,12 @@ Using both RAG and generative AI to prepare IS7, Income Statements, receipts,
                   Watch Aselar
                   <FaArrowRight className={Herostyles.buttonArrow} />
                 </button>
+                <VideoModal isOpen={isVideoPlaying} 
+                src={AselarVideo}
+                onClose={() => setIsVideoPlaying(false)}
+                 />
+                
+                  
                 <Link to="/sign-in"  rel="preload">
                   <button className={Herostyles.secondaryButton}>
                     Login
@@ -230,24 +232,6 @@ Using both RAG and generative AI to prepare IS7, Income Statements, receipts,
           ))}
         </div>
       </div>
-
-      {/* Video Modal */}
-      {isVideoPlaying && (
-        <div className={Herostyles.videoModal} onClick={() => setIsVideoPlaying(false)}>
-          <div className={Herostyles.videoContainer} onClick={(e) => e.stopPropagation()}>
-            <button 
-              className={Herostyles.closeButton}
-              onClick={() => setIsVideoPlaying(false)}
-            >
-              ×
-            </button>
-            <div className={Herostyles.videoPlaceholder}>
-              <FaPlay className={Herostyles.playIcon} />
-              <p>Aselar Demo Video</p>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 };

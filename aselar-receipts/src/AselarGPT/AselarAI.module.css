@@ -12,7 +12,7 @@
   --text:        #0F172A;
   --text-muted:  #64748B;
   --text-light:  #94A3B8;
-  --surface:     #FFFFFF;
+  --surface:     #7c2626;
   --surface-2:   #F8FAFC;
   --surface-3:   #F1F5F9;
   --border:      #E2E8F0;
@@ -569,7 +569,6 @@
   margin: 10px 0 0;
 }
 
-/* ── Responsive ────────────────────────────────── */
 @media (max-width: 768px) {
   .sidebar {
     position: absolute;
@@ -597,12 +596,40 @@
     position: fixed;
     inset: 0;
     background: rgba(15, 23, 42, 0.45);
-    z-index: 90; /* sits below .sidebar's z-index: 100, above everything else */
+    z-index: 90;
   }
 
-  .messagesArea { padding: 20px 16px; }
-  .inputArea { padding: 12px 16px 16px; }
+  .messagesArea {
+    padding: 16px 10px;   /* was 20px 16px — reclaim horizontal room */
+    gap: 14px;
+  }
+
+  .inputArea { padding: 12px 12px 16px; }
   .header { padding: 0 16px; }
-  .bubble { max-width: 85%; }
+
+  /* Widen the bubble and tighten what's eating into its space */
+  .messageRow {
+    gap: 6px;             /* was 10px */
+  }
+
+  .avatar {
+    width: 26px;           /* was 32px — smaller on mobile */
+    height: 26px;
+    border-radius: 8px;
+  }
+  .avatar svg { width: 13px; height: 13px; }
+
+  .bubble {
+    max-width: 92%;        /* was 85% */
+    padding: 11px 14px;    /* slightly tighter so text isn't cramped inside a wider box */
+    font-size: 14px;
+  }
+
   .newChatBtnHeader span { display: none; }
+}
+
+/* Extra-small phones (iPhone SE, etc.) — go nearly edge to edge */
+@media (max-width: 380px) {
+  .messagesArea { padding: 14px 6px; }
+  .bubble { max-width: 95%; }
 }

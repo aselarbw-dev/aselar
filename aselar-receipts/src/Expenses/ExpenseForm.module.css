@@ -1,7 +1,6 @@
-/* src/components/ExpenseForm.module.css */
 .form {
   margin-bottom: 20px;
-  margin-top: 20px; /* baseline spacing above the form */
+  margin-top: 12px; /* small gap below the toggle button, not a fixed reserve */
   box-sizing: border-box;
 }
 
@@ -36,17 +35,17 @@
   background-color: #45a049;
 }
 
-/* ── Mobile ── */
-@media (max-width: 480px) {
+/* ── Tablet & Mobile (matches Sidebar's 768px breakpoint) ── */
+@media (max-width: 768px) {
   .form {
-    margin-top: 70px; /* reserves space below a toggle button fixed near the top of the screen — adjust to match its actual height */
-    padding: 0 4px;
+    margin-top: 16px;
+    padding: 0 12px;
   }
 
   .form div {
     flex-direction: column;
     align-items: stretch;
-    gap: 4px;
+    gap: 6px;
   }
 
   .form label {
@@ -57,7 +56,7 @@
 
   .form input {
     width: 100%;
-    font-size: 16px; /* 16px prevents iOS/Android from auto-zooming in on focus */
+    font-size: 16px; /* prevents iOS/Android auto-zoom on focus */
     padding: 10px;
   }
 
@@ -65,5 +64,6 @@
     width: 100%;
     padding: 12px;
     font-size: 0.95rem;
+    margin-top: 4px;
   }
 }

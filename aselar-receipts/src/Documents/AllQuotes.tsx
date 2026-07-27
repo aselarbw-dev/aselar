@@ -191,6 +191,11 @@ const AllQuotes: React.FC = () => {
     }
   };
 
+  // Sum of totalSum across all currently loaded quotes
+  const grandTotal = quotes.reduce((sum, quote) => {
+    return sum + parseFloat(quote.totalSum || '0');
+  }, 0);
+
   const exportQuoteToPDF = (quote: QuoteData, profile: ProfileData | null, business: BusinessData | null) => {
     const doc = new jsPDF();
     
@@ -359,6 +364,13 @@ const AllQuotes: React.FC = () => {
         </div>
         
         <div className={styles.headerActions}>
+          <div className={styles.grandTotalDisplay}>
+            <span className={styles.grandTotalLabel}>Total (All Quotes)</span>
+            <span className={styles.grandTotalAmount}>
+              BWP {grandTotal.toFixed(2)}
+            </span>
+          </div>
+
           <Link to="/quote">
             <button className={styles.buttonQuote}>New Quote</button>
           </Link>

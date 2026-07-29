@@ -3,6 +3,7 @@ const jwt=require("jsonwebtoken")
 const asyncHandler=require("express-async-handler")
 const bcrypt=require("bcryptjs")
 const crypto = require("crypto");
+const geocodePlace = require("../middlewares/geocode");
 const sendEmail = require("../utils/email.js");
 const rateLimit = require('express-rate-limit');
 const cloudinary = require('cloudinary').v2;
@@ -108,7 +109,7 @@ const requireAuth = (req, res, next) => {
 };
 const registerBusiness = asyncHandler(async(req, res) => {
     // extract parameters from the request body
-    const {nameOfBusiness, password, emailBusiness, businessPhone} = req.body
+    const {nameOfBusiness, password, emailBusiness, businessPhone, place, city} = req.body
     const file = req.file;
 
     if (!file) {
@@ -164,23 +165,27 @@ const registerBusiness = asyncHandler(async(req, res) => {
     }
     
     // if email doesn't exist, create user (model will handle password validation)
+   let location;
+    try {
+        location = await geocodePlace(`${place}, ${city}, Botswana`);
+    } catch (err) {
+        console.warn("Geocoding failed during registration:", err.message);
+    }
+    
     try {
         const user = await User.create({
             nameOfBusiness,
             password,
             emailBusiness,
             businessPhone,
-            profilePicture: result.secure_url // Save the Cloudinary URL
+            place,   // NEW
+            city,    // NEW
+            profilePicture: result.secure_url,
+            ...(location && { location, geocodedAt: new Date() }), // NEW
         })
 
-        // Create a real session (same mechanism login uses) so this token
-        // carries a sessionId that /validate-session and /extend-session
-        // can actually find in activeSessions. Previously this used a bare
-        // generateToken(user._id) with no sessionId, which meant every
-        // freshly-signed-up user failed session validation immediately.
         const { sessionId } = createSession(res, user);
 
-        // Update session with user agent (same as loginBusiness does)
         const session = activeSessions.get(sessionId);
         if (session) {
             session.userAgent = req.headers['user-agent'];
@@ -193,11 +198,10 @@ const registerBusiness = asyncHandler(async(req, res) => {
         );
         console.log(token)
 
-        // Send HTTP-only cookie (kept as-is for any cookie-dependent paths still in use)
         res.cookie("token", token, {
             path: "/",
             httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000, // 1day   
+            maxAge: 24 * 60 * 60 * 1000,
             sameSite: "strict",
             secure: false
         });
@@ -210,7 +214,9 @@ const registerBusiness = asyncHandler(async(req, res) => {
                     nameOfBusiness: user.nameOfBusiness,
                     emailBusiness: user.emailBusiness,
                     profilePicture: user.profilePicture,
-                    businessPhone: user.businessPhone
+                    businessPhone: user.businessPhone,
+                    place: user.place,   // NEW
+                    city: user.city,     // NEW
                 },
                 token,
             });
@@ -219,7 +225,6 @@ const registerBusiness = asyncHandler(async(req, res) => {
             throw new Error("Something went wrong, please try later.")
         }
     } catch (error) {
-        // Handle validation errors from the enhanced model
         if (error.name === 'ValidationError') {
             res.status(400);
             throw new Error(error.message);
@@ -610,7 +615,25 @@ const getMe = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+// publicUserBusinesses — new, uses only the User model, no verifyModel involved
+const publicBusinesses = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 12 } = req.query;
 
+  const [businesses, total] = await Promise.all([
+    User
+      .find({})
+      .select("nameOfBusiness profilePicture businessPhone place city location _id")
+      .sort({ createdAt: -1 }) // newest first
+      .skip((page - 1) * limit)
+      .limit(Number(limit))
+      .lean(),
+    User.countDocuments({}),
+  ]);
+
+  res.json({ businesses, total, page: Number(page), pages: Math.ceil(total / limit) });
+});
+
+ // add to your existing exports
 module.exports={registerBusiness,
   loginBusiness,
   logoutBusiness,
@@ -625,5 +648,6 @@ module.exports={registerBusiness,
     validateSession,
     extendSession,
     successLogin,
-    getMe
+    getMe,
+    publicBusinesses
 }

@@ -1,7 +1,6 @@
 const mongoose = require("mongoose")
 console.log("User model initialized. Mongoose state:", mongoose.connection.readyState);
 const bcrypt = require("bcryptjs")
-
 const userSchema = mongoose.Schema({
     nameOfBusiness: {
         type: String,
@@ -20,6 +19,21 @@ const userSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    // NEW — added for the marketplace, intentionally optional (see note above)
+    place: { type: String },
+    city: { type: String },
+    location: {
+        type: {
+            type: String,
+            enum: ["Point"],
+            default: "Point",
+        },
+        coordinates: {
+            type: [Number], // [longitude, latitude] — GeoJSON order
+            default: undefined,
+        },
+    },
+    geocodedAt: { type: Date },
     password: {
         type: String,
         required: true,
@@ -153,4 +167,5 @@ userSchema.statics.getAuthenticated = async function(email, password) {
 };
 
 const User = mongoose.model("User", userSchema)
+userSchema.index({ location: "2dsphere" });
 module.exports = User

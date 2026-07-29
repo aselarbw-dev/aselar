@@ -12,6 +12,8 @@ interface FormSignUp {
   password: string;
   emailBusiness: string;
   businessPhone: string;
+  place: string;   // NEW
+  city: string;    // NEW
   profilePicture: File | null;
 }
 
@@ -20,6 +22,8 @@ const initialSignup: FormSignUp = {
   password: "",
   emailBusiness: "",
   businessPhone: "",
+  place: "",   // NEW
+  city: "",    // NEW
   profilePicture: null,
 };
 
@@ -107,7 +111,7 @@ const SignUp: React.FC = () => {
     e.preventDefault();
     
     if (!userProfile.nameOfBusiness || !userProfile.businessPhone ||
-        !userProfile.emailBusiness || !userProfile.password) {
+        !userProfile.emailBusiness || !userProfile.password || !userProfile.place || !userProfile.city) {
       toast.error("Please enter necessary required information.");
       return;
     }
@@ -134,6 +138,8 @@ const SignUp: React.FC = () => {
     formData.append('businessPhone', userProfile.businessPhone);
     formData.append('emailBusiness', userProfile.emailBusiness);
     formData.append('password', userProfile.password);
+    formData.append('place', userProfile.place);   // NEW
+    formData.append('city', userProfile.city);     // NEW
 
     setLoading(true);
     setLoad(true);
@@ -233,7 +239,27 @@ navigate("/create-passcode");
               value={userProfile.businessPhone}
             />
           </div>
-          
+          <div className={user.formInfo}>
+  <label htmlFor="">Place of Work</label>
+  <input
+    type="text"
+    placeholder="eg plot 123, unit 01, extension 123"
+    name="place"
+    onChange={handleEvents}
+    value={userProfile.place}
+  />
+</div>
+
+<div className={user.formInfo}>
+  <label htmlFor="">City / Town</label>
+  <input
+    type="text"
+    placeholder="eg Gaborone, Francistown, Maun"
+    name="city"
+    onChange={handleEvents}
+    value={userProfile.city}
+  />
+</div>
           <div className={user.formInfo}>
             <label htmlFor="">Password</label>
             <input

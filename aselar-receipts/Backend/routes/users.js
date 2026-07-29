@@ -11,7 +11,8 @@ const {registerBusiness,loginBusiness,
         validateSession,
         extendSession,
         successLogin,
-        getMe
+        getMe,
+        publicBusinesses
    
    }=require("../controllers/users.js")
  
@@ -30,6 +31,7 @@ router.post('/validate-session', requireAuth, validateSession);
 router.post('/extend-session', requireAuth, extendSession);
 router.post('/login-success',requireAuth, successLogin);
 router.get('/me', protect, getMe);
+router.get('/public-businesses', publicBusinesses);
 // Unlock session (POST /api/session/unlock)
 //router.post('/unlock', protect, unlockUserSession);
 

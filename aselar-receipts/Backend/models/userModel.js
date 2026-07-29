@@ -23,16 +23,16 @@ const userSchema = mongoose.Schema({
     place: { type: String },
     city: { type: String },
     location: {
-        type: {
-            type: String,
-            enum: ["Point"],
-            default: "Point",
-        },
-        coordinates: {
-            type: [Number], // [longitude, latitude] — GeoJSON order
-            default: undefined,
-        },
-    },
+  type: {
+    type: String,
+    enum: ["Point"],
+    // no default here — location should only exist when we explicitly set it after a successful geocode
+  },
+  coordinates: {
+    type: [Number],
+    default: undefined,
+  },
+},
     geocodedAt: { type: Date },
     password: {
         type: String,
@@ -165,7 +165,6 @@ userSchema.statics.getAuthenticated = async function(email, password) {
         return { success: false, message };
     }
 };
-
+userSchema.index({ location: "2dsphere" }, { sparse: true });
 const User = mongoose.model("User", userSchema)
-userSchema.index({ location: "2dsphere" });
 module.exports = User

@@ -8,5 +8,5 @@ const router=express.Router()
 router.post("/verify-business",protect,verifyBusinessRegistration)
 router.get("/get-business",protect,getUserBusinessVerification)
 router.get("/search",searchBusiness)
-router.get("/public",publicBusinesses)
+router.get("/public-businesses",publicBusinesses)
 module.exports=router

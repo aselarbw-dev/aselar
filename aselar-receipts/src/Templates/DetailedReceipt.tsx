@@ -238,7 +238,7 @@ useEffect(() => {
   const handleSendSMS = () => {
     if (isLimitReached) {
       toast.error(
-        `Daily SMS limit reached (20/20). Resets in ${timeUntilReset}.`,
+        `Daily SMS limit reached (10/10). Resets in ${timeUntilReset}.`,
         { autoClose: 5000 }
       );
       return;
@@ -404,7 +404,7 @@ useEffect(() => {
     const allowed = recordSMS();
     if (!allowed) {
       toast.error(
-        `Daily SMS limit reached (20/20). Resets in ${timeUntilReset}.`,
+        `Daily SMS limit reached (10/10). Resets in ${timeUntilReset}.`,
         { autoClose: 5000 }
       );
       setIsSMSModalOpen(false);

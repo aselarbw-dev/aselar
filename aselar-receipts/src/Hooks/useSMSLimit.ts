@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const SMS_LIMIT = 20;
+const SMS_LIMIT = 10;
 const RESET_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 const STORAGE_KEY = 'aselar_sms_usage';
 

@@ -1,0 +1,112 @@
+/* ReviewTable.module.css */
+.reviewWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+}
+
+.summaryBar {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  padding: 8px 0;
+}
+
+.summaryMatched { color: #16a34a; font-weight: 600; }
+.summaryPossible { color: #ca8a04; font-weight: 600; }
+.summaryNew { color: #2563eb; font-weight: 600; }
+
+.tableScroll {
+  overflow-x: auto;
+  overflow-y: auto;
+  flex: 1;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th {
+  background-color: #f9fafb;
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+}
+
+.table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: top;
+}
+
+.excludedRow {
+  opacity: 0.45;
+}
+
+.cellStack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+}
+
+.textInput, .numberInput, .unitInput, .dateInput {
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 13px;
+}
+
+.numberInput { width: 70px; }
+.unitInput { width: 80px; }
+.dateInput { width: 130px; }
+
+.badgeMatched {
+  color: #16a34a;
+  font-size: 12px;
+}
+
+.badgePossible {
+  color: #ca8a04;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badgeNew {
+  color: #2563eb;
+  font-size: 12px;
+}
+
+.loadingText, .errorText {
+  padding: 16px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.errorText {
+  color: #dc2626;
+}
+
+.commitButton {
+  background-color: #1a56db;
+  color: white;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.commitButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}

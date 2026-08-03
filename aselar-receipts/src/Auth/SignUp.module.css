@@ -200,7 +200,42 @@ input:type[file]{
     animation: spin 1s ease-in-out infinite;
     margin-right: 0.5rem;
   }
-  
+  .defaultToggle {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.defaultToggle input {
+  accent-color: #2ed573;
+}
+
+.defaultAvatarPlaceholder {
+  padding: 40px 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+  border: 2px dashed #ddd;
+}
+
+.previewContainer {
+  margin-top: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.profileImg {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+}
   @keyframes spin {
     to { transform: rotate(360deg); }
   }

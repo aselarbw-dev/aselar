@@ -31,6 +31,8 @@ app.use(cors(
 ))
 //const incomeStatementRoutes = require("./routes/incomeStatement.js");
 const categoryRoute = require("./routes/categories.js");
+const bulkInventoryRoute = require("./routes/bulkInventoryRoutes.js");
+app.use("/api", bulkInventoryRoute);
 app.use("/api", categoryRoute);
 
 

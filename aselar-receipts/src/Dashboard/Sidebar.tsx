@@ -133,7 +133,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, logout } = useAuth();
 
-  
+  // On mobile, labels should show fully whenever the drawer is open —
+  // the icon-only "collapsed" rail styling is a desktop-only concept.
+  const showLabels = isMobile ? mobileMenuOpen : !isCollapsed;
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -286,7 +288,7 @@ const signOut = async (): Promise<void> => {
 
       <div 
         ref={sidebarRef}
-        className={`${sideStyles.container} ${isCollapsed ? sideStyles.collapsed : ''} ${
+        className={`${sideStyles.container} ${!isMobile && isCollapsed ? sideStyles.collapsed : ''} ${
           isMobile ? (mobileMenuOpen ? sideStyles.mobileOpen : sideStyles.mobileHidden) : ''
         }`}
       >
@@ -297,7 +299,7 @@ const signOut = async (): Promise<void> => {
               <div className={sideStyles.logoContainer}>
                 <FaMountain className={sideStyles.logoIcon} size={32} />
               </div>
-              {!isCollapsed && (
+              {showLabels && (
                 <div className={sideStyles.brandInfo}>
                   <Link to="/sign-in" className={sideStyles.brandLink}>
                     <h1 className={sideStyles.brandName}>
@@ -326,7 +328,7 @@ const signOut = async (): Promise<void> => {
 
           {/* Navigation */}
           <nav className={sideStyles.navigation}>
-            {!isCollapsed && <h4 className={sideStyles.sectionTitle}>MAIN MENU</h4>}
+            {showLabels && <h4 className={sideStyles.sectionTitle}>MAIN MENU</h4>}
             
             <ul className={sideStyles.navList}>
               {links.map((link) => (
@@ -336,7 +338,7 @@ const signOut = async (): Promise<void> => {
                       isActiveLink(link.path) ? sideStyles.active : ''
                     } ${link.protected && !isPasscodeVerified ? sideStyles.protected : ''}`}
                     onClick={() => handleProtectedLinkClick(link.path, link.protected)}
-                    title={isCollapsed ? link.title : ''}
+                    title={!isMobile && isCollapsed ? link.title : ''}
                   >
                     <span className={sideStyles.navIcon}>
                       {link.icon}
@@ -345,7 +347,7 @@ const signOut = async (): Promise<void> => {
                       )}
                     </span>
                     
-                    {!isCollapsed && (
+                    {showLabels && (
                       <>
                         <span className={sideStyles.navText}>{link.title}</span>
                         {link.badge && (
@@ -365,11 +367,11 @@ const signOut = async (): Promise<void> => {
           <button 
             className={sideStyles.logoutButton}
             onClick={signOut}
-            title={isCollapsed ? "Logout" : ''}
+            title={!isMobile && isCollapsed ? "Logout" : ''}
           >
             <FaUser/>
             <span className={sideStyles.logoutIcon}></span>
-            {!isCollapsed && <span>Logout</span>}
+            {showLabels && <span>Logout</span>}
           </button>
         </div>
       </div>

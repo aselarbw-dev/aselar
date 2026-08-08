@@ -1,9 +1,10 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../Store/store';
-import { FaEdit } from 'react-icons/fa';  // For edit icon
+import { FaEdit } from 'react-icons/fa';
+import { FaSearch, FaTimes } from 'react-icons/fa'; // NEW
 
-import { removeCategory, getCategories, Item } from '../Store/store';  // FIXED: Import Item
+import { removeCategory, getCategories, Item } from '../Store/store';
 import styles from './CategoryList.module.css';
 import ItemForm from '../Forms/ItemForm';
 import { IoMdClose } from 'react-icons/io';
@@ -12,18 +13,16 @@ import { FaShoppingCart } from "react-icons/fa";
 import { AppDispatch } from '../Store/store';
 import ConfirmDialog from '../Dialog/ConfirmDialog';
 
-// FIXED: Interface for typed expiring items
 interface ExpiringItem extends Item {
   category: string;
   daysLeft: number;
 }
 
-const CATEGORIES_PER_PAGE = 6; // tweak to taste
+const CATEGORIES_PER_PAGE = 6;
 
 const CategoryList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const categories = useSelector((state: RootState) => state.inventory.categories);
-  // REMOVED: Unused loading selector
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [editMode, setEditMode] = useState({
     isOpen: false,
@@ -39,12 +38,13 @@ const CategoryList: React.FC = () => {
     categoryId: ''
   });
 
-  // NEW: Expiry modal state
   const [showExpiryModal, setShowExpiryModal] = useState(false);
   const [expiringItems, setExpiringItems] = useState<ExpiringItem[]>([]);
 
-  // NEW: Pagination state
   const [currentPage, setCurrentPage] = useState(1);
+
+  // NEW: search state
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleToggleItemForm = (categoryId: string) => {
     setSelectedCategory(selectedCategory === categoryId ? null : categoryId);
@@ -79,7 +79,6 @@ const CategoryList: React.FC = () => {
       categoryId: '',
       data: null
     });
-    // Refetch after edit
     dispatch(getCategories());
   }, [dispatch]);
   
@@ -99,18 +98,17 @@ const CategoryList: React.FC = () => {
     setDeleteDialog({ isOpen: false, itemId: '', itemType: '', categoryId: '' });
   };
 
-  // FIXED: Expiry check useEffect with typing
   useEffect(() => {
     if (categories.length > 0) {
       const now = new Date();
-      const fiveDaysFromNow = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);  // +5 days
-      const expiring: ExpiringItem[] = [];  // Explicit type
+      const fiveDaysFromNow = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
+      const expiring: ExpiringItem[] = [];
       
       categories.forEach((cat) => {
-        cat.items.forEach((item: Item) => {  // FIXED: Explicit Item type for item
+        cat.items.forEach((item: Item) => {
           if (item.expiryDate) {
             const expiry = new Date(item.expiryDate);
-            if (expiry <= fiveDaysFromNow && expiry > now) {  // Expiring soon, not past
+            if (expiry <= fiveDaysFromNow && expiry > now) {
               expiring.push({ 
                 ...item, 
                 category: cat.name, 
@@ -128,15 +126,35 @@ const CategoryList: React.FC = () => {
     }
   }, [categories]);
 
-  // NEW: Clamp current page if categories shrink (e.g. after a delete) so we don't get stuck on an empty page
+  // NEW: filter categories by search term — matches category name OR any item name inside it
+  const filteredCategories = useMemo(() => {
+    if (!searchTerm.trim()) return categories;
+
+    const term = searchTerm.toLowerCase().trim();
+
+    return categories.filter((category) => {
+      const categoryMatches = category.name.toLowerCase().includes(term);
+      const itemMatches = category.items.some((item: Item) =>
+        item.name.toLowerCase().includes(term)
+      );
+      return categoryMatches || itemMatches;
+    });
+  }, [categories, searchTerm]);
+
+  // NEW: reset to page 1 whenever the search term changes, so you don't
+  // land on an empty page from a previous, larger result set
   useEffect(() => {
-    const totalPages = Math.max(1, Math.ceil(categories.length / CATEGORIES_PER_PAGE));
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  // Clamp current page if filtered results shrink
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(filteredCategories.length / CATEGORIES_PER_PAGE));
     if (currentPage > totalPages) {
       setCurrentPage(totalPages);
     }
-  }, [categories.length, currentPage]);
+  }, [filteredCategories.length, currentPage]);
 
-  // Helper to format date
   const formatDate = (dateStr: string) => {
     if (!dateStr) return 'No expiry';
     return new Date(dateStr).toLocaleDateString('en-US', { 
@@ -146,117 +164,143 @@ const CategoryList: React.FC = () => {
     });
   };
 
-  // NEW: Pagination derived values
-  const totalPages = Math.max(1, Math.ceil(categories.length / CATEGORIES_PER_PAGE));
+  // Pagination now operates on filteredCategories instead of categories
+  const totalPages = Math.max(1, Math.ceil(filteredCategories.length / CATEGORIES_PER_PAGE));
   const startIndex = (currentPage - 1) * CATEGORIES_PER_PAGE;
-  const paginatedCategories = categories.slice(startIndex, startIndex + CATEGORIES_PER_PAGE);
+  const paginatedCategories = filteredCategories.slice(startIndex, startIndex + CATEGORIES_PER_PAGE);
 
   const goToPage = (page: number) => {
     setCurrentPage(Math.min(Math.max(page, 1), totalPages));
   };
 
-  // FIXED: Add key to outer map (redundant but ensures no warning)
   return (
     <div className={styles.container}>
-      <div className={styles.grid}>
-        {paginatedCategories.map((category, catIndex) => (  // FIXED: Added catIndex as fallback key
-          <div key={category._id || catIndex} className={styles.card}>
-            <div className={styles.cardHeader}>
-              <div className={styles.cardActions}>
-                <IoMdClose
-                  className={styles.removeButton}
-                  onClick={() => handleDeleteClick(category._id, 'category')}
-                />
-              </div>
-            </div>
-            
-            <div className={styles.imageContainer}>
-              {category.image ? (
-                <img 
-                  src={category.image} 
-                  alt={category.name} 
-                  className={styles.categoryImage}
-                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                />
-              ) : (
-                <div className={styles.placeholderImage}>
-                  No Image
-                </div>
-              )}
-            </div>
-
-            <div className={styles.categoryInfo}>
-              <h2>{category.name}</h2>
-              <p>{category.description}</p>
-            </div>
-
-            <div className={styles.itemsContainer}>
-              {category.items && category.items.length > 0 ? (
-                <div className={styles.itemsGrid}>
-                  {category.items.map((item: Item, itemIndex) => (  // FIXED: Added itemIndex as fallback key
-                    <div key={item._id || itemIndex} className={styles.itemCard}>
-                      <div className={styles.itemHoverContainer}>
-                        <FaEdit
-                          className={styles.hoverEditButton}
-                          onClick={() => handleEditClick('item', item, category._id, item._id)}
-                        />
-                      </div>
-                      {item.image && (
-                        <img 
-                          src={item.image} 
-                          alt={item.name} 
-                          className={styles.itemImage}
-                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                        />
-                      )}
-                      <h4>{item.name}</h4>
-                      <p>
-                        Quantity: {item.quantity}
-                        {item.lowStock && (
-                          <span className={styles.restockWarning}>
-                            ⚠️ Restock!
-                          </span>
-                        )}
-                      </p>
-                      <p>Cost: {item.costPrice} Pula</p>
-                      <p>Price: {item.sellingPrice} Pula</p>
-                     
-                      {/* FIXED: Conditional render for unit/expiry to avoid blank lines */}
-                      {item.unit && <p>Unit: {item.unit}</p>}
-                      {item.expiryDate && <p>Expiry Date: {formatDate(item.expiryDate)}</p>}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className={styles.noItems}>No items in this category</p>
-              )}
-            </div>
-
-            <div className={styles.cardFooter}>
-              <button 
-                className={styles.addItemButton}
-                onClick={() => handleToggleItemForm(category._id)}
-              >
-                <IconContext.Provider value={{className: styles.cartIcon}}>
-                  <FaShoppingCart />
-                </IconContext.Provider>
-                {selectedCategory === category._id ? 'Close' : 'Add Item'}
-              </button>
-            </div>
-            {selectedCategory === category._id && (
-              <div className={styles.itemForm}>
-                <ItemForm 
-                  categoryId={category._id} 
-                  editingItem={editMode.isOpen && editMode.categoryId === category._id ? editMode.data : null}
-                  onEditComplete={handleEditComplete}
-                />
-              </div>
-            )}
-          </div>
-        ))}
+      {/* NEW: Search bar */}
+      <div className={styles.searchBar}>
+        <div className={styles.searchInputWrapper}>
+          <FaSearch className={styles.searchIcon} />
+          <input
+            type="text"
+            placeholder="Search categories or items..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={styles.searchInput}
+          />
+          {searchTerm && (
+            <FaTimes
+              className={styles.clearSearchIcon}
+              onClick={() => setSearchTerm('')}
+            />
+          )}
+        </div>
+        <span className={styles.resultCount}>
+          {searchTerm
+            ? `${filteredCategories.length} of ${categories.length} categories`
+            : `${categories.length} categories`}
+        </span>
       </div>
 
-      {/* NEW: Pagination controls */}
+      <div className={styles.grid}>
+        {paginatedCategories.length === 0 && searchTerm ? (
+          <p className={styles.noResults}>No categories or items match "{searchTerm}"</p>
+        ) : (
+          paginatedCategories.map((category, catIndex) => (
+            <div key={category._id || catIndex} className={styles.card}>
+              <div className={styles.cardHeader}>
+                <div className={styles.cardActions}>
+                  <IoMdClose
+                    className={styles.removeButton}
+                    onClick={() => handleDeleteClick(category._id, 'category')}
+                  />
+                </div>
+              </div>
+              
+              <div className={styles.imageContainer}>
+                {category.image ? (
+                  <img 
+                    src={category.image} 
+                    alt={category.name} 
+                    className={styles.categoryImage}
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
+                ) : (
+                  <div className={styles.placeholderImage}>
+                    No Image
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.categoryInfo}>
+                <h2>{category.name}</h2>
+                <p>{category.description}</p>
+              </div>
+
+              <div className={styles.itemsContainer}>
+                {category.items && category.items.length > 0 ? (
+                  <div className={styles.itemsGrid}>
+                    {category.items.map((item: Item, itemIndex) => (
+                      <div key={item._id || itemIndex} className={styles.itemCard}>
+                        <div className={styles.itemHoverContainer}>
+                          <FaEdit
+                            className={styles.hoverEditButton}
+                            onClick={() => handleEditClick('item', item, category._id, item._id)}
+                          />
+                        </div>
+                        {item.image && (
+                          <img 
+                            src={item.image} 
+                            alt={item.name} 
+                            className={styles.itemImage}
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                          />
+                        )}
+                        <h4>{item.name}</h4>
+                        <p>
+                          Quantity: {item.quantity}
+                          {item.lowStock && (
+                            <span className={styles.restockWarning}>
+                              ⚠️ Restock!
+                            </span>
+                          )}
+                        </p>
+                        <p>Cost: {item.costPrice} Pula</p>
+                        <p>Price: {item.sellingPrice} Pula</p>
+                       
+                        {item.unit && <p>Unit: {item.unit}</p>}
+                        {item.expiryDate && <p>Expiry Date: {formatDate(item.expiryDate)}</p>}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className={styles.noItems}>No items in this category</p>
+                )}
+              </div>
+
+              <div className={styles.cardFooter}>
+                <button 
+                  className={styles.addItemButton}
+                  onClick={() => handleToggleItemForm(category._id)}
+                >
+                  <IconContext.Provider value={{className: styles.cartIcon}}>
+                    <FaShoppingCart />
+                  </IconContext.Provider>
+                  {selectedCategory === category._id ? 'Close' : 'Add Item'}
+                </button>
+              </div>
+              {selectedCategory === category._id && (
+                <div className={styles.itemForm}>
+                  <ItemForm 
+                    categoryId={category._id} 
+                    editingItem={editMode.isOpen && editMode.categoryId === category._id ? editMode.data : null}
+                    onEditComplete={handleEditComplete}
+                  />
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
       {totalPages > 1 && (
         <div className={styles.pagination}>
           <button
@@ -278,7 +322,6 @@ const CategoryList: React.FC = () => {
             </span>
           ))}
 
-          {/* Mobile-only fallback label, hidden on larger screens via CSS */}
           <span className={styles.pageInfo}>
             Page {currentPage} of {totalPages}
           </span>
@@ -293,14 +336,13 @@ const CategoryList: React.FC = () => {
         </div>
       )}
 
-      {/* NEW: Expiry Modal */}
       {showExpiryModal && (
         <div className={styles.expiryModalOverlay}>
           <div className={styles.expiryModal}>
             <h3>⚠️ Expiry Alerts</h3>
             <p>These items expire soon—consider selling them!</p>
             <ul>
-              {expiringItems.map((item, index) => (  // FIXED: Added index as fallback key
+              {expiringItems.map((item, index) => (
                 <li key={item._id || index}>
                   <strong>{item.name}</strong> (in {item.daysLeft} days) - Category: {item.category}
                 </li>

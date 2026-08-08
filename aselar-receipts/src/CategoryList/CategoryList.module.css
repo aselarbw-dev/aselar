@@ -229,7 +229,72 @@
 .pageInfo {
   display: none;
 }
+.searchBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
 
+.searchInputWrapper {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+  max-width: 400px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px 36px 10px 36px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
+}
+
+.clearSearchIcon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.clearSearchIcon:hover {
+  color: #64748b;
+}
+
+.resultCount {
+  font-size: 13px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.noResults {
+  padding: 40px 20px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+  grid-column: 1 / -1;
+}
 /* Below this width, drop the row of individual page-number buttons and
    show "Page X of Y" plus Prev/Next instead — a row of many small buttons
    does not fit comfortably on a phone screen. */
@@ -250,5 +315,19 @@
     min-width: 44px;
     min-height: 44px;
     font-size: 1em;
+  }
+   .searchBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .searchInputWrapper {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .resultCount {
+    text-align: right;
   }
 }

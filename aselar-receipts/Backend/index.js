@@ -86,6 +86,8 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
     serverSelectionTimeoutMS: 5000,
+     maxPoolSize: 15,   // NEW — was defaulting to 100
+    minPoolSize: 2,    // NEW — keep a couple warm to avoid cold-connection latenc
   })
   //  Connect to MongoDB
   .then(() => {

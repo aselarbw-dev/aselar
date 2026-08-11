@@ -7,6 +7,7 @@ const geocodePlace = require("../middlewares/geocode");
 const sendEmail = require("../utils/email.js");
 const rateLimit = require('express-rate-limit');
 const cloudinary = require('cloudinary').v2;
+const fs = require("fs");
 // Generate Token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "1d" });
@@ -632,7 +633,75 @@ const publicBusinesses = asyncHandler(async (req, res) => {
 
   res.json({ businesses, total, page: Number(page), pages: Math.ceil(total / limit) });
 });
+const updateUserProfile = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const { nameOfBusiness, emailBusiness, businessPhone } = req.body;
+  const file = req.file; // optional, if they're changing the picture
 
+  const user = await User.findById(userId);
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  // If email is changing, make sure it's not taken by someone else
+  if (emailBusiness && emailBusiness !== user.emailBusiness) {
+    if (!emailBusiness.match(/\S+@\S+\.\S+/)) {
+      res.status(400);
+      throw new Error("Please provide a valid email address");
+    }
+    const emailTaken = await User.findOne({
+      emailBusiness,
+      _id: { $ne: userId },
+    });
+    if (emailTaken) {
+      res.status(400);
+      throw new Error("This email is already in use by another account");
+    }
+    user.emailBusiness = emailBusiness;
+  }
+
+  if (nameOfBusiness) user.nameOfBusiness = nameOfBusiness;
+  if (businessPhone) user.businessPhone = businessPhone;
+
+  // Handle profile picture replacement
+  if (file) {
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_SECRET,
+    });
+
+    try {
+      const result = await cloudinary.uploader.upload(file.path, {
+        folder: "Aselar",
+      });
+      user.profilePicture = result.secure_url;
+
+      fs.unlink(file.path, (err) => {
+        if (err) console.error("Error deleting local file:", err);
+      });
+    } catch (error) {
+      console.error("Cloudinary upload failed:", error.message);
+      res.status(500);
+      throw new Error("Failed to upload profile picture");
+    }
+  }
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Profile updated successfully",
+    data: {
+      _id: user._id,
+      nameOfBusiness: user.nameOfBusiness,
+      emailBusiness: user.emailBusiness,
+      businessPhone: user.businessPhone,
+      profilePicture: user.profilePicture,
+    },
+  });
+});
  // add to your existing exports
 module.exports={registerBusiness,
   loginBusiness,
@@ -645,6 +714,7 @@ module.exports={registerBusiness,
     deleteAccount,
     authLimiter,
     requireAuth,
+    updateUserProfile,
     validateSession,
     extendSession,
     successLogin,

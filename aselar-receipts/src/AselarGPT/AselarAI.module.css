@@ -40,7 +40,7 @@
 .sidebar {
   width: var(--sidebar-w);
   min-width: var(--sidebar-w);
-  background: var(--surface);
+  background: var(--surface-2);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -202,7 +202,7 @@
   align-items: center;
   gap: 14px;
   padding: 0 24px;
-  background: var(--surface);
+  background: var(--surface-2);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   box-shadow: var(--shadow-sm);
@@ -375,7 +375,7 @@
 
 .suggestionChip {
   padding: 9px 16px;
-  background: var(--surface);
+  background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
   font-family: 'DM Sans', sans-serif;
@@ -443,7 +443,7 @@
 }
 
 .bubbleAI {
-  background: var(--surface);
+  background: var(--surface-2);
   color: var(--text);
   border-bottom-left-radius: 4px;
   border: 1px solid var(--border);
@@ -490,7 +490,7 @@
 /* ── Input area ────────────────────────────────── */
 .inputArea {
   padding: 16px 24px 20px;
-  background: var(--surface);
+  background: var(--surface-2);
   border-top: 1px solid var(--border);
   flex-shrink: 0;
 }

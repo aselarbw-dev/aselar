@@ -48,3 +48,116 @@
     align-items: center;
     margin:10px;
 }
+.cardMain{
+    margin: 0 auto;
+    margin-top: 10rem;
+    padding: 30px;
+    display: flex;
+    flex-direction: column; /* Better content flow */
+    height:auto;
+    background-color: #fff;
+    width:330px;
+    min-height: 445px;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+    transition: width 0.15s ease;
+}
+
+/* Wider card while editing so 6 inputs don't feel cramped */
+.cardMainEditing{
+    width: 380px;
+}
+
+.cardBody{
+    padding:5px;
+}
+.cardMain img{
+    width:150px;
+    height:150px;
+    border-radius: 50%;
+    margin-left:80px;
+    object-fit: cover; /* keeps preview from squishing on non-square uploads */
+}
+.edit{
+    width:120px;
+    height:30px;
+    outline:none;
+    border:none;
+    color:white;
+    background-color: blue;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 5px;
+}
+.delete{
+    width:120px;
+    height:30px;
+    outline:none;
+    border:none;
+    color:white;
+    background-color: red;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 5px;
+}
+.buttones{
+    display:flex;
+    flex-wrap: wrap; /* was overflowing at 3 buttons x 120px in a 270px box */
+    justify-content: center;
+    align-items: center;
+    margin:10px;
+    gap: 4px;
+}
+
+/* --- Edit mode form fields (inside .cardBody) --- */
+.cardBody label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 12px;
+}
+
+.cardBody label input {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: #1a1a1a;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.cardBody label input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+/* --- Profile picture file input --- */
+.fileInput {
+  display: block;
+  margin: 8px auto 0;
+  font-size: 0.75rem;
+  max-width: 200px;
+  text-align: center;
+}
+
+/* --- Save error message (distinct from the full-page .errorIcon) --- */
+.saveError {
+  font-size: 0.85rem;
+  color: #dc2626;
+  margin-top: 4px;
+  margin-bottom: 0;
+  text-align: center;
+}
+
+/* --- Disabled state for Save/Cancel while saving --- */
+.buttones button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

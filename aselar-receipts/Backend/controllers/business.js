@@ -150,9 +150,74 @@ const publicBusinesses = asyncHandler(async (req, res) => {
 
   res.json({ businesses, total, page: Number(page), pages: Math.ceil(total / limit) });
 });
+// verifyBusinessController.js
+
+const updateBusinessVerification = asyncHandler(async (req, res) => {
+  const { businessNature, place, city, businessNumber, businessDescription } = req.body;
+
+  const verification = await verifyBusinessModel.findOne({ user: req.user._id });
+
+  if (!verification) {
+    res.status(404);
+    throw new Error("No business verification found to update. Please submit one first.");
+  }
+
+  // If business number is changing, make sure it isn't taken by someone else
+  if (businessNumber && businessNumber !== verification.businessNumber) {
+    const numberTaken = await verifyBusinessModel.findOne({
+      businessNumber,
+      _id: { $ne: verification._id },
+    });
+    if (numberTaken) {
+      res.status(400);
+      throw new Error("This business number is already registered.");
+    }
+    verification.businessNumber = businessNumber;
+  }
+
+  if (businessNature) verification.businessNature = businessNature;
+  if (businessDescription) verification.businessDescription = businessDescription;
+
+  // If place or city changed, re-geocode (never blocks the update if it fails)
+  const placeChanged = place && place !== verification.place;
+  const cityChanged = city && city !== verification.city;
+
+  if (placeChanged) verification.place = place;
+  if (cityChanged) verification.city = city;
+
+  if (placeChanged || cityChanged) {
+    try {
+      const location = await geocodePlace(
+        `${verification.place}, ${verification.city}, Botswana`
+      );
+      verification.location = location;
+      verification.geocodedAt = new Date();
+    } catch (err) {
+      console.warn("Geocoding failed during update:", err.message);
+      // keep old location rather than wiping it
+    }
+  }
+
+  await verification.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Business details updated successfully",
+    data: {
+      _id: verification._id,
+      businessNature: verification.businessNature,
+      place: verification.place,
+      city: verification.city,
+      businessNumber: verification.businessNumber,
+      businessDescription: verification.businessDescription,
+      user: verification.user,
+    },
+  });
+});
 module.exports = {
     verifyBusinessRegistration,
     searchBusiness,
     getUserBusinessVerification,
+     updateBusinessVerification, // NEW
     publicBusinesses
 };

@@ -3,6 +3,7 @@ const {registerBusiness,loginBusiness,
     logoutBusiness,getUserProfile
     ,loginStatus,
     forgotPassword,
+    updateUserProfile,
     resetPassword,
     changePassword,
     deleteAccount,
@@ -27,6 +28,7 @@ router.get("/logout",logoutBusiness)
 router.get("/login-status",loginStatus)
 router.get("/profile",protect,getUserProfile)
 // sessions
+router.put("/profile", protect, upload.single("profilePicture"), updateUserProfile);
 router.post('/validate-session', requireAuth, validateSession);
 router.post('/extend-session', requireAuth, extendSession);
 router.post('/login-success',requireAuth, successLogin);

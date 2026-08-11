@@ -7,7 +7,7 @@ import GlobalErrorHandler from "./Global/GlobalErrorHandler";
 import { AuthProvider } from "./context/AuthContext";
 import {SessionWarningModal}  from "./Modals/SessionWarningModal";
 import { useAuth } from './context/AuthContext';
-import FeedbackButton from './Componets/FeedbackButton'
+
 
 const AppContent = () => {
   const { showWarning, extendSession, logout, dismissWarning } = useAuth();
@@ -18,7 +18,7 @@ const AppContent = () => {
       <NetworkNotification/>
       <ToastContainer/>
       <Screens/>
-     <FeedbackButton/>
+     
       <SessionWarningModal
         isOpen={showWarning}
         onExtend={() => {

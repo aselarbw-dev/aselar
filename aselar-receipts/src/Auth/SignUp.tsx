@@ -79,9 +79,9 @@ const SignUp: React.FC = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
 
-   // Check image size (1.2MB = 1.2 * 1024 * 1024 bytes)
-    if (file && file.size > 1.2 * 1024 * 1024) {
-      toast.error("Image is too large. Please upload an image less than 1.2MB.");
+   // Check image size (2MB = 2 * 1024 * 1024 bytes)
+    if (file && file.size > 2 * 1024 * 1024) {
+      toast.error("Image is too large. Please upload an image less than 2MB.");
       return;
     }
 

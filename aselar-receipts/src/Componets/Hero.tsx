@@ -95,20 +95,16 @@ const Hero: React.FC = () => {
               
               <div className={Herostyles.headlines}>
                 <h3 className={Herostyles.finalTitle}>
-               A  <span className={Herostyles.highlightBlue}>transactional</span> storefront and document processing software for SMEs.
+               Run  <span className={Herostyles.highlightBlue}>Your</span> Business The Smarter Way.
                 </h3>
               </div>
 
               {/* Description */}
               <p className={Herostyles.description}>
-                A software built to offer alternative solutions to paper-based documents, 
-                prepared with ease and dynamism. Ready for all transactions without touch and machinery.
+               Aselar is a browser based business intelligent system that helps you run business smoothly.
               </p>
                 <p className={Herostyles.description}>
-Using both RAG and generative AI to prepare IS7, Income Statements, receipts,
-            quotations, and orders. We intend to help you scale at speed with AI
-            and Machine Learning backed models to ensure accuracy, consistency,
-            accountability, and efficient analytics.
+It replaces your traditional POS,you dont need a scanner,printer,tonner or monitor.Everything can be sold using a mobile phone,tablet or laptop.
               </p>
               {/* Features List */}
               <div className={Herostyles.featuresList}>

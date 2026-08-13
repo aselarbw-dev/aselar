@@ -47,14 +47,20 @@ const SignUp: React.FC = () => {
       validatePasswordStrength(value);
     }
   };
-
+const SPECIAL_CHARS = `@$!%*?&#^()_\\-+=[\\]{};:'",.<>/~`;
   const validatePasswordStrength = (password: string) => {
     const hasUpperCase = /[A-Z]/.test(password);
     const hasLowerCase = /[a-z]/.test(password);
     const hasNumbers = /\d/.test(password);
-    const hasSpecialChar = /[@$!%*?&]/.test(password);
+    const hasSpecialChar = new RegExp(`[${SPECIAL_CHARS}]`).test(password);
+    
     const hasMinLength = password.length >= 8;
-
+const isPasswordValid = (password: string): boolean => {
+  const passwordRegex = new RegExp(
+    `^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[${SPECIAL_CHARS}])[A-Za-z\\d${SPECIAL_CHARS}]{8,}$`
+  );
+  return passwordRegex.test(password);
+};
     const requirements = [
       { met: hasMinLength, text: "At least 8 characters" },
       { met: hasUpperCase, text: "One uppercase letter" },
@@ -64,7 +70,15 @@ const SignUp: React.FC = () => {
     ];
 
     const metRequirements = requirements.filter(req => req.met).length;
-    
+    if (!isPasswordValid(userProfile.password)) {
+  const hasDisallowedChar = !new RegExp(`^[A-Za-z\\d${SPECIAL_CHARS}]*$`).test(userProfile.password);
+  if (hasDisallowedChar) {
+    toast.error("Your password contains a character we don't support. Please stick to letters, numbers, and common symbols like @ $ ! % * ? & # _ - + .");
+  } else {
+    toast.error("Password must be at least 8 characters and include an uppercase letter, a lowercase letter, a number, and a special character.");
+  }
+  return;
+}
     if (password.length === 0) {
       setPasswordStrength("");
     } else if (metRequirements < 3) {

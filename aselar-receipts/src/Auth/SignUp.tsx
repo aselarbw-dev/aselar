@@ -344,20 +344,27 @@ navigate("/create-passcode");
           </div>
           
           <div className={user.formInfo}>
-            <label htmlFor="">Upload your Logo</label>
-            <div className={user.flex}>
-              <input
-                type="file"
-                accept="image/png, image/jpeg"
-                onChange={handleFileChange}
-              />
-              {preview && (
-                <div className={user.previewContainer}>
-                  <img src={preview} alt="Profile Preview" className={user.profileImg} />
-                </div>
-              )}
-            </div>
-          </div>
+  <label htmlFor="">Upload your Logo</label>
+  <div className={user.flex}>
+    <label htmlFor="profilePictureInput" className={user.uploadButton}>
+      Choose Logo
+    </label>
+    <input
+      id="profilePictureInput"
+      type="file"
+      accept="image/png, image/jpeg"
+      onChange={handleFileChange}
+      className={user.hiddenFileInput}
+    />
+    {preview ? (
+      <div className={user.previewContainer}>
+        <img src={preview} alt="Profile Preview" className={user.profileImg} />
+      </div>
+    ) : (
+      <span className={user.fileHint}>PNG or JPG, up to 2MB</span>
+    )}
+  </div>
+</div>
           
           <div className={user.formButton}>
             <button 

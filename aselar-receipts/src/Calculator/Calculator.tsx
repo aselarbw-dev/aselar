@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import styles from './Calculator.module.css';
 
-const Calculator: React.FC = () => {
+interface CalculatorProps {
+  onClose: () => void;
+}
+
+const Calculator: React.FC<CalculatorProps> = ({ onClose }) => {
   const [input, setInput] = useState<string>('');
   const [result, setResult] = useState<string>('');
 
@@ -31,7 +35,13 @@ const Calculator: React.FC = () => {
   const modalRoot = document.body;
 
   return createPortal(
-    <div className={styles.calculator}>
+   <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.calculator} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.calcHeader}>
+          <span>Calculator</span>
+          <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close">✕</button>
+        </div>
+
       <div className={styles.display}>
         <div className={styles.input}>{input}</div>
         <div className={styles.result}>{result}</div>
@@ -54,7 +64,9 @@ const Calculator: React.FC = () => {
           </button>
         ))}
       </div>
+    </div>
     </div>,
+   
     modalRoot
   );
 };

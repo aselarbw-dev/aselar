@@ -1,4 +1,4 @@
-.calendarContainer {
+/*.calendarContainer {
    position:absolute;
     width: 310px;
     top:85%;
@@ -69,10 +69,12 @@
     background: none;
     cursor: default;
   }
-  /* Highlight for the current day */
-.currentDay {
-    background-color: #2ecc71; /* Green highlight for today */
+  /* Highlight for the current day 
+  .currentDay {
+    background-color: #2ecc70;
     color: white;
     font-weight: bold;
   }
+
+  */
   

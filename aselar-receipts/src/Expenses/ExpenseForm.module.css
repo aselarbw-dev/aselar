@@ -1,10 +1,10 @@
-.form {
+.formBig {
   margin-bottom: 20px;
   margin-top: 12px; /* small gap below the toggle button, not a fixed reserve */
   box-sizing: border-box;
 }
 
-.form div {
+.formBig div {
   margin-bottom: 10px;
   display: flex;
   align-items: center;
@@ -12,16 +12,16 @@
   flex-wrap: wrap;
 }
 
-.form label {
+.formBig label {
   margin-right: 10px;
 }
 
-.form input {
+.formBig input {
   padding: 5px;
   box-sizing: border-box;
 }
 
-.form button {
+.formBig button {
   padding: 5px 10px;
   background-color: #4caf50;
   color: white;
@@ -31,37 +31,65 @@
   transition: background-color 0.2s ease;
 }
 
-.form button:hover {
+.formBig button:hover {
   background-color: #45a049;
+}
+
+@media (max-width: 1024px) {
+  .formBig {
+    margin-top: 14px;
+    padding: 0 16px;
+    margin: 0 auto;
+  }
+
+  .formBig div {
+    gap: 6px;
+  }
+
+  .formBig label {
+    font-size: 0.95rem;
+  }
+
+  .formBig input {
+    font-size: 16px; /* prevents iOS/Android auto-zoom on focus (consistent with 768px block) */
+    padding: 8px;
+  }
+
+  .formBig button {
+    padding: 10px;
+    font-size: 0.9rem;
+    min-height: 44px; /* touch target minimum */
+  }
 }
 
 /* ── Tablet & Mobile (matches Sidebar's 768px breakpoint) ── */
 @media (max-width: 768px) {
-  .form {
+  .formBig {
     margin-top: 16px;
     padding: 0 12px;
   }
 
-  .form div {
+  .formBig div {
     flex-direction: column;
     align-items: stretch;
     gap: 6px;
   }
 
-  .form label {
+  .formBig label {
     margin-right: 0;
     font-size: 0.9rem;
     font-weight: 600;
   }
 
-  .form input {
+  .formBig input {
     width: 100%;
     font-size: 16px; /* prevents iOS/Android auto-zoom on focus */
     padding: 10px;
   }
 
-  .form button {
+  .formBig button {
     width: 100%;
+    min-height: 44px;
     padding: 12px;
     font-size: 0.95rem;
     margin-top: 4px;

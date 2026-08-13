@@ -11,8 +11,8 @@ interface UseAutoLogoutProps {
 }
 
 export const useAutoLogout = ({ 
-  timeout = 4 * 60 * 1000, // 4 minutes
-  warningTime = 30 * 1000, // 30 seconds warning
+  timeout = 2 * 60 * 1000, // 4 minutes
+  warningTime =30 * 1000, // 30 seconds warning
   onWarning,
   onLogout,
   isAuthenticated,

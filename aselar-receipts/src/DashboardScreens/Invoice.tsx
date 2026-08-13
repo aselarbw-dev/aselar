@@ -206,7 +206,7 @@ const [showReceiverForm, setShowReceiverForm] = useState(false);
                   <button className={styles.print} onClick={submitData}><FaFilePdf/> Compose</button>
                                     <Link to="/invoice-template"> <button className={styles.recent}>Recent</button></Link>
                            <button className={styles.receivers} onClick={handleReceiverFormSubmit}>Invoice To</button>
-                            {showReceiverForm?<ReceiverForm submitUrl='http://localhost:5004/api/receiver'/>:null}
+                            {showReceiverForm?<ReceiverForm   onClose={() => setShowReceiverForm(false)} submitUrl='http://localhost:5004/api/receiver'/>:null}
                   <button className={styles.add} onClick={handleInputs}><FaPlus/> Add Cell</button>
                  </div>
 

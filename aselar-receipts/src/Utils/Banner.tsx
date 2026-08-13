@@ -95,26 +95,22 @@ const Banner = ({ isCollapsed }: BannerProps) => {
         <div className={bannerStyles.actionSection}>
           <div className={bannerStyles.notifications}>
             <a href="https://aselar.netlify.app/" className={bannerStyles.iconButton} title="Aselar Documentation">
-              <FaFile color="brown" size={24}/>
+              <FaFile color="#FFCC00" size={24}/>
             </a>             
           </div>
 
           
 
           <div className={`${bannerStyles.calculatorShow} ${bannerStyles.dropdownContainer}`}>
-            {showContent && (
-              <div className={bannerStyles.dropdown} title="Calculator">
-                <Calculator/>
-              </div>
-            )}
-            <div className={bannerStyles.iconButton} onClick={showData}>
-              <FaCalculator color="blue" size={24}/>
-            </div>
-          </div>
+  {showContent && <Calculator onClose={() => setShowContent(false)} />}
+  <div className={bannerStyles.iconButton} onClick={showData}>
+    <FaCalculator color="blue" size={24}/>
+  </div>
+</div>
 
           <div className={bannerStyles.settings}>
             <Link to="/files-uploads" className={bannerStyles.iconButton} title="Go to Files Uploads">
-              <FaFileUpload color="blue" size={24} /> 
+              <FaFileUpload color=" #FFD700" size={24} /> 
             </Link>
           </div>
         </div>

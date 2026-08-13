@@ -5,9 +5,10 @@ import { toast } from "react-toastify"
 interface ReceiverFormProps {
   submitUrl: string;
   onSuccess?: () => void;
+  onClose: () => void; // NEW — now required, since the form controls its own overlay
 }
 
-const ReceiverForm: React.FC<ReceiverFormProps> = ({ submitUrl, onSuccess }) => {
+const ReceiverForm: React.FC<ReceiverFormProps> = ({ submitUrl, onSuccess, onClose }) => {
   const [formData, setFormData] = useState({
     companyName: '',
     addressedTo: '',
@@ -18,7 +19,6 @@ const ReceiverForm: React.FC<ReceiverFormProps> = ({ submitUrl, onSuccess }) => 
 
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [visible, setVisible] = useState(true); // NEW: controls whether the form renders at all
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -43,25 +43,17 @@ const ReceiverForm: React.FC<ReceiverFormProps> = ({ submitUrl, onSuccess }) => 
         },
       });
 
-      console.log('Response status:', res.status);
-      console.log('Response headers:', res.headers);
-
       if (!res.ok) {
         const errorText = await res.text();
-        console.log('Error response:', errorText);
         setMessage(`Submission failed: ${errorText}`);
         return;
       }
 
-      if (res.ok) {
-        setMessage('Submitted successfully.');
-        setFormData({ companyName: '', addressedTo: '', email: '', phone: '', preparedBy: '' });
-        onSuccess?.();
-        toast.success("Receiver information submitted successfully!");
-        setVisible(false); // NEW: unmount the form so it stops covering the items behind it
-      } else {
-        setMessage('Submission failed. Try again.');
-      }
+      setMessage('Submitted successfully.');
+      setFormData({ companyName: '', addressedTo: '', email: '', phone: '', preparedBy: '' });
+      onSuccess?.();
+      toast.success("Receiver information submitted successfully!");
+      onClose(); // close via the same path as manual close, instead of separate `visible` state
     } catch (err) {
       console.error(err);
       setMessage('Network error. Try again.');
@@ -70,38 +62,44 @@ const ReceiverForm: React.FC<ReceiverFormProps> = ({ submitUrl, onSuccess }) => 
     }
   };
 
-  if (!visible) return null; // NEW: form is gone from the DOM once submitted successfully
-
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
-      <h2 className={styles.title}>Receiver Information</h2>
-      <div className={styles.fieldGroup}>
-        <label>Company Name</label>
-        <input name="companyName" value={formData.companyName} onChange={handleChange} required />
-      </div>
-      <div className={styles.fieldGroup}>
-        <label>Addressed To</label>
-        <input name="addressedTo" value={formData.addressedTo} onChange={handleChange} required />
-      </div>
-      <div className={styles.fieldGroup}>
-        <label>Email</label>
-        <input name="email" type="email" value={formData.email} onChange={handleChange} required />
-      </div>
-      <div className={styles.fieldGroup}>
-        <label>Phone Number</label>
-        <input name="phone" type="tel" value={formData.phone} onChange={handleChange} required />
-      </div>
-      <div className={styles.fieldGroup}>
-        <label>Prepared By</label>
-        <input name="preparedBy" value={formData.preparedBy} onChange={handleChange} required />
-      </div>
+    <div className={styles.overlay} onClick={onClose}>
+      <form className={styles.form} onSubmit={handleSubmit} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.formHeader}>
+          <h2 className={styles.title}>Receiver Information</h2>
+          <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close">
+            ✕
+          </button>
+        </div>
 
-      <button className={styles.submitButton} type="submit" disabled={loading}>
-        {loading ? 'Submitting...' : 'Submit'}
-      </button>
+        <div className={styles.fieldGroup}>
+          <label>Company Name</label>
+          <input name="companyName" value={formData.companyName} onChange={handleChange} required />
+        </div>
+        <div className={styles.fieldGroup}>
+          <label>Addressed To</label>
+          <input name="addressedTo" value={formData.addressedTo} onChange={handleChange} required />
+        </div>
+        <div className={styles.fieldGroup}>
+          <label>Email</label>
+          <input name="email" type="email" value={formData.email} onChange={handleChange} required />
+        </div>
+        <div className={styles.fieldGroup}>
+          <label>Phone Number</label>
+          <input name="phone" type="tel" value={formData.phone} onChange={handleChange} required />
+        </div>
+        <div className={styles.fieldGroup}>
+          <label>Prepared By</label>
+          <input name="preparedBy" value={formData.preparedBy} onChange={handleChange} required />
+        </div>
 
-      {message && <p className={styles.message}>{message}</p>}
-    </form>
+        <button className={styles.submitButton} type="submit" disabled={loading}>
+          {loading ? 'Submitting...' : 'Submit'}
+        </button>
+
+        {message && <p className={styles.message}>{message}</p>}
+      </form>
+    </div>
   );
 };
 

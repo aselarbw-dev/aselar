@@ -167,6 +167,7 @@
 .allForms{
     display:flex;
 }
+
 .links{
     position: absolute;
     top:70px;
@@ -212,4 +213,9 @@
 
 .refreshButton:hover {
   background: #0056b3;
+}
+@media (max-width: 768px) {
+  .allForms {
+    flex-direction: column;
+  }
 }

@@ -1,32 +1,62 @@
 /* src/components/ExpenseList.module.css */
 .listContainer {
-    margin-top: 20px;
+  margin-top: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.listContainer ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.listContainer li {
+  padding: 5px;
+  background-color: #f9f9f9;
+  margin-bottom: 5px;
+  box-sizing: border-box;
+  word-break: break-word; /* long expense names won't overflow the row */
+}
+
+.buttons {
+  margin-top: 10px;
+}
+
+.buttons button {
+  margin-right: 10px;
+  padding: 5px 10px;
+  background-color: #008cba;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.buttons button:hover {
+  background-color: #007ba7;
+}
+
+/* ── Tablet & Mobile (matches Sidebar's 768px breakpoint) ── */
+@media (max-width: 768px) {
+  .listContainer {
+    margin-top: 16px;
+    padding: 0 12px;
   }
-  
-  .listContainer ul {
-    list-style-type: none;
-    padding: 0;
-  }
-  
+
   .listContainer li {
-    padding: 5px;
-    background-color: #f9f9f9;
-    margin-bottom: 5px;
+    padding: 10px;
+    font-size: 0.95rem;
   }
-  
+
   .buttons {
-    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
   }
-  
+
   .buttons button {
-    margin-right: 10px;
-    padding: 5px 10px;
-    background-color: #008cba;
-    color: white;
-    border: none;
-    cursor: pointer;
+    width: 100%;
+    min-height: 44px;
+    margin-right: 0;
+    font-size: 0.95rem;
   }
-  
-  .buttons button:hover {
-    background-color: #007ba7;
-  }
+}

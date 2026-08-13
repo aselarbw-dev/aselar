@@ -25,7 +25,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense, isAdding }) => 
   };
 
   return (
-    <form onSubmit={handleSubmit} className={styles.form}>
+    <form onSubmit={handleSubmit} className={styles.formBig}>
       <div>
         <label htmlFor="name">Expense Name:</label>
         <input
@@ -49,7 +49,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense, isAdding }) => 
           disabled={isAdding}
         />
       </div>
-      <button type="submit" disabled={isAdding}>
+      <button type="submit" disabled={isAdding} className={styles.addExpenseBtn}>
         {isAdding ? <ClipLoader color="#ffffff" size={20} /> : 'Add Expense'}
       </button>
     </form>

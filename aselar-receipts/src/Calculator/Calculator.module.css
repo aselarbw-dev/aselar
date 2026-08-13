@@ -1,19 +1,48 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
 .calculator {
-  /* Remove position: absolute; top/left; — let parent .dropdown handle positioning */
-  width: 100%; /* Fill the .dropdown's width */
-  max-width: 300px; /* Keep your max limit */
-  position: absolute;
-  top:15%;
-  left:76%;
-  margin: 0; /* Remove auto margins — no need inside fixed container */
+  width: 100%;
+  max-width: 300px;
+  margin: 0;
   padding: 15px;
   border-radius: 15px;
   background: white;
-  z-index: 10000; /* Keep high z-index for safety */
-  border:6px solid #3498db;
- 
+  border: 6px solid #3498db;
+  box-sizing: border-box;
 }
 
+.calcHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: #333;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: #666;
+  padding: 0.25rem 0.5rem;
+  line-height: 1;
+}
+
+.closeButton:hover {
+  color: #000;
+}
 .display {
   background: #f8f9fa; /* Slightly off-white for better contrast */
   padding: 10px;
@@ -88,36 +117,3 @@
   background: #7f8c8d;
 }
 
-/* Media Queries for Smaller Screens */
-@media (max-width: 480px) {
-  .calculator {
-    position: fixed;      /* anchor to viewport instead of the document */
-    top: auto;
-    left: 50%;
-    bottom: 90px;          /* reserves space below the calculator for the toggle button — adjust to match your toggle's actual height/position */
-    transform: translateX(-50%);
-    width: 92%;
-    max-width: none;
-    margin-bottom: 5px;   /* extra breathing room above the toggle */
-    padding: 10px;
-    max-height: 70vh;      /* prevents it from stretching too tall and reaching the toggle from the top on short screens */
-    overflow-y: auto;
-  }
-
-  .display {
-    padding: 8px;
-  }
-
-  .input {
-    font-size: 1em;
-  }
-
-  .result {
-    font-size: 1.2em;
-  }
-
-  .button {
-    padding: 10px;
-    font-size: 0.9em;
-  }
-}

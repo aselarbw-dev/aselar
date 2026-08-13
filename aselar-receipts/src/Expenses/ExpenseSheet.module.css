@@ -1,32 +1,56 @@
 /* src/components/ExpenseSheet.module.css */
 .sheetContainer {
-    position: absolute;
-    left:70%;
-    padding: 20px;
-    max-width: 500px;
-    margin: 0 auto;
-    text-align: center;
-    background-color: #ffff;
-    border-radius: 6px;
-    box-shadow: 0px 5px 26px 8px rgba(193, 198, 207, 0.66);
-  }
-  /* src/components/ExpenseSheet.module.css */
+  margin-left: 50%;
+  padding: 20px;
+  width: 500px;
+  margin: 0 auto;
+  text-align: center;
+  background-color: #ffff;
+  border-radius: 6px;
+  box-shadow: 0px 5px 26px 8px rgba(193, 198, 207, 0.66);
+  box-sizing: border-box;
+}
+
 .spinnerOverlay {
-    position: fixed;
-    top: 0;
-    left: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.spinnerOverlay p {
+  margin-top: 10px;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+/* ── Tablet & Mobile (matches Sidebar's 768px breakpoint) ── */
+@media (max-width: 768px) {
+  .sheetContainer {
+    position: static;      /* drop the absolute + left:70% entirely on mobile */
+    left: auto;
     width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.8);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+    width: 100%;
+    margin: 0;
+    padding: 16px;
+    box-shadow: none;      /* optional: flatten card look on small screens */
+    border-radius: 0;
   }
-  
-  .spinnerOverlay p {
-    margin-top: 10px;
-    font-size: 1.2rem;
-    color: #333;
+}
+
+@media (max-width: 480px) {
+  .sheetContainer {
+    padding: 12px;
   }
+
+  .sheetContainer h1 {
+    font-size: 1.25rem;
+  }
+}

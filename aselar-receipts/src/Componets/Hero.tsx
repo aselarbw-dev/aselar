@@ -5,7 +5,7 @@ import Launch from "../assets/barber-shop-6797761_1280.jpg";
 import Paper from "../assets/supermarket-5202138_1280.jpg";
 import Building from "../assets/building-4803602_1280.jpg";
 import Herostyles from "./Hero.module.css";
-import {  FaFacebook, FaYoutube, FaInstagram, FaPlay, FaArrowRight } from "react-icons/fa";
+import {   FaPlay, FaArrowRight } from "react-icons/fa";
 import { MdManageAccounts, MdSpeed, MdSecurity, MdPsychology } from "react-icons/md";
 import { Link } from "react-router-dom";
 import VideoModal from '../Video/VideoModal'
@@ -60,27 +60,7 @@ const Hero: React.FC = () => {
 
         <div className={Herostyles.container}>
           {/* Social Icons */}
-          <div className={Herostyles.socialIcons}>
-            <div className={Herostyles.iconWrapper}>
-             
-              <a href="https://www.facebook.com/profile.php?id=61575532701173" target="_blank" rel="noopener noreferrer">
-               <FaFacebook  color="white"/>
-              </a>
-        
-            </div>
-            <div className={Herostyles.iconWrapper}>
-               <a href="https://youtu.be/HmH7bdCUOhs" target="_blank" rel="noopener noreferrer">
-               <FaYoutube  color="white"/>
-              </a>
-              
-            </div>
-            <div className={Herostyles.iconWrapper}>
-              <a href='https://www.instagram.com/aselar_bw/'>
-<FaInstagram />
-              </a>
-              
-            </div>
-          </div>
+          
 
           {/* Main Content */}
           <div className={Herostyles.content}>

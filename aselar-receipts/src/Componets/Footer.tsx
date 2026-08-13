@@ -35,6 +35,13 @@ const Footer = () => {
             <Link to="/">Aselar Cash</Link>
             <Link to="/">Aselar Delivery</Link>
           </div>
+            <div className={footer.linksFooter}>
+            <h4>Contact Us</h4>
+            <Link to="/">77363956</Link>
+            <Link to="/">+27 786 860 477</Link>
+            <Link to="/">aselarbw@gmail.com</Link>
+            
+          </div>
         </div>
       </div>
       <div className={footer.copyRight}>

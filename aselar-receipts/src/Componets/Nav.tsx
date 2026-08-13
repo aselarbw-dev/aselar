@@ -1,5 +1,5 @@
 import NavBar from './NavBar.module.css'
-import { FaUser}from "react-icons/fa";
+import { FaInstagram, FaUser, FaYoutube,FaFacebook}from "react-icons/fa";
 import {Link} from "react-router-dom"
 import Aselar from "../assets/Asset 5.png"
 import { ShowOnLogout } from "../Protect/protect";
@@ -14,16 +14,29 @@ const Nav = () => {
            {/*<h1 className={NavBar.aselar}><span>A</span>selar</h1> */} 
                
             </div>
-          {/*   <ul className={NavBar.lists}>
-           
-            <ShowOnLogout>
-             <Link to="/"  rel="preload"><li>Home</li>  </Link>    
-             </ShowOnLogout>
-           
-             
-                </ul>*/}
          
-      
+         
+      <div className={NavBar.socialIcons}>
+                  <div className={NavBar.iconWrapper}>
+                   
+                    <a href="https://www.facebook.com/profile.php?id=61575532701173" target="_blank" rel="noopener noreferrer">
+                     <FaFacebook  color="white"/>
+                    </a>
+              
+                  </div>
+                  <div className={NavBar.iconWrapper}>
+                     <a href="https://youtu.be/HmH7bdCUOhs" target="_blank" rel="noopener noreferrer">
+                     <FaYoutube  color="white"/>
+                    </a>
+                    
+                  </div>
+                  <div className={NavBar.iconWrapper}>
+                    <a href='https://www.instagram.com/aselar_bw/'>
+      <FaInstagram />
+                    </a>
+                    
+                  </div>
+                </div>
               
           
             <div className={NavBar.buttons}>

@@ -72,7 +72,7 @@ const links: SidebarLink[] = [
     icon: <FaAddressBook />,
   },
   {
-    title: "Inventory Management",
+    title: "Administration",
     path: "/manage-inventory",
     icon: <MdInventory2 />,
     protected: true,

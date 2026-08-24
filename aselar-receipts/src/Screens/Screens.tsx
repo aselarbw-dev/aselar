@@ -5,6 +5,7 @@ import { Routes, Route } from "react-router-dom";
 // Lazy-loaded components
 import { ClipLoader } from "react-spinners";
 const Home = lazy(() => import("../Pages/Home"));
+const ReceiptsList = lazy(() => import("../Returns/ReceiptsList"));
 const NotFound = lazy(() => import("../Componets/NotFound"));
 const OrderForm = lazy(() => import("../Orders/OrderForm"));
 const AselarAI = lazy(() => import("../AselarGPT/AselarAI"));
@@ -22,6 +23,7 @@ const AllReceipts = lazy(() => import("../Documents/AllReceipts"));
 const AllQuotes = lazy(() => import("../Documents/AllQuotes"));
 const AllInvoices = lazy(() => import("../Documents/AllInvoices"));
 const AllExpenses = lazy(() => import("../Documents/AllExpenses"));
+const ScanHistory = lazy(() => import("../Scans/ScanHistory"));
 const AllCategoryReceipts = lazy(() => import("../Documents/AllCategoryReceipts"));
 const InvoiceTemplate = lazy(() => import("../Invoice/InvoiceTemplate"));
 const RecentLedgerView = lazy(() => import("../ledgerTemplate/RecentLedgerView"));
@@ -58,6 +60,7 @@ const ForgotPasswordForm = lazy(() => import("../Auth/ForgotPasswordForm"));
 const ChangePasswordForm = lazy(() => import("../Auth/ChangePasswordForm"));
 const ResetPasswordForm = lazy(() => import("../Auth/ResetPasswordForm"));
 import { ProtectedRoute } from "../Auth/ProtectedRoute";
+const  ProcessReturn= lazy(() => import("../Returns/ProcessReturn"));
 const Screens = () => {
   return (
     <Suspense fallback={<ClipLoader />}>
@@ -69,13 +72,15 @@ const Screens = () => {
         <Route path="/delete-account" element={<DeleteAccountButton />} />
         <Route path="/current-receipt" element={<DetailedReceipt />} />
         <Route path="/all-receipts" element={<AllReceipts />} />
-       
+        <Route path="/scan-history" element={<ScanHistory />} />
         <Route path="/all-quotes" element={<AllQuotes/>} />
         <Route path="/all-invoices" element={<AllInvoices/>} />
+        <Route path="/returns-list" element={<ReceiptsList />} />
         <Route path="/total-expenses" element={<AllExpenses/>} />
         <Route path="/inventory-receipts" element={<AllCategoryReceipts/>} />
         <Route path="/aging-report" element={<AgingReport />} />
         <Route path="/recon" element={<ReconciliationView />} />
+        <Route path="/process-return/:receiptId" element={<ProcessReturn />} />
         <Route path="/ledgers" element={<AllLedgers />} />
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/sign-in" element={<SignIn />} />

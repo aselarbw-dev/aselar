@@ -1,0 +1,86 @@
+.container {
+  padding: 20px;
+  max-width: 500px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: #1e293b;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0 0 16px 0;
+}
+
+.refundSummary {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.refundAmount {
+  font-size: 16px;
+  font-weight: 700;
+  color: #dc2626;
+  margin: 6px 0 0 0;
+}
+
+.reasonInput {
+  width: 100%;
+  margin-top: 16px;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  min-height: 60px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.cancelButton {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.submitButton {
+  flex: 2;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  background-color: #dc2626;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.submitButton:disabled,
+.cancelButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.loadingText, .errorText {
+  padding: 24px;
+  text-align: center;
+  color: #64748b;
+}

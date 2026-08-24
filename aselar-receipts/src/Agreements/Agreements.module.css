@@ -12,7 +12,7 @@
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     width: 600px;
-    height: 600px;
+    max-height: 600px;
 
   }
   
@@ -53,3 +53,48 @@
     background-color: #ccc;
     cursor: not-allowed;
   }
+  .agreementCheckbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  max-width: 900px;
+  margin: 20px auto 0;
+  padding: 14px 16px;
+  box-sizing: border-box;
+  line-height: 1.5;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.agreementCheckbox input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+  cursor: pointer;
+}
+
+.agreementCheckbox span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.agreementCheckbox strong {
+  font-weight: 600;
+}
+@media (max-width: 600px) {
+  .agreementCheckbox {
+    gap: 10px;
+    padding: 12px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .agreementCheckbox input {
+    width: 17px;
+    height: 17px;
+  }
+}

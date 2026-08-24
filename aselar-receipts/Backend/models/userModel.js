@@ -19,6 +19,7 @@ const userSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    scanOnlyMode: { type: Boolean, default: false },
     // NEW — added for the marketplace, intentionally optional (see note above)
     place: { type: String },
     city: { type: String },

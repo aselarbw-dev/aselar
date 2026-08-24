@@ -279,7 +279,7 @@ const loginBusiness = asyncHandler(async(req, res) => {
 
 
     // Return user data (keeping your existing response structure)
-    const {_id, name, nameOfBusiness, emailBusiness: userEmail, businessPhone} = user;
+    const {_id, name, nameOfBusiness,scanOnlyMode, emailBusiness: userEmail, businessPhone} = user;
     // In your loginBusiness function, replace the final response with:
 res.status(200).json({
     success: true,        // ← Add this
@@ -289,6 +289,7 @@ res.status(200).json({
     nameOfBusiness,
     emailBusiness: userEmail,
     businessPhone,
+    scanOnlyMode,
     token                 // ← Add token to response body
 });
 })
@@ -702,6 +703,29 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     },
   });
 });
+// controllers/userController.js (or wherever similar settings live)
+const updateScanOnlyMode = async (req, res) => {
+  try {
+    const { scanOnlyMode } = req.body;
+
+    if (typeof scanOnlyMode !== 'boolean') {
+      return res.status(400).json({ message: 'scanOnlyMode must be true or false' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { scanOnlyMode },
+      { new: true }
+    ).select('-password');
+
+    res.status(200).json({ message: 'Scan-only mode updated', user });
+  } catch (error) {
+    console.error('Update scan-only mode error:', error);
+    res.status(500).json({ message: 'Failed to update setting' });
+  }
+};
+
+
  // add to your existing exports
 module.exports={registerBusiness,
   loginBusiness,
@@ -719,5 +743,6 @@ module.exports={registerBusiness,
     extendSession,
     successLogin,
     getMe,
-    publicBusinesses
+    publicBusinesses,
+    updateScanOnlyMode
 }

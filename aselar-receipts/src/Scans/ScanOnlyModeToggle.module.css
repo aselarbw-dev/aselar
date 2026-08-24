@@ -1,0 +1,100 @@
+.settingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.settingInfo {
+  flex: 1;
+}
+
+.settingTitle {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: #1e293b;
+}
+
+.settingDescription {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 0.7;
+  width:100px;
+}
+
+.toggleSwitch {
+  position: relative;
+  width: 48px;
+  height: 26px;
+  background: #cbd5e1;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease;
+}
+
+.toggleSwitch:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.toggleOn {
+  background: #3b82f6;
+}
+
+.toggleKnob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.toggleOn .toggleKnob {
+  transform: translateX(22px);
+}
+@media (max-width: 480px) {
+  .settingRow {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .settingTitle {
+    font-size: 14px;
+  }
+
+  .settingDescription {
+    font-size: 12px;
+    width: auto;
+    max-width: 120px;
+    line-height: 1.3;
+    display:none;
+  }
+
+  .toggleSwitch {
+    width: 30px;
+    height: 18px;
+  }
+
+  .toggleKnob {
+    width: 16px;
+    height: 16px;
+    top: 3px;
+    left: 3px;
+  }
+
+  .toggleOn .toggleKnob {
+    transform: translateX(18px);
+  }
+}

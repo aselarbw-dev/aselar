@@ -13,7 +13,8 @@ const {registerBusiness,loginBusiness,
         extendSession,
         successLogin,
         getMe,
-        publicBusinesses
+        publicBusinesses,
+        updateScanOnlyMode
    
    }=require("../controllers/users.js")
  
@@ -34,6 +35,8 @@ router.post('/extend-session', requireAuth, extendSession);
 router.post('/login-success',requireAuth, successLogin);
 router.get('/me', protect, getMe);
 router.get('/public-businesses', publicBusinesses);
+// routes
+router.patch('/settings/scan-only-mode', protect, updateScanOnlyMode);
 // Unlock session (POST /api/session/unlock)
 //router.post('/unlock', protect, unlockUserSession);
 

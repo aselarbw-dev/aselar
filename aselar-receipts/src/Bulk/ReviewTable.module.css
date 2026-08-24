@@ -110,3 +110,15 @@
   background-color: #9ca3af;
   cursor: not-allowed;
 }
+.badgeBarcode {
+  color: #7c3aed;
+  font-size: 12px;
+  font-weight: 600;
+}
+.barcodeInput {
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 13px;
+  width: 110px;
+}

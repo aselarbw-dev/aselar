@@ -287,12 +287,56 @@ const getSalesSummary = async (req, res) => {
     });
   }
 };
+const NewReceipt = require('../models/inventoryReceipts.js');
+const ReturnRecord = require('../models/returnRecord.js'); // adjust path if returnRecord.js lives in a different service
 
+const getReceiptsSummary = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    await connectDB();
+
+    const filterOptions = {};
+    if (req.user.role !== 'admin') {
+      filterOptions.createdBy = req.user._id;
+    }
+
+    const [receiptTotals, refundTotals] = await Promise.all([
+      NewReceipt.aggregate([
+        { $match: filterOptions },
+        { $group: { _id: null, grossTotal: { $sum: '$total' }, count: { $sum: 1 } } },
+      ]),
+      ReturnRecord.aggregate([
+        { $match: { user: req.user._id } },
+        { $group: { _id: null, totalRefunded: { $sum: '$refundAmount' }, count: { $sum: 1 } } },
+      ]),
+    ]);
+
+    const grossTotal = receiptTotals[0]?.grossTotal || 0;
+    const totalRefunded = refundTotals[0]?.totalRefunded || 0;
+    const netTotal = grossTotal - totalRefunded;
+
+    res.status(200).json({
+      success: true,
+      grossTotal,
+      totalRefunded,
+      netTotal,
+      receiptCount: receiptTotals[0]?.count || 0,
+      returnCount: refundTotals[0]?.count || 0,
+    });
+  } catch (error) {
+    console.error('Get receipts summary error:', error);
+    res.status(500).json({ success: false, message: 'Failed to get summary' });
+  }
+};
 module.exports = {
   submitReceipt,
   getLatestReceipt,
   getReceiptById,
   getReceipts,
+  getReceiptsSummary,
   openCashDrawer,
   getSalesSummary
 };

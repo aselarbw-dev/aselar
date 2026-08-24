@@ -5,7 +5,7 @@ import { FaFileUpload } from "react-icons/fa";
 import { Link } from "react-router-dom"
 import { toast } from "react-toastify";
 import axios from "axios";
-
+import ScanOnlyModeToggle from "../Scans/ScanOnlyModeToggle";
 import { FaFile } from 'react-icons/fa'
 
 
@@ -99,7 +99,7 @@ const Banner = ({ isCollapsed }: BannerProps) => {
             </a>             
           </div>
 
-          
+          <ScanOnlyModeToggle />
 
           <div className={`${bannerStyles.calculatorShow} ${bannerStyles.dropdownContainer}`}>
   {showContent && <Calculator onClose={() => setShowContent(false)} />}

@@ -6,6 +6,7 @@ interface ParsedRow {
   category: string;
   name: string;
   costPrice: number;
+  barcode?: string;
   sellingPrice: number;
   quantity: number;
   unit: string;
@@ -17,6 +18,7 @@ interface ParsedRow {
 interface MatchInfo {
   status: 'matched' | 'possible_match' | 'new';
   confidence: number;
+  matchType?: 'barcode' | 'name' | 'none';
   matchedId: string | null;
   matchedName: string | null;
 }
@@ -39,6 +41,7 @@ interface ReviewRow {
   costPrice: number;
   sellingPrice: number;
   quantity: number;
+  barcode: string;
   unit: string;
   expiryDate: string;
   categoryStatus: 'matched' | 'possible_match' | 'new' | 'invalid';
@@ -47,6 +50,7 @@ interface ReviewRow {
   itemStatus: 'matched' | 'possible_match' | 'new' | 'invalid';
   itemMatchedId: string | null;
   itemMatchedName: string | null;
+  itemMatchType: 'barcode' | 'name' | 'none';
   useCategoryMatch: boolean; // user's decision: accept suggested match or treat as new
   useItemMatch: boolean;
   included: boolean; // user can exclude a row entirely from commit
@@ -102,9 +106,11 @@ const ReviewTable: React.FC<ReviewTableProps> = ({ parsedRows, onCommitSuccess }
           quantity: p.original.quantity,
           unit: p.original.unit,
           expiryDate: p.original.expiryDate,
+          barcode: isInvalid ? '' : (p.original.barcode || ''),
           categoryStatus: isInvalid ? 'invalid' : p.category!.status,
           categoryMatchedId: isInvalid ? null : p.category!.matchedId,
           categoryMatchedName: isInvalid ? null : p.category!.matchedName,
+          itemMatchType: isInvalid ? 'none' : (p.item?.matchType || 'none'),
           itemStatus: isInvalid ? 'invalid' : p.item!.status,
           itemMatchedId: isInvalid ? null : p.item!.matchedId,
           itemMatchedName: isInvalid ? null : p.item!.matchedName,
@@ -137,6 +143,7 @@ const ReviewTable: React.FC<ReviewTableProps> = ({ parsedRows, onCommitSuccess }
       .map(r => ({
         category: r.category,
         name: r.name,
+        barcode: r.barcode,
         costPrice: r.costPrice,
         sellingPrice: r.sellingPrice,
         quantity: r.quantity,
@@ -212,6 +219,7 @@ const ReviewTable: React.FC<ReviewTableProps> = ({ parsedRows, onCommitSuccess }
               <th></th>
               <th>Category</th>
               <th>Item</th>
+              <th>Barcode</th>
               <th>Cost</th>
               <th>Price</th>
               <th>Qty</th>
@@ -268,7 +276,12 @@ const ReviewTable: React.FC<ReviewTableProps> = ({ parsedRows, onCommitSuccess }
                       className={styles.textInput}
                       disabled={!row.included}
                     />
-                    {row.itemStatus === 'matched' && (
+                    {/* Barcode match — certain, shown distinctly from a name-based match */}
+                    {row.itemStatus === 'matched' && row.itemMatchType === 'barcode' && (
+                      <span className={styles.badgeBarcode}>🔗 Matched by barcode</span>
+                    )}
+                    {/* Name-based match — the original green checkmark */}
+                    {row.itemStatus === 'matched' && row.itemMatchType !== 'barcode' && (
                       <span className={styles.badgeMatched}>✓ {row.itemMatchedName}</span>
                     )}
                     {row.itemStatus === 'possible_match' && (
@@ -285,6 +298,17 @@ const ReviewTable: React.FC<ReviewTableProps> = ({ parsedRows, onCommitSuccess }
                       <span className={styles.badgeNew}>New item</span>
                     )}
                   </div>
+                </td>
+
+                <td>
+                  <input
+                    type="text"
+                    value={row.barcode}
+                    onChange={(e) => updateRow(row.rowIndex, { barcode: e.target.value })}
+                    className={styles.barcodeInput}
+                    disabled={!row.included}
+                    placeholder="—"
+                  />
                 </td>
 
                 <td>

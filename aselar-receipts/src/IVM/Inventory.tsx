@@ -85,10 +85,10 @@ const Inventory: React.FC = () => {
           <Link to="/total-expenses"><p>Expenses</p></Link>
           <Link to="/files-bunker"><p>Files Bunker</p></Link>
           <Link to="/ledgers"><p>Ledgers</p></Link>
-          <Link to="/aging-report"><p>Aging Report</p>
-          <Link to="/recon"><p>Reconciliation</p>
-          </Link>
-          </Link>
+          <Link to="/aging-report"><p>Aging Report</p></Link>
+          <Link to="/recon"><p>Reconciliation</p></Link>
+          <Link to="/scan-history"><p>Scan History</p></Link>
+          <Link to="/returns-list"><p>Returns List</p></Link>
         </div>
           : null
         }

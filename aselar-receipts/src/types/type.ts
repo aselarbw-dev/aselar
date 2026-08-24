@@ -6,3 +6,11 @@ export interface Expense {
   amount: number;
   createdAt: string; // Date as a string (ISO format)
 }
+ export interface returnsProps {
+    id:string,
+  category:string,
+  price:number,
+  quantity:string,
+  unit:string,
+  createdAt:string
+}

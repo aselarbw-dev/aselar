@@ -8,6 +8,7 @@ const categorySchema = new mongoose.Schema({
     {
       name: { type: String, required: true },
       costPrice: { type: Number, required: true },
+        barcode: { type: String, default: '' },   // NEW
       sellingPrice: { type: Number, required: true },
       quantity: { type: Number, required: true, default: 0 },
       lowStock: { type: Boolean, default: false },

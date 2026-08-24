@@ -7,7 +7,7 @@ export interface User {
   id: string;
   nameOfBusiness: string;
   emailBusiness: string;
-  // Add other user properties as needed
+  scanOnlyMode?: boolean; // NEW
 }
 
 interface AuthContextType {
@@ -19,6 +19,7 @@ interface AuthContextType {
   extendSession: () => void;
   showWarning: boolean;
   dismissWarning: () => void;
+  updateUser: (updates: Partial<User>) => void; // NEW
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -104,7 +105,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem('token', token);
     localStorage.setItem('userData', JSON.stringify(userData));
   };
-
+// Inside AuthProvider, alongside login/logout:
+const updateUser = (updates: Partial<User>) => {
+  setUser(prev => {
+    if (!prev) return prev;
+    const updated = { ...prev, ...updates };
+    localStorage.setItem('userData', JSON.stringify(updated));
+    return updated;
+  });
+};
   // Initialize auth state from localStorage
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -144,6 +153,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     extendSession,
     showWarning,
     dismissWarning,
+     updateUser, // NEW
   };
 
   return (

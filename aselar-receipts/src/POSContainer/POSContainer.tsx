@@ -6,6 +6,7 @@ import Receipt from '../Receipt/Receipt';
 import styles from './POSContainer.module.css';
 import {useNavigate,Link} from 'react-router-dom';
 import { toast } from 'react-toastify';
+import BarcodeScanner from '../Scans/BarcodeScanner'; // Import the BarcodeScanner component
 // Define types
 interface Item {
   _id: string;
@@ -33,7 +34,8 @@ const useReceiptManager = () => {
   const [subtotal, setSubtotal] = useState<number>(0);
   const [discountAmount, setDiscountAmount] = useState<number>(0);
   const [cashPaid, setCashPaid] = useState<number>(0);
- 
+
+
   // Calculate derived values
   const vat = (subtotal - discountAmount) * VAT_RATE;
   const total = subtotal - discountAmount + vat;
@@ -128,8 +130,12 @@ const useReceiptManager = () => {
     clearReceipt
   };
 };
-
+import { useSellerContext } from '../Sellers/SellerNameProvider'
+import { useAuth } from '../context/AuthContext';
+import PaymentMethodModal from '../Payment/PaymentMethodModal'; // Import the PaymentMethodModal component
 const POSContainer: React.FC = () => {
+  const { user } = useAuth();
+const scanOnlyMode = user?.scanOnlyMode ?? false;
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [showNumberPad, setShowNumberPad] = useState<boolean>(false);
@@ -137,31 +143,17 @@ const POSContainer: React.FC = () => {
   const [loadingItems, setLoadingItems] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const navigate=useNavigate()
+   const [showScanner, setShowScanner] = useState<boolean>(false);
+const [scanLookupLoading, setScanLookupLoading] = useState<boolean>(false)
   // New state variables for added features
   const [showDiscountPad, setShowDiscountPad] = useState<boolean>(false);
   const [discountItemId, setDiscountItemId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [status, setStatus] = useState<string | null>(null);
-
-  const openDrawer = async () => {
-    try {
-      const res = await fetch(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/open-drawer`, {
-        method: "POST",
-         headers: { 'Content-Type': 'application/json',
-          'authorization': `Bearer ${localStorage.getItem("token")}`
-
-
-         },        credentials: "include",
-     
-      });
-      const data = await res.json();
-      setStatus(data.message || "Drawer opened.");
-      toast.success("Drawer opened successfully!");
-    } catch (err) {
-      setStatus("Error: Could not open drawer.");
-    }
-  };
-
+  const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
+const [paymentMethod, setPaymentMethod] = useState<string>('');
+const { sellerName } = useSellerContext();
+  
   // Use our receipt manager hook
   const {
     receiptItems,
@@ -229,6 +221,7 @@ const POSContainer: React.FC = () => {
   };
 
   const handleSelectItem = (item: Item) => {
+  
     setSelectedItem(item);
     setShowNumberPad(true);
   };
@@ -254,9 +247,46 @@ const POSContainer: React.FC = () => {
     setShowDiscountPad(false);
     setDiscountItemId(null);
   };
+const handleBarcodeScan = async (code: string) => {
+  setScanLookupLoading(true);
 
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/bulk/lookup-barcode/${code}?sellerName=${encodeURIComponent(sellerName)}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'authorization': `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.found) {
+      // Build an Item matching what handleSelectItem expects,
+      // then reuse the EXACT same flow as clicking an item manually
+      const scannedItem: Item = {
+        _id: data.item._id,
+        name: data.item.name,
+        sellingPrice: data.item.sellingPrice,
+        categoryId: data.categoryId,
+      };
+
+      toast.success(`Scanned: ${data.item.name}`);
+      handleSelectItem(scannedItem); // opens NumberPad, same as manual click
+    } else {
+      toast.warning('No match found for this barcode in your inventory.');
+    }
+  } catch (error) {
+    console.error('Barcode lookup error:', error);
+    toast.error('Could not look up barcode. Please try again.');
+  } finally {
+    setScanLookupLoading(false);
+  }
+};
   // NEW: Direct API call to process sale and deduct inventory (no Redux needed)
-  const processSaleDirect = async (soldItems: { categoryId: string; itemId: string; soldQuantity: number }[]) => {
+  const processSaleDirect = async (soldItems: { categoryId: string; itemId: string; soldQuantity: number }[],paymentMethod: string) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/process-sale`, {
         method: 'POST',
@@ -266,7 +296,7 @@ const POSContainer: React.FC = () => {
 
 
          },
-        body: JSON.stringify({ soldItems }),
+        body: JSON.stringify({ soldItems, paymentMethod }),
       });
 
       if (!response.ok) {
@@ -283,7 +313,11 @@ const POSContainer: React.FC = () => {
       throw error; // Re-throw for handling in submit
     }
   };
-
+const handlePaymentMethodSelect = (method: string) => {
+  setPaymentMethod(method);
+  setShowPaymentModal(false);
+  toast.info(`Payment method: ${method}`);
+};
   // Handler for submitting the receipt
   const handleSubmitReceipt = async () => {
     if (receiptItems.length === 0 || receiptItems.every(item => item.quantity === 0)) {
@@ -302,7 +336,7 @@ const POSContainer: React.FC = () => {
       }));
 
       // Process sale to deduct inventory (backend handles stock check)
-      await processSaleDirect(soldItems);
+      await processSaleDirect(soldItems, paymentMethod);
 
       // Prepare receipt data (keep your existing sales logging)
       const receiptData = {
@@ -312,7 +346,8 @@ const POSContainer: React.FC = () => {
         discount: discountAmount,
         total,
         cashPaid,
-        change
+        change,
+        paymentMethod, // NEW
       };
       
       // Send to backend
@@ -379,22 +414,54 @@ const POSContainer: React.FC = () => {
           <Link to="/current-receipt">
              <button className={styles.recent} >Recent</button>
              </Link>
-          <button className={styles.drawer} onClick={openDrawer}>Drawer</button>
+        <button className={styles.drawer} onClick={() => {
+  console.log('Payment button clicked');
+  setShowPaymentModal(true);
+}}>
+  Payment
+</button>
             
          
         </div>
       </div>
   
-      <div className={styles.categoriesSection}>
-        <CategoryLists onSelectCategory={handleSelectCategory} />
-      </div>
+     <div className={styles.categoriesSection}>
+  <div className={styles.categoriesHeader}>
+    <button
+      className={styles.scanToggleButton}
+      onClick={() => setShowScanner(!showScanner)}
+    >
+      {showScanner ? 'Close Scanner' : '📷 Scan Barcode'}
+    </button>
+    {showScanner && (
+      <p className={styles.scannerNote}>
+        ⚠️ Best used on a laptop or desktop while plugged in — continuous camera use drains mobile batteries quickly.
+      </p>
+    )}
+  </div>
+
+  {showScanner || scanOnlyMode ? (
+  <BarcodeScanner onScan={handleBarcodeScan} isActive={showScanner || scanOnlyMode} />
+) : (
+  <CategoryLists onSelectCategory={handleSelectCategory} />
+)}
+</div>
   
       <div className={styles.itemsSection}>
         {selectedCategoryId && (
           <>
             {loadingItems && <div className={styles.loading}>Loading items...</div>}
             {error && <div className={styles.error}>{error}</div>}
-            <ItemsList items={items} onSelectItem={handleSelectItem} />
+            <ItemsList
+  items={items}
+  onSelectItem={(item) => {
+    if (scanOnlyMode) {
+      toast.warning('Scan-only mode is on — please scan the barcode to add this item.');
+      return;
+    }
+    handleSelectItem(item);
+  }}
+/>
           </>
         )}
       </div>
@@ -406,7 +473,12 @@ const POSContainer: React.FC = () => {
           title="Enter Quantity"
         />
       )}
-      
+      {showPaymentModal && (
+  <PaymentMethodModal
+    onSelect={handlePaymentMethodSelect}
+    onClose={() => setShowPaymentModal(false)}
+  />
+)}
       {/* Add NumberPad for discounts */}
       {showDiscountPad && (
         <NumberPad

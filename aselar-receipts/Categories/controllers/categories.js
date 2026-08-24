@@ -1,6 +1,6 @@
 const { mongoose, connectDB } = require("../../Shared/config");
 const { uploadToCloudinary } = require('../utils/cloudinary');
-
+const ScanLog=require('../models/scanLog');
 // Require model once at top
 const Category = require('../models/categories.js');
 
@@ -282,7 +282,7 @@ const removeCategory = async (req, res) => {
 // NEW: Process sale and deduct inventory
 const processSale = async (req, res) => {
   try {
-    const { soldItems } = req.body; // Expect: [{ categoryId, itemId, soldQuantity }, ...]
+    const { soldItems, paymentMethod } = req.body;
     if (!soldItems || !Array.isArray(soldItems) || soldItems.length === 0) {
       return res.status(400).json({ message: 'No items sold provided' });
     }
@@ -292,7 +292,7 @@ const processSale = async (req, res) => {
     }
 
     await connectDB();
-    const updatedCategories = []; // To return updated ones
+    const updatedCategories = [];
 
     for (const sale of soldItems) {
       const { categoryId, itemId, soldQuantity } = sale;
@@ -321,25 +321,36 @@ const processSale = async (req, res) => {
         });
       }
 
-      // Deduct quantity and update lowStock
       item.quantity = currentQty - soldQuantity;
       item.lowStock = item.quantity <= 10;
 
       await category.save();
       updatedCategories.push({ categoryId, itemId, newQuantity: item.quantity, lowStock: item.lowStock });
-      
-      console.log(`Sale processed: ${soldQuantity} x ${item.name} deducted. New qty: ${item.quantity}, Low stock: ${item.lowStock}`);
-    }
 
-    // Optionally refetch all categories for frontend refresh (comment out if frontend refetches via getAllCategories)
-    // const allCategories = await Category.find({ user: req.user._id.toString() })
-    //   .select('name description image items')
-    //   .sort({ createdAt: -1 });
+      console.log(`Sale processed: ${soldQuantity} x ${item.name} deducted. New qty: ${item.quantity}, Low stock: ${item.lowStock}`);
+
+      // NEW — moved inside the loop, where itemId/soldQuantity actually exist.
+      // Non-blocking: tag the most recent matching, unlabeled scan logs
+      // for THIS item with the payment method just selected.
+      if (paymentMethod) {
+        ScanLog.find({
+          user: req.user._id,
+          itemId,
+          paymentMethod: '',
+        })
+          .sort({ createdAt: -1 })
+          .limit(soldQuantity)
+          .then(logs => {
+            const ids = logs.map(l => l._id);
+            return ScanLog.updateMany({ _id: { $in: ids } }, { $set: { paymentMethod } });
+          })
+          .catch(err => console.error('Scan log payment tag failed (non-blocking):', err.message));
+      }
+    }
 
     res.status(200).json({ 
       message: 'Sale processed successfully, inventory updated', 
       updatedItems: updatedCategories
-      // categories: allCategories // Heavy—omit if not needed
     });
   } catch (error) {
     console.error('Process sale error:', error);

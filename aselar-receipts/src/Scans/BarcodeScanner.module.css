@@ -1,0 +1,66 @@
+/* BarcodeScanner.module.css */
+.scannerContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.videoWrapper {
+  position: relative;
+  width: 100%;
+  /* Wider capture area — easier to line up a barcode without fiddling
+     to get it perfectly centered */
+  aspect-ratio: 21 / 9;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scanOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.scanBox {
+  width: 92%;
+  height: 55%;
+  border: 3px solid #3b82f6;
+  border-radius: 8px;
+  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.3);
+}
+
+.scanHint {
+  margin-top: 12px;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.lastScannedText {
+  font-size: 13px;
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.errorText {
+  color: #dc2626;
+  font-size: 14px;
+  padding: 8px;
+  background: #fef2f2;
+  border-radius: 6px;
+}

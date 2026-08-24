@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {getLatestReceipt,getReceiptById,
-    getReceipts, openCashDrawer,
+    getReceipts, openCashDrawer,getReceiptsSummary,
     getSalesSummary,submitReceipt} = require('../controllers/inventoryReceipts');
 const { protect} = require('../../Shared/protect'); // Adjust the path as necessary
 
@@ -28,7 +28,7 @@ router.get(
   '/get-all',
   protect,getReceipts
 );
-
+router.get('/receipts-summary', protect, getReceiptsSummary);
 
 router.post(
   '/open-cash-drawer',

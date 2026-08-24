@@ -39,17 +39,18 @@ const userSchema = mongoose.Schema({
         type: String,
         required: true,
         // Enhanced password validation
-        validate: {
-            validator: function(password) {
-                // Only validate on new passwords or when password is being changed
-                if (!this.isModified('password')) return true;
-                
-                // Check for minimum 8 characters, at least one uppercase, one lowercase, one number, and one special character
-                const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-                return passwordRegex.test(password);
-            },
-            message: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)'
-        }
+      validate: {
+    validator: function(password) {
+        // Only validate on new passwords or when password is being changed
+        if (!this.isModified('password')) return true;
+
+        // 8+ chars, at least one lowercase, one uppercase, one digit,
+        // and one special character from an assorted set (not locked to a fixed few)
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~`])[A-Za-z\d!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~`]{8,}$/;
+        return passwordRegex.test(password);
+    },
+    message: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character'
+}
     },
 
     passwordResetToken: String,

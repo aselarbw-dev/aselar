@@ -28,14 +28,14 @@ const ResetPasswordForm = () => {
       {error && <div className={styles.errorMessage}>{error}</div>}
       <form onSubmit={handleSubmit}>
         <div className={styles.formGroup}>
-          <input
-            type="password"
-            className={styles.formInput}
-            placeholder="New password (min 9 chars with _)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+         <input
+  type="password"
+  className={styles.formInput}
+  placeholder="New password (8+ chars, upper, lower, number & symbol)"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+  required
+/>
         </div>
         <button type="submit" className={styles.submitButton}>
           Reset Password

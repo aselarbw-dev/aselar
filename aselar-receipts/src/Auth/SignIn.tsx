@@ -78,7 +78,6 @@ const SignIn: React.FC = () => {
       });
 
       const data = await response.json();
-      localStorage.setItem("token", data.token);
 
       console.log("Response status:", response.status);
       console.log("Response ok:", response.ok);
@@ -96,6 +95,7 @@ const SignIn: React.FC = () => {
         };
 
         const token = data.token || data.accessToken || '';
+        localStorage.setItem("token", token);
         login(userObject, token);
 
         navigate("/inside-dashboard", { state: { userName: data.nameOfBusiness } });
@@ -233,7 +233,7 @@ const SignIn: React.FC = () => {
           </div>
 
           <div className={signStyles.downLinks}>
-            <Link to="/forgot-password" className={signStyles.home} rel="preload">
+            <Link to="/forgot-password" className={signStyles.home}>
               Forgot Password?
             </Link>
           </div>

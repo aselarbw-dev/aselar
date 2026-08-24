@@ -153,11 +153,11 @@ const registerBusiness = asyncHandler(async(req, res) => {
     }
 
     // Enhanced password validation - now handled by the model, but keeping your existing check as backup
-    if (password.length < 9 && !password.includes("_")) {
-        res.status(401)
-        throw new Error("Password is weak, please revise it.")
-    }
-    
+   const hasSpecialChar = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~`]/.test(password);
+if (password.length < 8 || !hasSpecialChar) {
+    res.status(401)
+    throw new Error("Password is weak — must be at least 8 characters and include a special character.")
+}
     // check if email exists
     const checkEmailExistence = await User.findOne({emailBusiness})
     if (checkEmailExistence) {
@@ -429,6 +429,7 @@ const cleanupExpiredSessions = () => {
 // Run cleanup every 30 minutes
 setInterval(cleanupExpiredSessions, 30 * 60 * 1000);
 // Forgot Password
+
 const forgotPassword = asyncHandler(async (req, res) => {
   const { emailBusiness } = req.body;
 
@@ -439,27 +440,27 @@ const forgotPassword = asyncHandler(async (req, res) => {
 
   const user = await User.findOne({ emailBusiness });
 
+  // Always respond the same way whether or not the account exists,
+  // so this endpoint can't be used to check which emails are registered
   if (!user) {
-    res.status(404);
-    throw new Error("No account found with this email");
+    return res.status(200).json({
+      success: true,
+      message: "If an account exists with this email, a reset link has been sent.",
+    });
   }
 
-  // Generate and hash reset token
   const resetToken = crypto.randomBytes(32).toString("hex");
   const hashedToken = crypto
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
 
-  // Save token with expiration (10 mins)
   user.passwordResetToken = hashedToken;
   user.passwordResetExpires = Date.now() + 10 * 60 * 1000;
   await user.save();
 
-  // Construct reset URL (use your frontend URL)
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-  // Email content (plain text version)
   const message = `
     Hello ${user.nameOfBusiness || "User"},
 
@@ -475,17 +476,16 @@ const forgotPassword = asyncHandler(async (req, res) => {
 
   try {
     await sendEmail({
-      email: user.emailBusiness, // Matches your middleware's expected 'email' field
+      email: user.emailBusiness,
       subject: "Password Reset Request",
       message: message,
     });
 
     res.status(200).json({
       success: true,
-      message: "Password reset link sent to your email",
+      message: "If an account exists with this email, a reset link has been sent.",
     });
   } catch (error) {
-    // Clear token if email fails
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save();
@@ -505,13 +505,11 @@ const resetPassword = asyncHandler(async (req, res) => {
     throw new Error("Please provide a new password");
   }
 
-  // Hash token for DB comparison
   const hashedToken = crypto
     .createHash("sha256")
     .update(token)
     .digest("hex");
 
-  // Find user with valid token
   const user = await User.findOne({
     passwordResetToken: hashedToken,
     passwordResetExpires: { $gt: Date.now() },
@@ -522,17 +520,19 @@ const resetPassword = asyncHandler(async (req, res) => {
     throw new Error("Invalid or expired token");
   }
 
-  // Apply same password rules as registration
-  if (password.length < 9 || !password.includes("_")) {
-    res.status(400);
-    throw new Error("Password must be at least 9 characters and contain an underscore");
-  }
-
-  // Update password and clear token
   user.password = password;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
-  await user.save();
+
+  try {
+    await user.save();
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      res.status(400);
+      throw new Error(error.message);
+    }
+    throw error;
+  }
 
   res.status(200).json({
     success: true,
@@ -541,7 +541,8 @@ const resetPassword = asyncHandler(async (req, res) => {
 });
 const changePassword = asyncHandler(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
-  const userId = req.user._id; // From JWT middleware
+  const userId = req.user._id;
+  const sessionId = req.user.sessionId; // from the decoded JWT set by requireAuth
 
   if (!currentPassword || !newPassword) {
     res.status(400);
@@ -555,26 +556,40 @@ const changePassword = asyncHandler(async (req, res) => {
     throw new Error("User not found");
   }
 
-  // Verify current password
   const isPasswordCorrect = await bcrypt.compare(currentPassword, user.password);
   if (!isPasswordCorrect) {
     res.status(401);
     throw new Error("Current password is incorrect");
   }
 
-  // Validate new password strength (same rules as registration)
-  if (newPassword.length < 9 || !newPassword.includes("_")) {
-    res.status(400);
-    throw new Error("New password must be at least 9 characters and contain an underscore");
+  user.password = newPassword;
+
+  try {
+    await user.save();
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      res.status(400);
+      throw new Error(error.message);
+    }
+    throw error;
   }
 
-  // Update password
-  user.password = newPassword;
-  await user.save();
+  // Invalidate the current session and clear the cookie —
+  // password change should force a genuine re-login
+  if (sessionId) {
+    activeSessions.delete(sessionId);
+  }
+  res.cookie("token", "", {
+    path: "/",
+    httpOnly: true,
+    expires: new Date(0),
+    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+  });
 
   res.status(200).json({
     success: true,
-    message: "Password changed successfully",
+    message: "Password changed successfully. Please sign in again.",
   });
 });
 const deleteAccount = asyncHandler(async (req, res) => {

@@ -1,9 +1,7 @@
-// ChangePasswordForm.tsx
 import { useState } from 'react';
 import axios from 'axios';
 import styles from './authForms.module.css';
-import { useNavigate } from 'react-router-dom';
-
+import { useAuth } from '../context/AuthContext'; // adjust path to match your project structure
 
 axios.defaults.withCredentials = true;
 const ChangePasswordForm = () => {
@@ -11,18 +9,18 @@ const ChangePasswordForm = () => {
   const [newPassword, setNewPassword] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const navigate=useNavigate()
+  const { logout } = useAuth();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const response = await axios.put(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/change-password`, {
-        withCredentials: true,
         currentPassword,
         newPassword,
       });
       setMessage(response.data.message);
       setError('');
-      navigate("/sign-in")
+     setTimeout(logout, 1500) // clears local auth state (token/userData) and redirects to /sign-in
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to change password');
       setMessage('');
@@ -49,7 +47,7 @@ const ChangePasswordForm = () => {
           <input
             type="password"
             className={styles.formInput}
-            placeholder="New password (min 9 chars with _)"
+            placeholder="New password (8+ chars, upper, lower, number & symbol)"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required

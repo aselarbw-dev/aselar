@@ -14,6 +14,10 @@ const NumberPad: React.FC<NumberPadProps> = ({ onClose, onConfirm }) => {
     setQuantity((prev) => prev + num);
   };
 
+  const handleClear = () => {
+    setQuantity('');
+  };
+
   const handleConfirm = () => {
     onConfirm(Number(quantity));
     onClose();
@@ -29,6 +33,7 @@ const NumberPad: React.FC<NumberPadProps> = ({ onClose, onConfirm }) => {
               {num}
             </button>
           ))}
+          <button onClick={handleClear} className={styles.clear}>Clear</button>
           <button onClick={handleConfirm} className={styles.confirm}>Confirm</button>
           <button onClick={onClose} className={styles.cancel}>Cancel</button>
         </div>

@@ -65,6 +65,16 @@
      padding: 15px;
     font-size: 18px;
   }
+  .clear{
+    background-color: orange;
+    color: #fff;
+       border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+     padding: 15px;
+    font-size: 18px;
+  }
   .confirm {
     background-color: #4CAF50;
     color: #fff;

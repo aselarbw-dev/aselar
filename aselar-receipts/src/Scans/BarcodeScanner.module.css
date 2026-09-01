@@ -1,19 +1,24 @@
-/* BarcodeScanner.module.css */
 .scannerContainer {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.errorText {
+  color: #c0392b;
+  font-size: 0.9rem;
+  margin: 0;
 }
 
 .videoWrapper {
   position: relative;
   width: 100%;
-  /* Wider capture area — easier to line up a barcode without fiddling
-     to get it perfectly centered */
-  aspect-ratio: 21 / 9;
-  background: #000;
-  border-radius: 8px;
+  aspect-ratio: 4 / 3;
+  max-height: 70vh;
+  border-radius: 12px;
   overflow: hidden;
+  background: #000;
 }
 
 .video {
@@ -22,45 +27,154 @@
   object-fit: cover;
 }
 
+/* Wide, short overlay box shaped for 1D barcodes instead of a tall/square one */
 .scanOverlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 0.75rem;
   pointer-events: none;
 }
 
 .scanBox {
+  position: relative;
+  width: 85%;
+  max-width: 520px;
+  height: 30%;
+  min-height: 90px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 3px solid #2ecc71;
+}
+
+.cornerTL {
+  top: -2px;
+  left: -2px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.cornerTR {
+  top: -2px;
+  right: -2px;
+  border-left: none;
+  border-bottom: none;
+}
+
+.cornerBL {
+  bottom: -2px;
+  left: -2px;
+  border-right: none;
+  border-top: none;
+}
+
+.cornerBR {
+  bottom: -2px;
+  right: -2px;
+  border-left: none;
+  border-top: none;
+}
+
+.scanLine {
+  position: absolute;
+  left: 4%;
   width: 92%;
-  height: 55%;
-  border: 3px solid #3b82f6;
-  border-radius: 8px;
-  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.3);
+  height: 2px;
+  background: #2ecc71;
+  box-shadow: 0 0 6px #2ecc71;
+  animation: scanMove 1.8s ease-in-out infinite;
+}
+
+@keyframes scanMove {
+  0% { top: 10%; }
+  50% { top: 85%; }
+  100% { top: 10%; }
 }
 
 .scanHint {
-  margin-top: 12px;
-  color: white;
-  font-size: 13px;
+  color: #fff;
+  font-size: 0.95rem;
   font-weight: 500;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  margin: 0;
+}
+
+.torchButton {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+  cursor: pointer;
 }
 
 .lastScannedText {
-  font-size: 13px;
-  color: #16a34a;
-  font-weight: 600;
+  font-size: 0.9rem;
+  color: #333;
+  margin: 0;
 }
 
-.errorText {
-  color: #dc2626;
-  font-size: 14px;
-  padding: 8px;
-  background: #fef2f2;
-  border-radius: 6px;
+.manualEntryHidden {
+  display: none;
+}
+
+.manualEntryVisible {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  background: #fff8e6;
+  border: 1px solid #f0d98c;
+  border-radius: 10px;
+  padding: 0.75rem;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.manualEntryPrompt {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6b4e00;
+}
+
+.manualEntryForm {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.manualEntryInput {
+  flex: 1;
+  padding: 0.6rem 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.manualEntrySubmit {
+  padding: 0.6rem 1.1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+  background: #27ae60;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
 }

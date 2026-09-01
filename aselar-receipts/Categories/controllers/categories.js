@@ -324,8 +324,22 @@ const processSale = async (req, res) => {
       item.quantity = currentQty - soldQuantity;
       item.lowStock = item.quantity <= 10;
 
+      // NEW: accumulate sales reporting fields. These persist on the item
+      // subdocument so category-level rollups (units sold, revenue,
+      // best-sellers) can be computed straight from getAllCategories
+      // without a separate sales/orders collection.
+      item.soldQuantity = (item.soldQuantity || 0) + soldQuantity;
+      item.revenue = (item.revenue || 0) + (soldQuantity * item.sellingPrice);
+
       await category.save();
-      updatedCategories.push({ categoryId, itemId, newQuantity: item.quantity, lowStock: item.lowStock });
+      updatedCategories.push({
+        categoryId,
+        itemId,
+        newQuantity: item.quantity,
+        lowStock: item.lowStock,
+        soldQuantity: item.soldQuantity,
+        revenue: item.revenue
+      });
 
       console.log(`Sale processed: ${soldQuantity} x ${item.name} deducted. New qty: ${item.quantity}, Low stock: ${item.lowStock}`);
 

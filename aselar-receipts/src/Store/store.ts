@@ -23,6 +23,8 @@ export interface Item {
   user: string;
   unit: string; // Added for bulk upload
   expiryDate: string; // Added for bulk upload, ISO format
+  soldQuantity?: number; // NEW: cumulative units sold, from backend processSale
+  revenue?: number; // NEW: cumulative revenue from this item, from backend processSale
 }
 
 interface InventoryState {

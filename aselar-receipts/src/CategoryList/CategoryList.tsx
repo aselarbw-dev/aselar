@@ -4,7 +4,7 @@ import { RootState } from '../Store/store';
 import { FaEdit } from 'react-icons/fa';
 import { FaSearch, FaTimes } from 'react-icons/fa'; // NEW
 
-import { removeCategory, getCategories, Item } from '../Store/store';
+import { removeCategory, getCategories, Item, Category } from '../Store/store';
 import styles from './CategoryList.module.css';
 import ItemForm from '../Forms/ItemForm';
 import { IoMdClose } from 'react-icons/io';
@@ -19,6 +19,122 @@ interface ExpiringItem extends Item {
 }
 
 const CATEGORIES_PER_PAGE = 6;
+
+// NEW: reporting helpers -----------------------------------------------
+
+// Fixed palette so a given slice position always gets the same color
+// across renders/categories (easier to scan visually than random colors).
+const PIE_COLORS = ['#0b5577', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#64748b'];
+
+const MAX_PIE_SLICES = 5; // top 5 sellers get their own slice, rest roll into "Other"
+
+interface CategorySummary {
+  totalUnitsInStock: number;
+  totalStockValue: number; // cost-basis value of what's currently on the shelf
+  totalRevenue: number;    // cumulative revenue from sales, all time
+  totalUnitsSold: number;  // cumulative units sold, all time
+  lowStockCount: number;
+  pieSlices: { name: string; value: number; color: string }[];
+}
+
+const getCategorySummary = (category: Category): CategorySummary => {
+  let totalUnitsInStock = 0;
+  let totalStockValue = 0;
+  let totalRevenue = 0;
+  let totalUnitsSold = 0;
+  let lowStockCount = 0;
+
+  category.items.forEach((item: Item) => {
+    const quantity = Number(item.quantity) || 0;
+    const costPrice = Number(item.costPrice) || 0;
+    const revenue = Number(item.revenue) || 0;
+    const soldQuantity = Number(item.soldQuantity) || 0;
+
+    totalUnitsInStock += quantity;
+    totalStockValue += quantity * costPrice;
+    totalRevenue += revenue;
+    totalUnitsSold += soldQuantity;
+    if (item.lowStock) lowStockCount += 1;
+  });
+
+  // Build pie data from items that have actually sold something.
+  const sellers = category.items
+    .filter((item: Item) => (Number(item.soldQuantity) || 0) > 0)
+    .sort((a, b) => (Number(b.soldQuantity) || 0) - (Number(a.soldQuantity) || 0));
+
+  const pieSlices: { name: string; value: number; color: string }[] = [];
+  const top = sellers.slice(0, MAX_PIE_SLICES);
+  const rest = sellers.slice(MAX_PIE_SLICES);
+
+  top.forEach((item, i) => {
+    pieSlices.push({ name: item.name, value: Number(item.soldQuantity) || 0, color: PIE_COLORS[i % PIE_COLORS.length] });
+  });
+
+  if (rest.length > 0) {
+    const restTotal = rest.reduce((sum, item) => sum + (Number(item.soldQuantity) || 0), 0);
+    pieSlices.push({ name: 'Other', value: restTotal, color: PIE_COLORS[MAX_PIE_SLICES % PIE_COLORS.length] });
+  }
+
+  return { totalUnitsInStock, totalStockValue, totalRevenue, totalUnitsSold, lowStockCount, pieSlices };
+};
+
+const formatPula = (value: number) =>
+  `${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Pula`;
+
+// NEW: small inline SVG donut chart — no chart library dependency needed.
+// Renders each slice as a stroked circle segment via stroke-dasharray/offset.
+const DonutChart: React.FC<{ slices: { name: string; value: number; color: string }[] }> = ({ slices }) => {
+  const size = 120;
+  const radius = 45;
+  const strokeWidth = 20;
+  const circumference = 2 * Math.PI * radius;
+  const total = slices.reduce((sum, s) => sum + s.value, 0);
+
+  if (total === 0) {
+    return <p className={styles.noSalesText}>No sales recorded yet for this category</p>;
+  }
+
+  let cumulativeOffset = 0;
+
+  return (
+    <div className={styles.pieChartWrapper}>
+      <svg viewBox={`0 0 ${size} ${size}`} className={styles.pieSvg}>
+        <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
+          {slices.map((slice, i) => {
+            const fraction = slice.value / total;
+            const dashLength = fraction * circumference;
+            const dashArray = `${dashLength} ${circumference - dashLength}`;
+            const dashOffset = -cumulativeOffset;
+            cumulativeOffset += dashLength;
+            return (
+              <circle
+                key={`${slice.name}-${i}`}
+                cx={size / 2}
+                cy={size / 2}
+                r={radius}
+                fill="none"
+                stroke={slice.color}
+                strokeWidth={strokeWidth}
+                strokeDasharray={dashArray}
+                strokeDashoffset={dashOffset}
+              />
+            );
+          })}
+        </g>
+      </svg>
+      <ul className={styles.pieLegend}>
+        {slices.map((slice, i) => (
+          <li key={`${slice.name}-legend-${i}`} className={styles.legendItem}>
+            <span className={styles.legendSwatch} style={{ backgroundColor: slice.color }} />
+            <span className={styles.legendText}>{slice.name} ({slice.value})</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+// ------------------------------------------------------------------------
 
 const CategoryList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -204,7 +320,11 @@ const CategoryList: React.FC = () => {
         {paginatedCategories.length === 0 && searchTerm ? (
           <p className={styles.noResults}>No categories or items match "{searchTerm}"</p>
         ) : (
-          paginatedCategories.map((category, catIndex) => (
+          paginatedCategories.map((category, catIndex) => {
+            // NEW: per-category reporting summary + pie data
+            const summary = getCategorySummary(category);
+
+            return (
             <div key={category._id || catIndex} className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardActions}>
@@ -233,6 +353,40 @@ const CategoryList: React.FC = () => {
               <div className={styles.categoryInfo}>
                 <h2>{category.name}</h2>
                 <p>{category.description}</p>
+              </div>
+
+              {/* NEW: reporting summary — stock value, revenue, units sold, low-stock count */}
+              <div className={styles.categorySummary}>
+                <div className={styles.summaryGrid}>
+                  <div className={`${styles.summaryStat} ${styles.statStock}`}>
+                    <span className={styles.summaryLabel}>Stock Value</span>
+                    <span className={styles.summaryValue}>{formatPula(summary.totalStockValue)}</span>
+                  </div>
+                  <div className={`${styles.summaryStat} ${styles.statRevenue}`}>
+                    <span className={styles.summaryLabel}>Revenue (All-Time)</span>
+                    <span className={styles.summaryValue}>{formatPula(summary.totalRevenue)}</span>
+                  </div>
+                  <div className={`${styles.summaryStat} ${styles.statUnits}`}>
+                    <span className={styles.summaryLabel}>Units in Stock</span>
+                    <span className={styles.summaryValue}>{summary.totalUnitsInStock}</span>
+                  </div>
+                  <div className={`${styles.summaryStat} ${styles.statSold}`}>
+                    <span className={styles.summaryLabel}>Units Sold (All-Time)</span>
+                    <span className={styles.summaryValue}>{summary.totalUnitsSold}</span>
+                  </div>
+                  {summary.lowStockCount > 0 && (
+                    <div className={`${styles.summaryStat} ${styles.statWarning}`}>
+                      <span className={styles.summaryLabel}>Low Stock Items</span>
+                      <span className={styles.summaryValueWarning}>{summary.lowStockCount}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* NEW: what's selling fast in this category */}
+                <div className={styles.chartSection}>
+                  <span className={styles.chartTitle}>Top Sellers</span>
+                  <DonutChart slices={summary.pieSlices} />
+                </div>
               </div>
 
               <div className={styles.itemsContainer}>
@@ -268,6 +422,12 @@ const CategoryList: React.FC = () => {
                        
                         {item.unit && <p>Unit: {item.unit}</p>}
                         {item.expiryDate && <p>Expiry Date: {formatDate(item.expiryDate)}</p>}
+                        {/* NEW: per-item sold/revenue, only shown once something has sold */}
+                        {(Number(item.soldQuantity) || 0) > 0 && (
+                          <p className={styles.itemSalesLine}>
+                            Sold: {item.soldQuantity} ({formatPula(Number(item.revenue) || 0)})
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -297,7 +457,8 @@ const CategoryList: React.FC = () => {
                 </div>
               )}
             </div>
-          ))
+            );
+          })
         )}
       </div>
 

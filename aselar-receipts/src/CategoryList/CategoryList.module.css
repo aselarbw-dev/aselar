@@ -331,3 +331,160 @@
     text-align: right;
   }
 }
+
+/* NEW: reporting summary block — sits between the category description and
+   the items grid, wrapped in its own light panel so it reads as a distinct
+   "at a glance" section rather than blending into the item cards below. */
+.categorySummary {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 10px;
+  margin: 8px 0;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* Each stat gets its own mini-card with a colored left accent, so the
+   numbers carry visual weight instead of sitting as plain text. */
+.summaryStat {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background-color: #ffffff;
+  border-left: 3px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 6px 8px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.statStock {
+  border-left-color: #0b5577;
+}
+
+.statRevenue {
+  border-left-color: #10b981;
+}
+
+.statUnits {
+  border-left-color: #3b82f6;
+}
+
+.statSold {
+  border-left-color: #8b5cf6;
+}
+
+.statWarning {
+  border-left-color: #ef4444;
+  background-color: #fef2f2;
+}
+
+.summaryLabel {
+  font-size: 10.5px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+}
+
+.summaryValue {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  overflow-wrap: break-word;
+}
+
+.summaryValueWarning {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ef4444;
+}
+
+/* NEW: top-sellers chart section, inside the same summary panel */
+.chartSection {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.chartTitle {
+  display: block;
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-bottom: 6px;
+}
+
+.pieChartWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pieSvg {
+  width: 90px;
+  height: 90px;
+  flex-shrink: 0;
+}
+
+.pieLegend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1 1 120px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #334155;
+}
+
+.legendSwatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legendText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.noSalesText {
+  font-size: 12px;
+  color: #94a3b8;
+  font-style: italic;
+  margin: 4px 0 0;
+}
+
+/* NEW: per-item sold/revenue line inside each item card */
+.itemSalesLine {
+  color: #0b5577;
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .pieChartWrapper {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

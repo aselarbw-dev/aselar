@@ -14,6 +14,8 @@ const categorySchema = new mongoose.Schema({
       lowStock: { type: Boolean, default: false },
       unit: { type: String, default: '' },
       expiryDate: { type: String },  // NEW: ISO date string for expiry (optional) // New: for restock alerts
+      soldQuantity: { type: Number, default: 0 }, // NEW: cumulative units sold, for reporting
+      revenue: { type: Number, default: 0 },       // NEW: cumulative revenue from this item, for reporting
     },
   ],
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },

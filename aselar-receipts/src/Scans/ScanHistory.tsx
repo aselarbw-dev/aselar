@@ -101,12 +101,15 @@ const ScanHistory: React.FC = () => {
             ) : (
               logs.map(log => (
                 <tr key={log._id}>
-                  <td>{log.itemName}</td>
-                  <td className={styles.barcodeCell}>{log.barcode}</td>
-                  <td>BWP {log.priceAtScan.toFixed(2)}</td>
-                  <td>{log.sellerName}</td>
-                  <td>{log.paymentMethod}</td>
-                  <td>{formatTimestamp(log.createdAt)}</td>
+                  {/* NEW: data-label attrs — used by the mobile stacked-card
+                      layout in the CSS to show a label next to each value.
+                      No effect on desktop; the table renders exactly as before. */}
+                  <td data-label="Item">{log.itemName}</td>
+                  <td className={styles.barcodeCell} data-label="Barcode">{log.barcode}</td>
+                  <td data-label="Price">BWP {log.priceAtScan.toFixed(2)}</td>
+                  <td data-label="Seller">{log.sellerName}</td>
+                  <td data-label="Payment Method">{log.paymentMethod}</td>
+                  <td data-label="Time">{formatTimestamp(log.createdAt)}</td>
                 </tr>
               ))
             )}

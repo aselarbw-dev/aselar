@@ -1,6 +1,7 @@
 /* ScanHistory.module.css */
 .container {
   padding: 20px;
+  box-sizing: border-box;
 }
 
 .title {
@@ -20,6 +21,7 @@
   overflow-x: auto;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
+  -webkit-overflow-scrolling: touch; /* smooth momentum scrolling on iOS if the table ever does need to scroll */
 }
 
 .table {
@@ -84,4 +86,109 @@
   padding: 24px;
   text-align: center;
   color: #64748b;
+}
+
+/* ---------------------------------------------------------------------
+   NEW: mobile responsiveness.
+
+   A 6-column table has no good way to fit a narrow phone screen while
+   staying a table — either the text gets crushed unreadably or you're
+   scrolling sideways one column at a time. So below 640px the table
+   itself is turned into a stack of cards: each <tr> becomes a bordered
+   card, and each <td> becomes a row inside it with its column label
+   (from data-label, added in the component) shown on the left and the
+   value on the right. Nothing above this breakpoint changes.
+------------------------------------------------------------------------ */
+@media (max-width: 640px) {
+  .container {
+    padding: 12px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .tableScroll {
+    overflow-x: visible;
+    border: none;
+  }
+
+  .table,
+  .table thead,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table thead {
+    /* Column headers become redundant once each value carries its own
+       label — hide them rather than showing two labels for one value. */
+    display: none;
+  }
+
+  .table tbody tr {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    padding: 4px 0;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #f3f4f6;
+    text-align: right;
+    font-size: 13px;
+  }
+
+  .table tr td:last-child {
+    border-bottom: none;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #374151;
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  .barcodeCell {
+    text-align: right;
+    word-break: break-all; /* long barcodes shouldn't force horizontal overflow */
+  }
+
+  /* The "No scans recorded yet" row has no data-label / colSpan styling
+     to fight with — just center it plainly like a normal card. */
+  .noData {
+    display: block;
+    text-align: center;
+  }
+
+  /* Bigger, stacked-friendly pagination controls with proper touch targets */
+  .pagination {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .pageButton {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 14px;
+    flex: 1 1 auto;
+  }
+
+  .pageInfo {
+    width: 100%;
+    text-align: center;
+    order: -1;
+    margin-bottom: 4px;
+  }
 }

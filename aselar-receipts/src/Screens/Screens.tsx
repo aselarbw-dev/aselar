@@ -53,6 +53,7 @@ const PayslipTemplate = lazy(() => import("../Slip/PayslipTemplate"));
 const Billing = lazy(() => import("../Billing/Billing"));
 const GPTS = lazy(() => import("../GPT/GPT"));
 const AgingReport = lazy(() => import("../Reports/AgingReport"));
+const SalesReport = lazy(() => import("../Reports/SalesReport"));
 const ReconciliationView = lazy(() => import("../Reports/ReconciliationView"));
 const QuotationComponent = lazy(() => import("../Quotation/QuotationComponent"));
 const IncomeStatementGenerator = lazy(() => import("../Generator/IncomeStatementGenerator"));
@@ -79,6 +80,7 @@ const Screens = () => {
         <Route path="/total-expenses" element={<AllExpenses/>} />
         <Route path="/inventory-receipts" element={<AllCategoryReceipts/>} />
         <Route path="/aging-report" element={<AgingReport />} />
+        <Route path="/sales-report" element={<SalesReport />} />
         <Route path="/recon" element={<ReconciliationView />} />
         <Route path="/process-return/:receiptId" element={<ProcessReturn />} />
         <Route path="/ledgers" element={<AllLedgers />} />

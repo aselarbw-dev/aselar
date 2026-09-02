@@ -86,6 +86,7 @@ const Inventory: React.FC = () => {
           <Link to="/files-bunker"><p>Files Bunker</p></Link>
           <Link to="/ledgers"><p>Ledgers</p></Link>
           <Link to="/aging-report"><p>Aging Report</p></Link>
+          <Link to="/sales-report"><p>Sales Report</p></Link>
           <Link to="/recon"><p>Reconciliation</p></Link>
           <Link to="/scan-history"><p>Scan History</p></Link>
           <Link to="/returns-list"><p>Returns List</p></Link>
@@ -96,7 +97,8 @@ const Inventory: React.FC = () => {
 
         <button className={styles.items} onClick={showHandle}>Add Products</button>
         <button className={styles.items} onClick={bulkImportHandler}>Bulk Import</button>
-        <button className={styles.items} onClick={visibleHandle}>Add Services</button>
+        {/*  <button className={styles.items} onClick={visibleHandle}>Add Services</button> */  }
+      
         <button className={styles.expenseBtn} onClick={expensesHandle}>Expense Sheet</button>
       </div>
       <div className={styles.allForms}>

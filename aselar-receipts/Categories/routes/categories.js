@@ -9,7 +9,8 @@ createCategory,
   removeItem,
   getItemsByCategory,  // Fixed: Now exported
   removeCategory,      // NEW: For category delete
-  processSale
+  processSale,
+  getSalesReport       // NEW: daily sales report
  
 } = require('../controllers/categories');
 
@@ -22,5 +23,6 @@ router.put('/items/:categoryId/:itemId', protect, editItem);
 router.get('/get-items/:categoryId', protect, getItemsByCategory);
 //router.delete('/remove-item/:categoryId/:itemId',protect, removeItem);
 router.delete('/remove-category/:categoryId', protect, removeCategory);
+router.get('/sales-report', protect, getSalesReport); // NEW: daily sales report
 
 module.exports = router;

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import styles from "./Agreements.module.css";
 import { toast } from "react-toastify";
@@ -69,7 +68,7 @@ const Agreements: React.FC = () => {
   return (
     <div className={styles.container}>
       <div className={styles.agreementBox}>
-        <h2>Aselar User Agreement</h2>
+        <h2 className={styles.title}>Aselar User Agreement</h2>
 
         <div className={styles.scrollableContainer}>
           <p>
@@ -752,7 +751,7 @@ const Agreements: React.FC = () => {
         </div>
 
         <div className={styles.actions}>
-          <label>
+          <label className={styles.countryLabel}>
             <strong>Country / Jurisdiction</strong>
             <select
               value={country}
@@ -823,4 +822,3 @@ const Agreements: React.FC = () => {
 };
 
 export default Agreements;
-

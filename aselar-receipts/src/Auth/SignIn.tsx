@@ -46,7 +46,14 @@ const SignIn: React.FC = () => {
       toast.error("Please enter your email and password.");
       return;
     }
-
+if (!formData.emailBusiness || !formData.password) {
+      toast.error("Please enter your email and password.");
+      return;
+    }
+if (formData.emailBusiness !== formData.emailBusiness) {
+      toast.error("Invalid email or password.");
+      return;
+    }
     if (!formData.emailBusiness.includes("@")) {
       toast.error("The email is in wrong format. Please enter a valid email with the @ symbol.");
       return;

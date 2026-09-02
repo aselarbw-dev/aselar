@@ -245,6 +245,10 @@ const loginBusiness = asyncHandler(async(req, res) => {
       res.status(401)
       throw new Error("Invalid email or password.")
     }
+     if (emailBusiness!==emailBusiness){
+      res.status(401)
+      throw new Error("Invalid email or password.")
+    }
     // Use the enhanced authentication method with built-in rate limiting
     const authResult = await User.getAuthenticated(emailBusiness, password);
     

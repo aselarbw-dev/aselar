@@ -3,6 +3,7 @@ const { uploadToCloudinary } = require('../utils/cloudinary');
 const ScanLog=require('../models/scanLog');
 // Require model once at top
 const Category = require('../models/categories.js');
+const SalesLog = require('../models/salesLog.js'); // NEW: dated sales records for reporting
 
 const createCategory = async (req, res) => {
   try {
@@ -324,14 +325,28 @@ const processSale = async (req, res) => {
       item.quantity = currentQty - soldQuantity;
       item.lowStock = item.quantity <= 10;
 
-      // NEW: accumulate sales reporting fields. These persist on the item
-      // subdocument so category-level rollups (units sold, revenue,
-      // best-sellers) can be computed straight from getAllCategories
-      // without a separate sales/orders collection.
+      // Accumulate all-time sales reporting fields on the item itself
+      // (used for the category-card summary and top-sellers chart).
+      const saleRevenue = soldQuantity * item.sellingPrice;
       item.soldQuantity = (item.soldQuantity || 0) + soldQuantity;
-      item.revenue = (item.revenue || 0) + (soldQuantity * item.sellingPrice);
+      item.revenue = (item.revenue || 0) + saleRevenue;
 
       await category.save();
+
+      // NEW: also write a dated SalesLog entry for this sale, so the daily
+      // report can group by day. Awaited (not fire-and-forget) since this
+      // record is the reporting source of truth, unlike the ScanLog tagging
+      // below which is best-effort.
+      await SalesLog.create({
+        user: req.user._id,
+        categoryId: category._id,
+        categoryName: category.name,
+        itemId: item._id,
+        itemName: item.name,
+        quantity: soldQuantity,
+        revenue: saleRevenue,
+      });
+
       updatedCategories.push({
         categoryId,
         itemId,
@@ -372,6 +387,135 @@ const processSale = async (req, res) => {
   }
 };
 
+// NEW: helper — reduce a list of SalesLog docs into totals + per-category
+// breakdown + top items within each category, for a given period.
+const summarizeLogs = (logs) => {
+  let totalRevenue = 0;
+  let totalUnitsSold = 0;
+  const categoryMap = new Map(); // categoryId -> { categoryName, revenue, unitsSold, items: Map(itemId -> {itemName, quantity, revenue}) }
+
+  logs.forEach((log) => {
+    totalRevenue += log.revenue;
+    totalUnitsSold += log.quantity;
+
+    const catId = log.categoryId.toString();
+    if (!categoryMap.has(catId)) {
+      categoryMap.set(catId, {
+        categoryId: catId,
+        categoryName: log.categoryName,
+        revenue: 0,
+        unitsSold: 0,
+        items: new Map(),
+      });
+    }
+    const cat = categoryMap.get(catId);
+    cat.revenue += log.revenue;
+    cat.unitsSold += log.quantity;
+
+    const itemKey = log.itemId.toString();
+    if (!cat.items.has(itemKey)) {
+      cat.items.set(itemKey, { itemName: log.itemName, quantity: 0, revenue: 0 });
+    }
+    const itemAgg = cat.items.get(itemKey);
+    itemAgg.quantity += log.quantity;
+    itemAgg.revenue += log.revenue;
+  });
+
+  const byCategory = Array.from(categoryMap.values())
+    .map((cat) => ({
+      categoryId: cat.categoryId,
+      categoryName: cat.categoryName,
+      revenue: cat.revenue,
+      unitsSold: cat.unitsSold,
+      topItems: Array.from(cat.items.values())
+        .sort((a, b) => b.quantity - a.quantity)
+        .slice(0, 3),
+    }))
+    .sort((a, b) => b.revenue - a.revenue);
+
+  return { totalRevenue, totalUnitsSold, byCategory };
+};
+
+// NEW: Daily sales report for a given day (defaults to today) vs the day
+// before it vs the 7-day trailing average ending before that day. Built
+// from SalesLog (the dated records written in processSale above), not from
+// the all-time counters on Category.items which have no date attached.
+const getSalesReport = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    // NEW: optional ?date=YYYY-MM-DD to view any past day's report.
+    // Falls back to today when omitted.
+    const { date } = req.query;
+    let selectedDate;
+    if (date) {
+      const parsed = new Date(`${date}T00:00:00`);
+      if (isNaN(parsed.getTime())) {
+        return res.status(400).json({ message: 'Invalid date format, expected YYYY-MM-DD' });
+      }
+      selectedDate = parsed;
+    } else {
+      selectedDate = new Date();
+    }
+
+    await connectDB();
+
+    const startOfSelectedDay = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+    const startOfNextDay = new Date(startOfSelectedDay);
+    startOfNextDay.setDate(startOfNextDay.getDate() + 1);
+    const startOfPreviousDay = new Date(startOfSelectedDay);
+    startOfPreviousDay.setDate(startOfPreviousDay.getDate() - 1);
+    const startOf7DaysBeforeSelected = new Date(startOfSelectedDay);
+    startOf7DaysBeforeSelected.setDate(startOf7DaysBeforeSelected.getDate() - 7);
+
+    // Pull everything spanning the 7-day-average window through the
+    // selected day in one query, then split it in memory — cheaper than
+    // three separate DB round trips.
+    const logs = await SalesLog.find({
+      user: req.user._id,
+      soldAt: { $gte: startOf7DaysBeforeSelected, $lt: startOfNextDay },
+    }).lean();
+
+    const selectedDayLogs = logs.filter((l) => l.soldAt >= startOfSelectedDay && l.soldAt < startOfNextDay);
+    const previousDayLogs = logs.filter((l) => l.soldAt >= startOfPreviousDay && l.soldAt < startOfSelectedDay);
+    // Trailing 7 full days immediately before the selected day.
+    const trailing7Logs = logs.filter((l) => l.soldAt >= startOf7DaysBeforeSelected && l.soldAt < startOfSelectedDay);
+
+    const selectedDay = summarizeLogs(selectedDayLogs);
+    const previousDay = summarizeLogs(previousDayLogs);
+    const trailing7 = summarizeLogs(trailing7Logs);
+
+    // Turn the 7-day trailing total into a per-day average.
+    const sevenDayAverage = {
+      totalRevenue: trailing7.totalRevenue / 7,
+      totalUnitsSold: trailing7.totalUnitsSold / 7,
+      byCategory: trailing7.byCategory.map((cat) => ({
+        ...cat,
+        revenue: cat.revenue / 7,
+        unitsSold: cat.unitsSold / 7,
+        topItems: cat.topItems.map((item) => ({
+          ...item,
+          quantity: item.quantity / 7,
+          revenue: item.revenue / 7,
+        })),
+      })),
+    };
+
+    res.status(200).json({
+      generatedAt: new Date(),
+      selectedDate: startOfSelectedDay.toISOString().slice(0, 10),
+      selectedDay,
+      previousDay,
+      sevenDayAverage,
+    });
+  } catch (error) {
+    console.error('Sales report error:', error);
+    res.status(500).json({ message: 'Failed to generate sales report', error: error.message });
+  }
+};
+
 module.exports = {
   createCategory,
   items,
@@ -380,5 +524,6 @@ module.exports = {
   removeItem,
   getItemsByCategory,  // Fixed: Now exported
   removeCategory,      // NEW: For category delete
-  processSale
+  processSale,
+  getSalesReport        // NEW: daily sales report
 };

@@ -1,0 +1,398 @@
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  color: #0f172a;
+}
+
+.generatedAt {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.refreshButton {
+  padding: 8px 16px;
+  border: 1px solid #0b5577;
+  border-radius: 6px;
+  background: white;
+  color: #0b5577;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  height: fit-content;
+}
+
+.refreshButton:hover {
+  background: #0b5577;
+  color: white;
+}
+
+/* NEW: date picker bar */
+.dateBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.dateLabel {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.dateInput {
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.dateInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
+}
+
+.todayButton {
+  padding: 6px 12px;
+  border: 1px solid #94a3b8;
+  border-radius: 6px;
+  background: white;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.todayButton:hover {
+  background: #f1f5f9;
+}
+
+.statusText {
+  color: #64748b;
+  font-size: 14px;
+  text-align: center;
+  padding: 24px 0;
+}
+
+.errorText {
+  color: #ef4444;
+  font-size: 14px;
+  text-align: center;
+  padding: 16px 0;
+}
+
+/* Overview cards */
+.overviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.overviewCard {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0px 5px 26px 8px rgba(193, 198, 207, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-top: 4px solid #cbd5e1;
+}
+
+.overviewRevenue {
+  border-top-color: #10b981;
+}
+
+.overviewUnits {
+  border-top-color: #3b82f6;
+}
+
+.overviewLabel {
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+}
+
+.overviewValue {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.changeIndicator {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.changeUp {
+  color: #10b981;
+}
+
+.changeDown {
+  color: #ef4444;
+}
+
+.changeFlat {
+  color: #94a3b8;
+}
+
+/* NEW: revenue comparison bar chart card */
+.chartCard {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0px 5px 26px 8px rgba(193, 198, 207, 0.4);
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.barChartSvg {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+}
+
+.barChartLabel {
+  font-size: 9px;
+  fill: #64748b;
+}
+
+.barChartValue {
+  font-size: 10px;
+  font-weight: 700;
+  fill: #0f172a;
+}
+
+/* NEW: horizontal share-of-today bar under each category name */
+.shareBarTrack {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  margin: 8px 0 2px;
+  overflow: hidden;
+}
+
+.shareBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #0b5577, #3b82f6);
+  border-radius: 3px;
+}
+
+/* Category breakdown */
+.categorySection {
+  margin-top: 8px;
+}
+
+/* NEW: search bar for the category list, same visual pattern as CategoryList's search */
+.categorySectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.searchInputWrapper {
+  position: relative;
+  min-width: 200px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 30px 8px 30px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
+}
+
+.clearSearchIcon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.clearSearchIcon:hover {
+  color: #64748b;
+}
+
+.resultCount {
+  font-size: 12px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+/* NEW: pagination, same visual pattern as CategoryList's pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.pageButton {
+  padding: 6px 14px;
+  border: 1px solid #0b5577;
+  border-radius: 4px;
+  background: white;
+  color: #0b5577;
+  cursor: pointer;
+  font-size: 0.85em;
+}
+
+.pageButton:hover:not(:disabled) {
+  background: #0b5577;
+  color: white;
+}
+
+.pageButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pageInfo {
+  font-size: 0.85em;
+  color: #0b5577;
+  font-weight: 600;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  color: #0f172a;
+  margin: 0 0 12px;
+}
+
+.categoryList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.categoryRow {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.categoryRowHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.categoryName {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0b5577;
+}
+
+.categoryRevenue {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.categoryMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.topItemsList {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 8px 0 0;
+  border-top: 1px dashed #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.topItemRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.topItemName {
+  color: #334155;
+  font-weight: 500;
+}
+
+.topItemStats {
+  color: #64748b;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .overviewGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .categoryRowHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+}

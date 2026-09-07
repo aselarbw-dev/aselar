@@ -1,7 +1,7 @@
 const path = require('path');
 const dotenv = require('dotenv');
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
-
+const { getSMSSender } = require('../../CategoryReceipts/utils/senderSelection');
 const twilio = require('twilio');
 const { PDFServiceJsPDF } = require('./pdfService');
 
@@ -22,6 +22,7 @@ const SMSInvoiceUpload = async (req, res) => {
       phoneNumber,
       fields = [],
       vat,
+      countryCode, // ← added
       invoiceNumber,
       totalSum,
       addition,
@@ -56,6 +57,7 @@ const SMSInvoiceUpload = async (req, res) => {
 
     const invoiceData = {
       invoiceNumber,
+      countryCode, // ← added
       fields,
       vat,
       totalSum,
@@ -117,7 +119,7 @@ Thank you for your business!`.trim();
 
     const smsResult = await twilioClient.messages.create({
       body: smsMessage,
-      from: process.env.TWILIO_ALPHANUMERIC_SENDER,
+      from: getSMSSender(req.body.countryCode || 'BW'), // Default to 'BW' if countryCode is not provided
       to: phoneNumber
     });
 

@@ -10,7 +10,7 @@ import SMSModal from './SMSModal';
 import QuoteWhatsAppModal from '../Quotation/QuoteWhatsAppModal';
 import EmailModal from './EmailModal';
 import useSMSLimit from '../Hooks/useSMSLimit'; 
-
+import { CountryCode } from '../utility/phoneFormat';
 interface ReceiptItem {
   name: string;
   quantity: number;
@@ -400,7 +400,7 @@ useEffect(() => {
   };
 
   // CHANGE 4: recordSMS() called before the fetch — blocks if limit hit
-  const handleSMSModalSubmit = async (phoneNumber: string) => {
+  const handleSMSModalSubmit = async (phoneNumber: string, countryCode: CountryCode) => {
     const allowed = recordSMS();
     if (!allowed) {
       toast.error(
@@ -431,6 +431,7 @@ useEffect(() => {
           vat: receipt?.vat,
           total: receipt?.total,
           cashPaid: receipt?.cashPaid,
+          countryCode: countryCode || 'BW', // Default to 'BW' if not provided
           change: receipt?.change,
           createdAt: receipt?.createdAt,
           htmlContent,

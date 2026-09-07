@@ -2,7 +2,7 @@
 const path = require('path');
 const dotenv = require('dotenv');
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
-
+const { getSMSSender } = require('../../CategoryReceipts/utils/senderSelection');
 const twilio = require('twilio');
 const { PayslipPDFService } = require('./payslipPDFService'); // Import payslip service
 
@@ -17,6 +17,7 @@ const payslipSMSUpload = async (req, res) => {
       phoneNumber,
       payslipNumber,
       employeeName,
+      countryCode, // ← added
       employeeId,
       basicSalary,
       vat,
@@ -42,6 +43,7 @@ const payslipSMSUpload = async (req, res) => {
       employeeName,
       employeeId,
       basicSalary,
+      countryCode, // ← added
       vat,
       deductions,
       additions,
@@ -97,7 +99,7 @@ Thank you!`.trim();
 
     const smsResult = await twilioClient.messages.create({
       body: smsMessage,
-      from: process.env.TWILIO_ALPHANUMERIC_SENDER,
+      from: getSMSSender(req.body.countryCode || 'BW'), // Default to 'BW' if countryCode is not provided
       to: phoneNumber
     });
 

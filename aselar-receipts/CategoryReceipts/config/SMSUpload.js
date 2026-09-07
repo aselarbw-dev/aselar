@@ -7,7 +7,7 @@ const nodemailer = require('nodemailer');
 const SibApiV3Sdk = require('sib-api-v3-sdk');
 const twilio = require('twilio');
 const { PDFServiceJsPDF } = require('./pdfService');
-
+const { getSMSSender } = require('../utils/senderSelection');
 // Initialize Twilio
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
@@ -23,6 +23,7 @@ const SMSUpload = async (req, res) => {
     const {
       phoneNumber,
       receiptsNumber,
+      countryCode, // ← added
       items = [],
       vat,
       cashPaid,
@@ -62,6 +63,7 @@ const SMSUpload = async (req, res) => {
       receiptsNumber,
       items,
       vat,
+      countryCode, // ← added
       total,
       subtotal,  // ← ADD
       cashPaid,
@@ -138,7 +140,7 @@ console.log('SMS char count:', smsMessage.length);  // Quick check: <160 idealfo
 
     const smsResult = await twilioClient.messages.create({
       body: smsMessage,
-      from: process.env.TWILIO_ALPHANUMERIC_SENDER,
+      from: getSMSSender(countryCode),
       to: phoneNumber
     });
 

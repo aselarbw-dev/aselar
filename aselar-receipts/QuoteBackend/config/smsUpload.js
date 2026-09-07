@@ -6,6 +6,7 @@ const twilio = require('twilio');
 const nodemailer = require('nodemailer');
 const { PDFServiceJsPDF } = require('./pdfService');
 const SibApiV3Sdk = require('sib-api-v3-sdk');
+const { getSMSSender } = require('../../CategoryReceipts/utils/senderSelection');
 // Initialize Twilio
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
@@ -40,6 +41,7 @@ const SMSUpload = async (req, res) => {
       phoneNumber,
       quotes = [],
       vat,
+      countryCode, // ← added
       quoteNumber,
       totalSum,
       subTotal,
@@ -67,6 +69,7 @@ const SMSUpload = async (req, res) => {
       quoteNumber,
       items: quotes,
       vat,
+      countryCode, // ← added
       totalSum,
       subtotal: subTotal,
       companyInfo: {
@@ -117,7 +120,7 @@ Thank you for your business!`.trim();
 
     const smsResult = await twilioClient.messages.create({
       body: smsMessage,
-      from: process.env.TWILIO_ALPHANUMERIC_SENDER,
+      from: getSMSSender(countryCode),
       to: phoneNumber
     });
 

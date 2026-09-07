@@ -10,7 +10,7 @@ import EmailModal from '../Templates/EmailModal';
 import { toast } from "react-toastify";
 import { useSellerContext } from '../Sellers/SellerNameProvider';
 import beep from "../assets/beep-329314.mp3"
-
+import { CountryCode } from '../utility/phoneFormat';
 Modal.setAppElement('#root');
 
 interface QuoteItem {
@@ -441,11 +441,12 @@ const QuotationComponent: React.FC = () => {
     }
   };
 
-  const handleSubmitSMSModal = async (phoneNumber: string) => {
+  const handleSubmitSMSModal = async(phoneNumber: string, countryCode: CountryCode) => {
     try {
       const htmlContent = generateHTMLContent();
       const requestData = {
         phoneNumber,
+        countryCode: countryCode || 'BW',
         quotes: quote?.data,
         vat: quote?.vat,
         quoteNumber: quote?.quoteNumber,

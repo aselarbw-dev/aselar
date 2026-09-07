@@ -8,6 +8,7 @@ import jsQR from 'jsqr';
 import beep from "../assets/beep-329314.mp3"; // Adjust path as needed
 import SMSModal from '../Templates/SMSModal'; // Reuse from receipt
 import WhatsAppModal from '../Templates/WhatsAppModal'; // Reuse from receipt
+import { CountryCode } from '../utility/phoneFormat';
 
 interface Deduction {
   label: string;
@@ -225,7 +226,7 @@ const PayslipTemplate: React.FC = () => {
   const handleSendSMS = () => setIsSMSModalOpen(true);
   const handleSendWhatsApp = () => setIsWhatsAppModalOpen(true);
 
-  const handleSMSModalSubmit = async (phoneNumber: string) => {
+  const handleSMSModalSubmit = async (phoneNumber: string, countryCode: CountryCode) => {
     try {
       const htmlContent = generateHTMLContent();
       if (!htmlContent) throw new Error("No payslip data");
@@ -235,6 +236,7 @@ const PayslipTemplate: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           phoneNumber,
+          countryCode: countryCode || 'BW',
           payslipNumber: payslip?.payslipNumber,
           employeeName: payslip?.employeeName,
           employeeId: payslip?.employeeId,

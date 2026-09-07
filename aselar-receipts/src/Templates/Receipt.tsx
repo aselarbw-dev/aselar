@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 import Modal from 'react-modal';
 import jsQR from 'jsqr';
 import beep from "../assets/beep-329314.mp3";
-
+import { CountryCode } from '../utility/phoneFormat'; // adjust path to match where you put phoneFormat.ts
 interface ReceiptItem {
   field1: number;
   field2: number | string;
@@ -416,7 +416,7 @@ const Receipt: React.FC = () => {
   };
 
   // SMS Handler
-  const handleSMSModalSubmit = async (phoneNumber: string) => {
+  const handleSMSModalSubmit = async (phoneNumber: string, countryCode: CountryCode) => {
     try {
       const token = localStorage.getItem('token');
       const htmlContent = getReceiptHTML();
@@ -430,6 +430,7 @@ const Receipt: React.FC = () => {
         },
         body: JSON.stringify({
           phoneNumber,
+          countryCode: countryCode || 'BW', // Default to 'BW' if not provided
           receiptsNumber: receipt?.receiptsNumber,
           sellerName: getSellerName(),
           inputs: receipt?.inputs || [],

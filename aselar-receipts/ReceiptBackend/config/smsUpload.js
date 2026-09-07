@@ -7,6 +7,7 @@ const twilio = require('twilio');
 const { PDFServiceJsPDF } = require('./pdfService');
 const SibApiV3Sdk = require('sib-api-v3-sdk');
 // Initialize Twilio
+const { getSMSSender } = require('../../CategoryReceipts/utils/senderSelection');
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
@@ -21,6 +22,7 @@ const SMSUpload = async (req, res) => {
     const {
       phoneNumber,
       receiptsNumber,
+      countryCode, // ← added
       inputs = [],  // ← Changed from 'items' to 'inputs'
       vatAmount,    // ← Changed from 'vat'
       cash,         // ← Changed from 'cashPaid'
@@ -60,6 +62,7 @@ const SMSUpload = async (req, res) => {
 
     const receiptsData = {
       receiptsNumber,
+      countryCode, // ← added
       inputs,  // ← Use 'inputs' for PDF
       vatAmount,  // ← Map to vatAmount
       grandTotal,  // ← Map to grandTotal
@@ -144,7 +147,7 @@ ${discountValue > 0 ? `Discount: -BWP ${discountValue.toFixed(2)} (${discountNam
 
     const smsResult = await twilioClient.messages.create({
       body: smsMessage,
-      from: process.env.TWILIO_ALPHANUMERIC_SENDER,
+      from: getSMSSender(countryCode),
       to: phoneNumber
     });
 

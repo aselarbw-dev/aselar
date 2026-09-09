@@ -11,6 +11,8 @@ import QuoteWhatsAppModal from '../Quotation/QuoteWhatsAppModal';
 import EmailModal from './EmailModal';
 import useSMSLimit from '../Hooks/useSMSLimit'; 
 import { CountryCode } from '../utility/phoneFormat';
+import { useCurrency } from '../context/CurrencyContext'
+import { formatDecimalCurrency } from '../utility/formatCurrency'
 interface ReceiptItem {
   name: string;
   quantity: number;
@@ -67,6 +69,7 @@ const DetailedReceipt: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const beepRef = useRef<HTMLAudioElement | null>(null);
+  const { currency } = useCurrency();
 
 useEffect(() => {
   beepRef.current = new Audio(beep);
@@ -285,7 +288,7 @@ useEffect(() => {
         <div className={styles.items}>
           <h4>Product</h4>
           <h4>Qty</h4>
-          <h4>Price(P)</h4>
+          <h4>Price</h4>
           <h4>Total</h4>
         </div>
 
@@ -295,8 +298,8 @@ useEffect(() => {
               <div key={item._id || `item-${index}`} className={styles.contentsOfReceipts}>
                 <div className={styles.productName}>{item.name}</div>
                 <div className={styles.quantity}>{item.quantity}</div>
-                <div className={styles.unit}>{item.price.toFixed(2)}</div>
-                <div className={styles.price}>{item.totalPrice.toFixed(2)}</div>
+                <div className={styles.unit}>{formatDecimalCurrency(item.price, currency)}</div>
+                <div className={styles.price}>{formatDecimalCurrency(item.totalPrice, currency)}</div>
               </div>
             ))}
           </div>
@@ -308,35 +311,35 @@ useEffect(() => {
 
         <div className={styles.adding}>
           <div className={styles.total}>
-            <h4 className={styles.totalHeader}>Subtotal-P</h4>
-            <div className={styles.totalAmount}>BWP {receipt.subtotal.toFixed(2)}</div>
+            <h4 className={styles.totalHeader}>Subtotal</h4>
+            <div className={styles.totalAmount}>{formatDecimalCurrency(receipt.subtotal, currency)}</div>
           </div>
 
           {receipt.discount > 0 && (
             <div className={styles.total}>
-              <h4 className={styles.totalHeader}>Discount-P</h4>
-              <div className={styles.totalAmount}>-BWP {receipt.discount.toFixed(2)}</div>
+              <h4 className={styles.totalHeader}>Discount</h4>
+              <div className={styles.totalAmount}>-{formatDecimalCurrency(receipt.discount, currency)}</div>
             </div>
           )}
 
           <div className={styles.total}>
-            <h4 className={styles.totalHeader}>VAT (14%)-P</h4>
-            <div className={styles.totalAmount}>BWP {receipt.vat.toFixed(2)}</div>
+            <h4 className={styles.totalHeader}>VAT (14%)</h4>
+            <div className={styles.totalAmount}>{formatDecimalCurrency(receipt.vat, currency)}</div>
           </div>
 
           <div className={styles.total}>
-            <h4 className={styles.totalHeader}>Total-P</h4>
-            <div className={styles.totalAmount}>BWP {receipt.total.toFixed(2)}</div>
+            <h4 className={styles.totalHeader}>Total</h4>
+            <div className={styles.totalAmount}>{formatDecimalCurrency(receipt.total, currency)}</div>
           </div>
 
           <div className={styles.cashPaid}>
-            <h4>Paid-P</h4>
-            <div className={styles.paidAmount}>BWP {receipt.cashPaid.toFixed(2)}</div>
+            <h4>Paid</h4>
+            <div className={styles.paidAmount}>{formatDecimalCurrency(receipt.cashPaid, currency)}</div>
           </div>
 
           <div className={styles.balance}>
-            <h4>Balance-P</h4>
-            <div className={styles.balanceAmount}>BWP {receipt.change.toFixed(2)}</div>
+            <h4>Balance</h4>
+            <div className={styles.balanceAmount}>{formatDecimalCurrency(receipt.change, currency)}</div>
           </div>
         </div>
 
@@ -524,7 +527,7 @@ useEffect(() => {
         <div className={styles.items}>
           <h4>Product</h4>
           <h4>Qty</h4>
-          <h4>Price(P)</h4>
+          <h4>Price</h4>
           <h4>Total</h4>
         </div>
 
@@ -534,8 +537,8 @@ useEffect(() => {
               <div key={item._id || `item-${index}`} className={styles.contentsOfReceipts}>
                 <div className={styles.productName}>{item.name}</div>
                 <div className={styles.quantity}>{item.quantity}</div>
-                <div className={styles.unit}>{item.price.toFixed(2)}</div>
-                <div className={styles.price}>{item.totalPrice.toFixed(2)}</div>
+                <div className={styles.unit}>{formatDecimalCurrency(item.price, currency)}</div>
+                <div className={styles.price}>{formatDecimalCurrency(item.totalPrice, currency)}</div>
               </div>
             ))}
           </div>
@@ -547,35 +550,35 @@ useEffect(() => {
 
         <div className={styles.adding}>
           <div className={styles.total}>
-            <h4 className={styles.totalHeader}>Subtotal-P</h4>
-            <div className={styles.totalAmount}>BWP {receipt.subtotal.toFixed(2)}</div>
+            <h4 className={styles.totalHeader}>Subtotal</h4>
+            <div className={styles.totalAmount}>{formatDecimalCurrency(receipt.subtotal, currency)}</div>
           </div>
 
           {receipt.discount > 0 && (
             <div className={styles.total}>
-              <h4 className={styles.totalHeader}>Discount-P</h4>
-              <div className={styles.totalAmount}>-BWP {receipt.discount.toFixed(2)}</div>
+              <h4 className={styles.totalHeader}>Discount</h4>
+              <div className={styles.totalAmount}>-{formatDecimalCurrency(receipt.discount, currency)}</div>
             </div>
           )}
 
           <div className={styles.total}>
-            <h4 className={styles.totalHeader}>VAT (14%)-P</h4>
-            <div className={styles.totalAmount}>BWP {receipt.vat.toFixed(2)}</div>
+            <h4 className={styles.totalHeader}>VAT (14%)</h4>
+            <div className={styles.totalAmount}>{formatDecimalCurrency(receipt.vat, currency)}</div>
           </div>
 
           <div className={styles.total}>
-            <h4 className={styles.totalHeader}>Total-P</h4>
-            <div className={styles.totalAmount}>BWP {receipt.total.toFixed(2)}</div>
+            <h4 className={styles.totalHeader}>Total</h4>
+            <div className={styles.totalAmount}>{formatDecimalCurrency(receipt.total, currency)}</div>
           </div>
 
           <div className={styles.cashPaid}>
-            <h4>Paid-P</h4>
-            <div className={styles.paidAmount}>BWP {receipt.cashPaid.toFixed(2)}</div>
+            <h4>Paid</h4>
+            <div className={styles.paidAmount}>{formatDecimalCurrency(receipt.cashPaid, currency)}</div>
           </div>
 
           <div className={styles.balance}>
-            <h4>Balance-P</h4>
-            <div className={styles.balanceAmount}>BWP {receipt.change.toFixed(2)}</div>
+            <h4>Balance</h4>
+            <div className={styles.balanceAmount}>{formatDecimalCurrency(receipt.change, currency)}</div>
           </div>
         </div>
 

@@ -4,10 +4,10 @@ const asyncHandler = require("express-async-handler");
 const geocodePlace = require("../middlewares/geocode"); // new import — the helper from earlier
 
 const verifyBusinessRegistration = asyncHandler(async (req, res) => {
-  const { businessNature, place, city, businessNumber, businessDescription } = req.body;
+  const { businessNature, place,currency, city, businessNumber, businessDescription } = req.body;
                          
     // Validate input
-    if (!businessNature || !place || !city || !businessNumber || !businessDescription) {
+    if (!businessNature || !place ||  !city ||  !currency || !businessNumber || !businessDescription) {
         //                          
         res.status(400);
         throw new Error("You should enter all necessary data as requested.");
@@ -43,6 +43,7 @@ const verifyBusinessRegistration = asyncHandler(async (req, res) => {
         city,  
         businessNumber,
         businessDescription,
+        currency,
         ...(location && { location, geocodedAt: new Date() }), // NEW: only set if geocode succeeded
     });
     
@@ -153,7 +154,7 @@ const publicBusinesses = asyncHandler(async (req, res) => {
 // verifyBusinessController.js
 
 const updateBusinessVerification = asyncHandler(async (req, res) => {
-  const { businessNature, place, city, businessNumber, businessDescription } = req.body;
+  const { businessNature, place,currency, city, businessNumber, businessDescription } = req.body;
 
   const verification = await verifyBusinessModel.findOne({ user: req.user._id });
 
@@ -208,6 +209,7 @@ const updateBusinessVerification = asyncHandler(async (req, res) => {
       businessNature: verification.businessNature,
       place: verification.place,
       city: verification.city,
+      currency: verification.currency,
       businessNumber: verification.businessNumber,
       businessDescription: verification.businessDescription,
       user: verification.user,

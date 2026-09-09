@@ -24,11 +24,16 @@ location: {
     default: undefined,
   },
 },
-place: { type: String, required: true },       // keep as-is for display, e.g. "123 Tati Road, Extension 9"
-city: { type: String, required: true },        // new, e.g. "Gaborone"
-geocodedAt: { type: Date }, // lets you tell "never geocoded" apart from "geocoded, no result"
+place: { type: String, required: true },
+city: { type: String, required: true },
+geocodedAt: { type: Date },
+currency: {
+  type: String,
+  enum: ["BWP", "ZMW", "ZAR", "NAD", "USD"],
+  default: "BWP",
+},
   user: { type: mongoose.Schema.Types.ObjectId, 
-    ref: "User", required: true }, // Ensure ownership
+    ref: "User", required: true },
     businessDescription:{
         type:String,
         required:true,
@@ -43,6 +48,5 @@ geocodedAt: { type: Date }, // lets you tell "never geocoded" apart from "geocod
 
 const verifyModel=mongoose.model("verifyModel",verifyBusinessModel)
 verifyBusinessModel.index({ location: "2dsphere" });
-verifyBusinessModel.index({ businessNature: 1 }); // speeds up your industry filter
+verifyBusinessModel.index({ businessNature: 1 });
 module.exports=verifyModel
-

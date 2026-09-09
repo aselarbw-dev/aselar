@@ -7,6 +7,7 @@ import GlobalErrorHandler from "./Global/GlobalErrorHandler";
 import { AuthProvider } from "./context/AuthContext";
 import {SessionWarningModal}  from "./Modals/SessionWarningModal";
 import { useAuth } from './context/AuthContext';
+import { CurrencyProvider } from "./context/CurrencyContext"; // NEW
 
 
 const AppContent = () => {
@@ -34,7 +35,9 @@ const AppContent = () => {
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <CurrencyProvider>
+        <AppContent />
+      </CurrencyProvider>
     </AuthProvider>
   );
 }

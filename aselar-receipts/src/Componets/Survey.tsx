@@ -4,22 +4,24 @@ import surveryStyles from "../Componets/Survey.module.css"
 import {useNavigate} from "react-router-dom"
 import loader from "../assets/circle-9360_256.gif"
 import AselarWhite from "../assets/Asset 6.png"
+import { SUPPORTED_CURRENCIES } from "../utility/currencies" // adjust path to your actual location
 
  interface formSubmission{
    businessNature:string,
    place:string,
    city:string,               // new
    businessNumber:string,
-   businessDescription:string
+   businessDescription:string,
+   currency:string             // NEW
   
  }
  const initialState:formSubmission={businessNature:"",place:"",city:"",businessNumber:"",
-      businessDescription:""}
+      businessDescription:"",currency:"BWP"} // NEW default
 const Survey:React.FC = () => {
  const [formData,setFormData]=useState<formSubmission>(initialState)
   const [loading,setLoading]=useState(false)
 const navigate=useNavigate()
- const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const { name, value } = e.target;
       setFormData({
         ...formData,
@@ -126,6 +128,20 @@ const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/verify
                    className={surveryStyles.wide}
                    onChange={handleChange} value={formData.businessDescription}
                    />
+             </div>
+             <div className={surveryStyles.formDetails}>
+                   <label htmlFor="currency">Currency</label>
+                   <select
+                   id="currency"
+                   name="currency"
+                   onChange={handleChange} value={formData.currency}
+                   >
+                     {SUPPORTED_CURRENCIES.map((c) => (
+                       <option key={c.code} value={c.code}>
+                         {c.symbol} — {c.name}
+                       </option>
+                     ))}
+                   </select>
              </div>
              <div className="button">
                 

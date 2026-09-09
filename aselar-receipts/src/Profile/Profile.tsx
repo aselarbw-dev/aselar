@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import styles from "./Profile.module.css"
 import { Link } from 'react-router-dom'
-
+import { SUPPORTED_CURRENCIES, getCurrency } from '../utility/currencies' // adjust path to your actual location
+import { useCurrency } from '../context/CurrencyContext' // NEW
 interface BusinessData {
   _id: string;
   businessNature: string;
@@ -10,6 +11,7 @@ interface BusinessData {
   businessNumber: string;
   businessDescription: string;
   user: string;
+  currency?: string; // NEW
 }
 
 interface ProfileData {
@@ -25,7 +27,7 @@ const Profile: React.FC = () => {
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
+const { setCurrency } = useCurrency(); // NEW
   // --- Edit mode state ---
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
@@ -42,6 +44,7 @@ const Profile: React.FC = () => {
   const [formIndustry, setFormIndustry] = useState<string>("");
   const [formPlace, setFormPlace] = useState<string>("");
   const [formCity, setFormCity] = useState<string>("");
+  const [formCurrency, setFormCurrency] = useState<string>("BWP"); // NEW
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -65,6 +68,7 @@ const Profile: React.FC = () => {
           setFormIndustry(business.businessNature || "");
           setFormPlace(business.place || "");
           setFormCity(business.city || "");
+          setFormCurrency(business.currency || "BWP"); // NEW
         } else {
           console.warn('Failed to fetch business data');
         }
@@ -108,6 +112,8 @@ const Profile: React.FC = () => {
       setFormIndustry(businessData.businessNature || "");
       setFormPlace(businessData.place || "");
       setFormCity(businessData.city || "");
+      setFormCurrency(businessData.currency || "BWP"); // NEW
+      setCurrency(businessData.currency || "BWP"); // NEW — pushes it into Context
     }
     setFormFile(null);
     setPreviewUrl(null);
@@ -150,6 +156,7 @@ const Profile: React.FC = () => {
         businessNature: formIndustry,
         place: formPlace,
         city: formCity,
+        currency: formCurrency, // NEW
       }),
     });
 
@@ -176,6 +183,7 @@ const Profile: React.FC = () => {
     if (businessResult.status === "fulfilled" && businessResult.value.ok) {
       const json = await businessResult.value.json();
       setBusinessData(json.data);
+       setCurrency(json.data.currency || "BWP");
     } else {
       const message =
         businessResult.status === "fulfilled"
@@ -280,6 +288,19 @@ const Profile: React.FC = () => {
                   onChange={(e) => setFormCity(e.target.value)}
                 />
               </label>
+              <label>
+                Currency
+                <select
+                  value={formCurrency}
+                  onChange={(e) => setFormCurrency(e.target.value)}
+                >
+                  {SUPPORTED_CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.symbol} — {c.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
               {saveError && <p className={styles.saveError}>{saveError}</p>}
             </>
@@ -290,6 +311,7 @@ const Profile: React.FC = () => {
               <h4>Email:{profileData?.emailBusiness}</h4>
               <h4>Contact:{profileData?.businessPhone}</h4>
               <h4>Place:{businessData?.place}</h4>
+              <h4>Currency:{getCurrency(businessData?.currency).name}</h4>
             </>
           )}
         </div>

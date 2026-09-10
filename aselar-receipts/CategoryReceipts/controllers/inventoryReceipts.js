@@ -331,12 +331,48 @@ const getReceiptsSummary = async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to get summary' });
   }
 };
+const deleteReceipt = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid receipt ID' });
+    }
+
+    await connectDB();
+    const NewReceipt = require('../models/inventoryReceipts.js');
+
+    const filterOptions = { _id: id };
+    // Non-admins can only delete their own receipts
+    if (req.user.role !== 'admin') {
+      filterOptions.createdBy = req.user._id;
+    }
+
+    const receipt = await NewReceipt.findOneAndDelete(filterOptions);
+
+    if (!receipt) {
+      return res.status(404).json({ success: false, message: 'Receipt not found' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Receipt deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting receipt:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error. Please try again.'
+    });
+  }
+};
 module.exports = {
   submitReceipt,
   getLatestReceipt,
   getReceiptById,
   getReceipts,
   getReceiptsSummary,
+  deleteReceipt,
   openCashDrawer,
   getSalesSummary
 };

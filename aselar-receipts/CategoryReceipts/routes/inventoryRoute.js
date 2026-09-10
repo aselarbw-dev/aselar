@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {getLatestReceipt,getReceiptById,
     getReceipts, openCashDrawer,getReceiptsSummary,
+    deleteReceipt,
     getSalesSummary,submitReceipt} = require('../controllers/inventoryReceipts');
 const { protect} = require('../../Shared/protect'); // Adjust the path as necessary
 
@@ -42,5 +43,6 @@ router.get(
   protect,
   getSalesSummary
 );
+router.delete('/receipt/:id', protect, deleteReceipt);
 
 module.exports = router;

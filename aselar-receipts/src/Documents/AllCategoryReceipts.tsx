@@ -138,59 +138,66 @@ const AllCategoryReceipts: React.FC = () => {
   });
 
   // Fetch business and profile data once on mount
-  useEffect(() => {
-    const fetchBusinessAndProfile = async () => {
-      try {
-        const [businessResponse, profileResponse] = await Promise.all([
-          axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/get-business`, {
-            headers: { 'Content-Type': 'application/json' },
-            withCredentials: true,
-          }),
-          axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/profile`, {
-            headers: { 'Content-Type': 'application/json' },
-            withCredentials: true,
-          })
-        ]);
+useEffect(() => {
+  const fetchBusinessAndProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const [businessResponse, profileResponse] = await Promise.all([
+        axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/get-business`, {
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    params: { _t: Date.now() },
+    withCredentials: true,
+        }),
+        axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/profile`, {
+         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    params: { _t: Date.now() },
+    withCredentials: true,
+        })
+      ]);
 
-        setBusinessData(businessResponse.data);
-        setProfileData(profileResponse.data);
-      } catch (error) {
-        console.error('Failed to fetch business/profile data:', error);
-        toast.error('Failed to load business information');
-      }
-    };
+      setBusinessData(businessResponse.data);
+      setProfileData(profileResponse.data);
+    } catch (error) {
+      console.error('Failed to fetch business/profile data:', error);
+      toast.error('Failed to load business information');
+    }
+  };
 
-    fetchBusinessAndProfile();
-  }, []);
+  fetchBusinessAndProfile();
+}, []);
 
   useEffect(() => {
     fetchReceipts();
   }, []);
 
-  const fetchReceipts = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/receipts`, {
-        withCredentials: true,
-      });
-      
-      console.log('Fetched receipts data:', response.data); // Debug log
-      setReceipts(response.data.receipts || response.data);
-      setTotalReceipts(response.data?.length || 0);
-    } catch (error: any) {
-      console.error('Fetch receipts error:', error);
-      // Handle 404 gracefully (no receipts) - no toast for empty state
-      if (error.response?.status === 404) {
-        console.log('No receipts found (404) - treating as empty');
-        setReceipts([]);
-        setTotalReceipts(0);
-      } else {
-        toast.error('Failed to fetch receipts');
-      }
-    } finally {
-      setLoading(false);
+ const fetchReceipts = async () => {
+  try {
+    setLoading(true);
+    const response = await axios.get(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/get-all`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+      params: { _t: Date.now() },
+      withCredentials: true,
+    });
+
+    console.log('Fetched receipts data:', response.data); // Debug log
+    const receiptsData = response.data.data || [];
+    setReceipts(receiptsData);
+    setTotalReceipts(response.data.count ?? receiptsData.length);
+  } catch (error: any) {
+    console.error('Fetch receipts error:', error);
+    if (error.response?.status === 404) {
+      console.log('No receipts found (404) - treating as empty');
+      setReceipts([]);
+      setTotalReceipts(0);
+    } else {
+      toast.error('Failed to fetch receipts');
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   const exportReceiptToPDF = (receipt: ReceiptData, profile: ProfileData | null, business: BusinessData | null) => {
     const doc = new jsPDF();
@@ -312,7 +319,8 @@ const AllCategoryReceipts: React.FC = () => {
     setDeletingId(receiptId);
     
     try {
-      await axios.delete(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/receipts/${receiptId}`, {
+      await axios.delete(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/receipt/${receiptId}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         withCredentials: true,
       });
       toast.success('Receipt deleted successfully!');
@@ -327,13 +335,15 @@ const AllCategoryReceipts: React.FC = () => {
   };
 
   const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  if (!dateString) return 'N/A';
+  return new Date(dateString).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
 
   const formatFileSize = (receipt: ReceiptData) => {
     const itemCount = receipt.items?.length || 0;
@@ -365,10 +375,10 @@ const AllCategoryReceipts: React.FC = () => {
         </div>
         
         <div className={styles.headerActions}>
-          <Link to="/quick-category-receipt">
+          <Link to="/generative-scanner">
             <button className={styles.buttonReceipt}>New Category Receipt</button>
           </Link>
-          <Link to="/category-receipt-template">
+          <Link to="/current-receipt">
             <button className={styles.buttonRecent}>Recent Category Receipt</button>
           </Link>
         </div>

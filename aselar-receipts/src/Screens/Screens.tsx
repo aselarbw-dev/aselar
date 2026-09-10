@@ -78,7 +78,7 @@ const Screens = () => {
         <Route path="/all-invoices" element={<AllInvoices/>} />
         <Route path="/returns-list" element={<ReceiptsList />} />
         <Route path="/total-expenses" element={<AllExpenses/>} />
-        <Route path="/inventory-receipts" element={<AllCategoryReceipts/>} />
+        <Route path="/pos-receipts" element={<AllCategoryReceipts/>} />
         <Route path="/aging-report" element={<AgingReport />} />
         <Route path="/sales-report" element={<SalesReport />} />
         <Route path="/recon" element={<ReconciliationView />} />

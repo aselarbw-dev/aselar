@@ -80,6 +80,7 @@ const Inventory: React.FC = () => {
         {burger ? <div className={styles.links}>
           <Link to="/inside-dashboard"><p>Dashboard</p></Link>
           <Link to="/all-receipts"><p>Receipts</p></Link>
+          <Link to="/pos-receipts"><p>POS Receipts</p></Link>
           <Link to="/all-quotes"><p>Quotations</p></Link>
           <Link to="/all-invoices"><p>Invoices</p></Link>
           <Link to="/total-expenses"><p>Expenses</p></Link>

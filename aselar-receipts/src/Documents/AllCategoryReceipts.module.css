@@ -634,3 +634,190 @@
   font-size: 0.8rem;
   color: #8A8FA3;
 }
+/* --- Append these to the end of your existing AllCategoryReceipts.module.css --- */
+
+.receiptTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.laybuyBadge {
+  background-color: #e67e22;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.laybuyBalanceCard {
+  font-weight: 700;
+}
+
+.laybuyStatCard {
+  border: 1px solid #e67e22;
+}
+
+.reminderBanner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.reminderItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fff8e1;
+  border: 1px solid #f0c060;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #7a5b00;
+}
+
+.reminderOverdue {
+  background-color: #fdecea;
+  border-color: #f1a19a;
+  color: #c0392b;
+}
+
+.reminderDismiss {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  font-size: 14px;
+  padding: 4px 8px;
+}
+
+.reminderDismiss:hover {
+  opacity: 0.7;
+}
+/* --- Append these to the end of your existing AllCategoryReceipts.module.css --- */
+
+.receiptTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.laybuyBadge {
+  background-color: #e67e22;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.laybuyBalanceCard {
+  font-weight: 700;
+}
+
+.laybuyStatCard {
+  border: 1px solid #e67e22;
+}
+
+.reminderBanner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.reminderItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fff8e1;
+  border: 1px solid #f0c060;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #7a5b00;
+}
+
+.reminderOverdue {
+  background-color: #fdecea;
+  border-color: #f1a19a;
+  color: #c0392b;
+}
+
+.reminderDismiss {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  font-size: 14px;
+  padding: 4px 8px;
+}
+
+.reminderDismiss:hover {
+  opacity: 0.7;
+}
+
+.laybuyBadgeOverdue {
+  background-color: #c0392b; /* red: past due date, still unpaid */
+}
+
+.laybuyBadgePaid {
+  background-color: #27ae60; /* green: fully paid off */
+}
+
+.laybuyPaymentSection {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: #fafafa;
+}
+
+.laybuyPaymentTitle {
+  margin: 0 0 6px 0;
+  font-size: 13px;
+}
+
+.laybuyPaymentRow {
+  display: flex;
+  gap: 8px;
+}
+
+.laybuyPaymentInput {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.laybuyPaymentButton {
+  padding: 6px 12px;
+  background-color: #2980b9;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.laybuyPaymentButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.laybuyPaidMessage {
+  margin-top: 10px;
+  padding: 8px 10px;
+  background-color: #eafaf1;
+  border: 1px solid #27ae60;
+  border-radius: 6px;
+  color: #1e8449;
+  font-weight: 600;
+  font-size: 13px;
+}

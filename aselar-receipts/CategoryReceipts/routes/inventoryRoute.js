@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {getLatestReceipt,getReceiptById,
     getReceipts, openCashDrawer,getReceiptsSummary,
-    deleteReceipt,
+    deleteReceipt,getLaybuys,addLaybuyPayment,
     getSalesSummary,submitReceipt} = require('../controllers/inventoryReceipts');
 const { protect} = require('../../Shared/protect'); // Adjust the path as necessary
 
@@ -12,6 +12,19 @@ router.post(
   protect,submitReceipt
 );
 
+router.get(
+  '/laybuys',
+  protect,
+  getLaybuys
+);
+router.post('/laybuys/:id/pay', 
+  protect, 
+  addLaybuyPayment);
+router.post(
+  '/laybuy-payment',
+  protect,
+  addLaybuyPayment
+);
 
 router.get(
   '/recent-receipt',

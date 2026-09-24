@@ -21,6 +21,9 @@ interface ReceiptProps {
   onRemoveItem: (itemId: string) => void; // For removing items
   onItemDiscount?: (itemId: string) => void; // For applying item discounts
   onApplyGlobalDiscount?: (percent: number) => void; // For global discount
+  // NEW: optional lay-buy props — default behavior is completely unchanged when omitted
+  saleType?: 'full' | 'laybuy';
+  dueDate?: string | null;
 }
 
 const Receipt: React.FC<ReceiptProps> = ({ 
@@ -34,10 +37,15 @@ const Receipt: React.FC<ReceiptProps> = ({
   onCashPaidChange,
   onRemoveItem,
   onItemDiscount,
-  onApplyGlobalDiscount
+  onApplyGlobalDiscount,
+  saleType = 'full',
+  dueDate = null
 }) => {
   const [discountPercent, setDiscountPercent] = React.useState<number>(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isLaybuy = saleType === 'laybuy';
+  // NEW: balance owing for a lay-buy sale (deposit = cashPaid)
+  const balanceRemaining = Math.max(total - cashPaid, 0);
 
   // Handle discount percentage change
   const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,7 +67,11 @@ const Receipt: React.FC<ReceiptProps> = ({
 
   return (
     <div className={styles.receipt}>
-      <h3>Receipt</h3>
+      <div className={styles.receiptHeader}>
+        <h3>Receipt</h3>
+        {/* NEW: Lay-buy badge */}
+        {isLaybuy && <span className={styles.laybuyBadge}>LAY-BUY</span>}
+      </div>
       <div className={styles.items}>
         {items.length === 0 ? (
           <div className={styles.emptyMessage}>No items added</div>
@@ -154,7 +166,7 @@ const Receipt: React.FC<ReceiptProps> = ({
         </div>
         
         <div className={styles.totalRow}>
-          <label>Cash Paid:</label>
+          <label>{isLaybuy ? 'Deposit Paid:' : 'Cash Paid:'}</label>
           <input
             type="number"
             value={cashPaid}
@@ -163,10 +175,26 @@ const Receipt: React.FC<ReceiptProps> = ({
           />
         </div>
         
-        <div className={`${styles.totalRow} ${styles.change}`}>
-          <span>Change:</span>
-          <span>Bwp {change.toFixed(2)}</span>
-        </div>
+        {/* NEW: lay-buy shows balance + due date instead of change */}
+        {isLaybuy ? (
+          <>
+            <div className={`${styles.totalRow} ${styles.laybuyBalance}`}>
+              <span>Balance Remaining:</span>
+              <span>Bwp {balanceRemaining.toFixed(2)}</span>
+            </div>
+            {dueDate && (
+              <div className={styles.totalRow}>
+                <span>Due Date:</span>
+                <span>{new Date(dueDate).toLocaleDateString()}</span>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className={`${styles.totalRow} ${styles.change}`}>
+            <span>Change:</span>
+            <span>Bwp {change.toFixed(2)}</span>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,10 +1,8 @@
-
-
 const {mongoose,connectDB} = require('../../Shared/config');
 
 const submitReceipt = async (req, res) => {
   try {
-    const { items, subtotal, vat, discount, total, cashPaid, change } = req.body;
+    const { items, subtotal, vat, discount, total, cashPaid, change, paymentMethod, saleType, dueDate } = req.body;
 
     // Validate the request
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -31,6 +29,28 @@ const submitReceipt = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Cash paid must be a non-negative number' });
     }
 
+    // NEW: Lay-buy specific validation
+    const isLaybuy = saleType === 'laybuy';
+
+    if (isLaybuy) {
+      if (!dueDate || isNaN(new Date(dueDate).getTime())) {
+        return res.status(400).json({ success: false, message: 'A valid due date is required for lay-buy sales' });
+      }
+
+      const dueDateObj = new Date(dueDate);
+      if (dueDateObj <= new Date()) {
+        return res.status(400).json({ success: false, message: 'Lay-buy due date must be in the future' });
+      }
+
+      if (cashPaid <= 0) {
+        return res.status(400).json({ success: false, message: 'A deposit is required to start a lay-buy sale' });
+      }
+
+      if (cashPaid >= total) {
+        return res.status(400).json({ success: false, message: 'Deposit cannot cover the full total — use a normal sale instead' });
+      }
+    }
+
     // Calculate total price for each item
     const processedItems = items.map(item => ({
       name: item.name,
@@ -43,7 +63,8 @@ const submitReceipt = async (req, res) => {
     // Create a new receipt
     await connectDB();
     const NewReceipt = require('../models/inventoryReceipts');
-    const receipt = new NewReceipt({
+
+    const receiptPayload = {
       items: processedItems,
       subtotal,
       vat,
@@ -51,9 +72,22 @@ const submitReceipt = async (req, res) => {
       total,
       cashPaid,
       change,
-      createdBy: req.user._id ,
-      user: req.user._id.toString()// Assuming user is authenticated and available in req.user
-    });
+      paymentMethod: paymentMethod || 'Cash',
+      createdBy: req.user._id,
+      user: req.user._id.toString() // Assuming user is authenticated and available in req.user
+    };
+
+    // NEW: Attach lay-buy details only when applicable — normal sales are untouched
+    if (isLaybuy) {
+      receiptPayload.saleType = 'laybuy';
+      receiptPayload.laybuy = {
+        dueDate: new Date(dueDate),
+        balanceRemaining: total - cashPaid, // recomputed again in the model's pre-save hook
+        status: 'active'
+      };
+    }
+
+    const receipt = new NewReceipt(receiptPayload);
 
     // Save the receipt
     await receipt.save();
@@ -63,7 +97,9 @@ const submitReceipt = async (req, res) => {
       data: {
       //  receiptNumber: receipt.receiptNumber,
         total: receipt.total,
-        change: receipt.change
+        change: receipt.change,
+        saleType: receipt.saleType,
+        laybuy: receipt.laybuy || null
       },
       message: 'Receipt created successfully'
     });
@@ -366,6 +402,94 @@ const deleteReceipt = async (req, res) => {
     });
   }
 };
+
+// NEW: List open lay-buys, soonest due date first — powers a "Lay-buys" view on the dashboard
+const getLaybuys = async (req, res) => {
+  try {
+    await connectDB();
+    const NewReceipt = require('../models/inventoryReceipts');
+
+    const filterOptions = { saleType: 'laybuy' };
+    if (req.user.role !== 'admin') {
+      filterOptions.createdBy = req.user._id;
+    }
+    if (req.query.status) {
+      filterOptions['laybuy.status'] = req.query.status; // e.g. ?status=active
+    }
+
+    const laybuys = await NewReceipt.find(filterOptions)
+      .sort({ 'laybuy.dueDate': 1 })
+      .populate('createdBy', 'name');
+
+    const totalOutstanding = laybuys.reduce((sum, r) => sum + (r.laybuy?.balanceRemaining || 0), 0);
+
+    return res.status(200).json({
+      success: true,
+      count: laybuys.length,
+      totalOutstanding,
+      data: laybuys
+    });
+  } catch (error) {
+    console.error('Error retrieving lay-buys:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error. Please try again.'
+    });
+  }
+};
+
+// NEW: Record an additional payment against an open lay-buy
+const addLaybuyPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { amount } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ success: false, message: 'Invalid receipt ID' });
+    }
+
+    if (typeof amount !== 'number' || amount <= 0) {
+      return res.status(400).json({ success: false, message: 'Payment amount must be a positive number' });
+    }
+
+    await connectDB();
+    const NewReceipt = require('../models/inventoryReceipts');
+
+    const receipt = await NewReceipt.findById(id);
+
+    if (!receipt || receipt.saleType !== 'laybuy') {
+      return res.status(404).json({ success: false, message: 'Lay-buy record not found' });
+    }
+
+    if (receipt.laybuy.status === 'completed' || receipt.laybuy.status === 'cancelled') {
+      return res.status(400).json({ success: false, message: `This lay-buy is already ${receipt.laybuy.status}` });
+    }
+
+    receipt.cashPaid += amount;
+    receipt.laybuy.balanceRemaining = Math.max(receipt.total - receipt.cashPaid, 0);
+
+    if (receipt.laybuy.balanceRemaining === 0) {
+      receipt.laybuy.status = 'completed';
+    }
+
+    await receipt.save();
+
+    return res.status(200).json({
+      success: true,
+      data: receipt,
+      message: receipt.laybuy.status === 'completed'
+        ? 'Lay-buy fully paid off'
+        : 'Payment recorded'
+    });
+  } catch (error) {
+    console.error('Error recording lay-buy payment:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error. Please try again.'
+    });
+  }
+};
+
 module.exports = {
   submitReceipt,
   getLatestReceipt,
@@ -374,5 +498,7 @@ module.exports = {
   getReceiptsSummary,
   deleteReceipt,
   openCashDrawer,
-  getSalesSummary
+  getSalesSummary,
+  getLaybuys,
+  addLaybuyPayment
 };

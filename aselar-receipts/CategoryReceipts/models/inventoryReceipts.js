@@ -33,6 +33,34 @@ const ReceiptItemSchema = new mongoose.Schema({
   _id: false // Optional: Prevent Mongoose from adding _id to subdocs if not needed
 });
 
+// NEW: Lay-buy details, only populated when saleType === 'laybuy'
+const LaybuySchema = new mongoose.Schema({
+  dueDate: {
+    type: Date,
+    required: true
+  },
+  balanceRemaining: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  status: {
+    type: String,
+    enum: ['active', 'completed', 'overdue', 'cancelled'],
+    default: 'active'
+  },
+  reminderSentAt: {
+    type: Date,
+    default: null
+  },
+  overdueNoticeSentAt: {
+    type: Date,
+    default: null
+  }
+}, {
+  _id: false
+});
+
 // Define the schema for receipts
 const ReceiptSchema = new mongoose.Schema({
   items: [ReceiptItemSchema],
@@ -64,6 +92,21 @@ const ReceiptSchema = new mongoose.Schema({
   change: {
     type: Number,
     required: true
+  },
+  // NEW: defaults to 'full' so every existing/normal sale is unaffected
+  saleType: {
+    type: String,
+    enum: ['full', 'laybuy'],
+    default: 'full'
+  },
+  // NEW: only present when saleType === 'laybuy'
+  laybuy: {
+    type: LaybuySchema,
+    default: undefined
+  },
+  paymentMethod: {
+    type: String,
+    default: 'Cash'
   },
   user: { 
     type: mongoose.Schema.Types.ObjectId, 
@@ -159,8 +202,21 @@ ReceiptSchema.pre('save', function(next) {
   next();
 });
 
+// NEW: For lay-buy sales, "change" is meaningless (deposit is usually less than total),
+// so compute balanceRemaining instead and don't let a "negative change" slip through as-is.
+ReceiptSchema.pre('save', function(next) {
+  if (this.saleType === 'laybuy' && this.laybuy) {
+    this.laybuy.balanceRemaining = Math.max(this.total - this.cashPaid, 0);
+    // Lay-buy deposits aren't "change owed to the customer"
+    this.change = 0;
+  }
+  next();
+});
+
 // Index for better performance on receiptsNumber queries
 ReceiptSchema.index({ receiptsNumber: 1 });
+// NEW: Index to make "which lay-buys are due soon" scans cheap
+ReceiptSchema.index({ 'saleType': 1, 'laybuy.status': 1, 'laybuy.dueDate': 1 });
 
 // Export the Receipt model (kept as NewReceipt per your original)
 const NewReceipt = mongoose.model('NewReceipt', ReceiptSchema);

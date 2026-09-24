@@ -60,3 +60,31 @@
   font-size: 13px;
   cursor: pointer;
 }
+/* --- Append these to the end of your existing PaymentMethodModal.module.css --- */
+
+.laybuyForm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.fieldLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.dateInput {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.fieldError {
+  color: #c0392b;
+  font-size: 13px;
+  margin: 0;
+}

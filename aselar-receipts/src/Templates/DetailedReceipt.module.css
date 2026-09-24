@@ -224,3 +224,75 @@ padding: 10px;
 display: none;
 }
 }
+/* --- Append these to the end of your existing DetailedReceipt.module.css --- */
+
+.receiptTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.laybuyBadge {
+  background-color: #e67e22; /* orange: active lay-buy */
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.laybuyBadgeOverdue {
+  background-color: #c0392b; /* red: past due date, still unpaid */
+}
+
+.laybuyBadgePaid {
+  background-color: #27ae60; /* green: fully paid off */
+}
+
+.laybuyPaymentSection {
+  margin: 16px 0;
+  padding: 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fafafa;
+}
+
+.laybuyPaymentRow {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.laybuyPaymentInput {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.laybuyPaymentButton {
+  padding: 10px 16px;
+  background-color: #2980b9;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.laybuyPaymentButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.laybuyPaidMessage {
+  margin: 16px 0;
+  padding: 12px 14px;
+  background-color: #eafaf1;
+  border: 1px solid #27ae60;
+  border-radius: 8px;
+  color: #1e8449;
+  font-weight: 600;
+}

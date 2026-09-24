@@ -31,6 +31,15 @@ interface Company {
   location: string;
 }
 
+// mirrors the laybuy subdocument on the backend
+interface LaybuyDetails {
+  dueDate: string;
+  balanceRemaining: number;
+  status: 'active' | 'completed' | 'overdue' | 'cancelled';
+  reminderSentAt?: string | null;
+  overdueNoticeSentAt?: string | null;
+}
+
 interface ReceiptData {
   _id: string;
   items: ReceiptItem[];
@@ -46,6 +55,8 @@ interface ReceiptData {
   company?: Company;
   refNo?: string;
   seller?: string;
+  saleType?: 'full' | 'laybuy';
+  laybuy?: LaybuyDetails;
 }
 
 interface BusinessData {
@@ -72,6 +83,12 @@ interface DeleteModalProps {
   onCancel: () => void;
   isDeleting: boolean;
 }
+
+// how many days out from the due date a reminder starts showing (overdue always shows)
+const REMINDER_WINDOW_DAYS = 3;
+// localStorage key for dismissed reminders — dismissing a lay-buy hides it here
+// until it's fully paid (it naturally drops out of the "active" list once completed)
+const DISMISSED_LAYBUYS_KEY = 'aselar_dismissed_laybuy_reminders';
 
 const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
   isOpen,
@@ -137,6 +154,28 @@ const AllCategoryReceipts: React.FC = () => {
     receiptName: ''
   });
 
+  // Lay-buy specific state — fetched separately from the (paginated) main list
+  // so totals/reminders are accurate regardless of pagination
+  const [activeLaybuys, setActiveLaybuys] = useState<ReceiptData[]>([]);
+  const [laybuyTotalOutstanding, setLaybuyTotalOutstanding] = useState<number>(0);
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+
+  // per-card installment payment state
+  const [paymentAmounts, setPaymentAmounts] = useState<Record<string, string>>({});
+  const [submittingPaymentId, setSubmittingPaymentId] = useState<string | null>(null);
+
+  // load dismissed reminder ids once on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(DISMISSED_LAYBUYS_KEY);
+      if (stored) {
+        setDismissedIds(new Set(JSON.parse(stored)));
+      }
+    } catch (err) {
+      console.warn('Failed to read dismissed lay-buy reminders', err);
+    }
+  }, []);
+
   // Fetch business and profile data once on mount
 useEffect(() => {
   const fetchBusinessAndProfile = async () => {
@@ -168,6 +207,7 @@ useEffect(() => {
 
   useEffect(() => {
     fetchReceipts();
+    fetchActiveLaybuys();
   }, []);
 
  const fetchReceipts = async () => {
@@ -199,8 +239,123 @@ useEffect(() => {
   }
 };
 
+  // separate, unpaginated fetch of every open lay-buy — powers the total and the reminders
+  const fetchActiveLaybuys = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/laybuys`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        params: { status: 'active', _t: Date.now() },
+        withCredentials: true,
+      });
+
+      const laybuys: ReceiptData[] = response.data.data || [];
+      setActiveLaybuys(laybuys);
+      setLaybuyTotalOutstanding(response.data.totalOutstanding ?? 0);
+    } catch (error) {
+      console.error('Failed to fetch active lay-buys:', error);
+      // Non-fatal — the rest of the page still works without this
+    }
+  };
+
+  // a lay-buy is worth nagging about once it's within the reminder window or overdue
+  const daysUntilDue = (dueDate: string) => {
+    const due = new Date(dueDate);
+    due.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.round((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  };
+
+  const dueSoonOrOverdueLaybuys = activeLaybuys.filter((r) => {
+    if (!r.laybuy?.dueDate) return false;
+    if (dismissedIds.has(r._id)) return false;
+    return daysUntilDue(r.laybuy.dueDate) <= REMINDER_WINDOW_DAYS;
+  });
+
+  // dismiss a reminder — persists per-browser until the lay-buy is fully paid
+  const dismissReminder = (id: string) => {
+    setDismissedIds((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      try {
+        localStorage.setItem(DISMISSED_LAYBUYS_KEY, JSON.stringify(Array.from(next)));
+      } catch (err) {
+        console.warn('Failed to persist dismissed lay-buy reminder', err);
+      }
+      return next;
+    });
+  };
+
+  // badge styling — orange while active, red once overdue, green once fully paid
+  const laybuyBadgeClass = (r: ReceiptData) => {
+    if (!r.laybuy) return styles.laybuyBadge;
+    if (r.laybuy.status === 'completed') return `${styles.laybuyBadge} ${styles.laybuyBadgePaid}`;
+    if (new Date(r.laybuy.dueDate) < new Date()) return `${styles.laybuyBadge} ${styles.laybuyBadgeOverdue}`;
+    return styles.laybuyBadge;
+  };
+  const laybuyBadgeLabel = (r: ReceiptData) => {
+    if (!r.laybuy) return 'LAY-BUY';
+    return r.laybuy.status === 'completed' ? 'LAY-BUY — PAID' : 'LAY-BUY';
+  };
+
+  // per-card installment payment
+  const handlePaymentAmountChange = (id: string, value: string) => {
+    setPaymentAmounts((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleAddPayment = async (receiptId: string) => {
+    const amount = Number(paymentAmounts[receiptId]);
+
+    if (!amount || amount <= 0) {
+      toast.warning('Enter a valid payment amount');
+      return;
+    }
+
+    setSubmittingPaymentId(receiptId);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/laybuys/${receiptId}/pay`,
+        { amount },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
+
+      const data = response.data;
+
+      if (data.success) {
+        const updatedReceipt: ReceiptData = data.data;
+
+        // Update the card in place so the UI reflects the new balance immediately
+        setReceipts((prev) =>
+          prev.map((r) => (r._id === receiptId ? updatedReceipt : r))
+        );
+        setPaymentAmounts((prev) => ({ ...prev, [receiptId]: '' }));
+
+        toast.success(
+          updatedReceipt.laybuy?.status === 'completed'
+            ? 'Lay-buy fully paid off!'
+            : 'Payment recorded'
+        );
+
+        // Refresh the outstanding total / reminders so they stay accurate
+        fetchActiveLaybuys();
+      } else {
+        toast.error(data.message || 'Failed to record payment');
+      }
+    } catch (error: any) {
+      console.error('Add lay-buy payment error:', error);
+      toast.error(error.response?.data?.message || 'Failed to record payment');
+    } finally {
+      setSubmittingPaymentId(null);
+    }
+  };
+
   const exportReceiptToPDF = (receipt: ReceiptData, profile: ProfileData | null, business: BusinessData | null) => {
     const doc = new jsPDF();
+    const isLaybuy = receipt.saleType === 'laybuy';
     
     // Company Header
     const companyName = profile?.nameOfBusiness || 'TeX-Technology Extreme';
@@ -226,7 +381,7 @@ useEffect(() => {
     
     // Receipt Header
     doc.setFontSize(18);
-    doc.text('RECEIPT', 105, 70, { align: 'center' });
+    doc.text(isLaybuy ? 'LAY-BUY RECEIPT' : 'RECEIPT', 105, 70, { align: 'center' });
     const receiptDate = receipt.createdAt;
     if (receiptDate) {
       doc.setFontSize(12);
@@ -271,9 +426,22 @@ useEffect(() => {
     yPosition += 7;
     doc.text(`Total: BWP ${receipt.total.toFixed(2)}`, 100, yPosition, { align: 'right' });
     yPosition += 7;
-    doc.text(`Cash Paid: BWP ${receipt.cashPaid.toFixed(2)}`, 100, yPosition, { align: 'right' });
-    yPosition += 7;
-    doc.text(`Change: BWP ${receipt.change.toFixed(2)}`, 100, yPosition, { align: 'right' });
+
+    // lay-buy sales show amount paid/balance/due date instead of cash paid + change
+    if (isLaybuy && receipt.laybuy) {
+      doc.text(`Amount Paid: BWP ${receipt.cashPaid.toFixed(2)}`, 100, yPosition, { align: 'right' });
+      yPosition += 7;
+      doc.text(`Balance Remaining: BWP ${receipt.laybuy.balanceRemaining.toFixed(2)}`, 100, yPosition, { align: 'right' });
+      yPosition += 7;
+      doc.text(`Due Date: ${new Date(receipt.laybuy.dueDate).toLocaleDateString()}`, 100, yPosition, { align: 'right' });
+      yPosition += 7;
+      doc.text(`Status: ${receipt.laybuy.status.toUpperCase()}`, 100, yPosition, { align: 'right' });
+      yPosition += 7;
+    } else {
+      doc.text(`Cash Paid: BWP ${receipt.cashPaid.toFixed(2)}`, 100, yPosition, { align: 'right' });
+      yPosition += 7;
+      doc.text(`Change: BWP ${receipt.change.toFixed(2)}`, 100, yPosition, { align: 'right' });
+    }
     
     // Footer
     yPosition += 15;
@@ -325,6 +493,7 @@ useEffect(() => {
       });
       toast.success('Receipt deleted successfully!');
       fetchReceipts();
+      fetchActiveLaybuys(); // keep totals/reminders in sync if a lay-buy was deleted
       closeDeleteModal();
     } catch (error: any) {
       console.error(error);
@@ -371,6 +540,13 @@ useEffect(() => {
               <span className={styles.statNumber}>{totalReceipts}</span>
               <span className={styles.statLabel}>Total Category Receipts</span>
             </div>
+            {/* total outstanding across every open lay-buy */}
+            {laybuyTotalOutstanding > 0 && (
+              <div className={`${styles.statCard} ${styles.laybuyStatCard}`}>
+                <span className={styles.statNumber}>BWP {laybuyTotalOutstanding.toFixed(2)}</span>
+                <span className={styles.statLabel}>Lay-buy Balance Outstanding</span>
+              </div>
+            )}
           </div>
         </div>
         
@@ -384,6 +560,38 @@ useEffect(() => {
         </div>
       </div>
 
+      {/* dismissible reminders for lay-buys that are due soon or overdue */}
+      {dueSoonOrOverdueLaybuys.length > 0 && (
+        <div className={styles.reminderBanner}>
+          {dueSoonOrOverdueLaybuys.map((r) => {
+            const days = daysUntilDue(r.laybuy!.dueDate);
+            const isOverdue = days < 0;
+            return (
+              <div
+                key={r._id}
+                className={`${styles.reminderItem} ${isOverdue ? styles.reminderOverdue : ''}`}
+              >
+                <span>
+                  {isOverdue
+                    ? `Overdue by ${Math.abs(days)} day${Math.abs(days) === 1 ? '' : 's'}: `
+                    : days === 0
+                    ? 'Due today: '
+                    : `Due in ${days} day${days === 1 ? '' : 's'}: `}
+                  Lay-buy {r.receiptsNumber || r._id.slice(-6)} — Balance BWP {r.laybuy!.balanceRemaining.toFixed(2)}
+                </span>
+                <button
+                  className={styles.reminderDismiss}
+                  onClick={() => dismissReminder(r._id)}
+                  title="Dismiss reminder"
+                >
+                  <FontAwesomeIcon icon={faTimes} />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {receipts.length === 0 ? (
         <div className={styles.noDataContainer}>
           <div className={styles.noDataIcon}>💸</div>
@@ -396,7 +604,10 @@ useEffect(() => {
       ) : (
         <>
           <div className={styles.receiptsGrid}>
-            {receipts.map((receipt, index) => (
+            {receipts.map((receipt, index) => {
+              const isLaybuy = receipt.saleType === 'laybuy';
+              const isOpenLaybuy = isLaybuy && receipt.laybuy && receipt.laybuy.status !== 'completed' && receipt.laybuy.status !== 'cancelled';
+              return (
               <div key={receipt._id} className={styles.receiptCard}>
                 <div className={styles.cardPreview}>
                   <div className={styles.wrapper}>
@@ -412,7 +623,11 @@ useEffect(() => {
                     </div>
 
                     <div className={styles.receiptHeader}>
-                      <h3>CATEGORY RECEIPT</h3>
+                      <div className={styles.receiptTitleRow}>
+                        <h3>CATEGORY RECEIPT</h3>
+                        {/* lay-buy badge — orange/red/green depending on status */}
+                        {isLaybuy && <span className={laybuyBadgeClass(receipt)}>{laybuyBadgeLabel(receipt)}</span>}
+                      </div>
                       {receipt.createdAt && (
                         <h4>Date: {formatDate(receipt.createdAt)}</h4>
                       )}
@@ -463,15 +678,63 @@ useEffect(() => {
                         <h4 className={styles.totalHeader}>Total-P</h4>
                         <div className={styles.totalAmount}>BWP {receipt.total.toFixed(2)}</div>
                       </div>
-                      <div className={styles.total}>
-                        <h4 className={styles.totalHeader}>Cash Paid</h4>
-                        <div className={styles.totalAmount}>BWP {receipt.cashPaid.toFixed(2)}</div>
-                      </div>
-                      <div className={styles.total}>
-                        <h4 className={styles.totalHeader}>Change</h4>
-                        <div className={styles.totalAmount}>BWP {receipt.change.toFixed(2)}</div>
-                      </div>
+                      {/* lay-buy shows amount paid/balance/due date instead of cash paid + change */}
+                      {isLaybuy && receipt.laybuy ? (
+                        <>
+                          <div className={styles.total}>
+                            <h4 className={styles.totalHeader}>Amount Paid</h4>
+                            <div className={styles.totalAmount}>BWP {receipt.cashPaid.toFixed(2)}</div>
+                          </div>
+                          <div className={`${styles.total} ${styles.laybuyBalanceCard}`}>
+                            <h4 className={styles.totalHeader}>Balance Remaining</h4>
+                            <div className={styles.totalAmount}>BWP {receipt.laybuy.balanceRemaining.toFixed(2)}</div>
+                          </div>
+                          <div className={styles.total}>
+                            <h4 className={styles.totalHeader}>Due Date</h4>
+                            <div className={styles.totalAmount}>{new Date(receipt.laybuy.dueDate).toLocaleDateString()}</div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className={styles.total}>
+                            <h4 className={styles.totalHeader}>Cash Paid</h4>
+                            <div className={styles.totalAmount}>BWP {receipt.cashPaid.toFixed(2)}</div>
+                          </div>
+                          <div className={styles.total}>
+                            <h4 className={styles.totalHeader}>Change</h4>
+                            <div className={styles.totalAmount}>BWP {receipt.change.toFixed(2)}</div>
+                          </div>
+                        </>
+                      )}
                     </div>
+
+                    {/* per-card installment payment, only for open lay-buys */}
+                    {isOpenLaybuy && (
+                      <div className={styles.laybuyPaymentSection}>
+                        <h4 className={styles.laybuyPaymentTitle}>Record a payment</h4>
+                        <div className={styles.laybuyPaymentRow}>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={paymentAmounts[receipt._id] || ''}
+                            onChange={(e) => handlePaymentAmountChange(receipt._id, e.target.value)}
+                            placeholder="Amount"
+                            className={styles.laybuyPaymentInput}
+                          />
+                          <button
+                            onClick={() => handleAddPayment(receipt._id)}
+                            disabled={submittingPaymentId === receipt._id}
+                            className={styles.laybuyPaymentButton}
+                          >
+                            {submittingPaymentId === receipt._id ? '...' : 'Add'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {isLaybuy && receipt.laybuy?.status === 'completed' && (
+                      <div className={styles.laybuyPaidMessage}>✅ Paid in full</div>
+                    )}
             
                     <div className={styles.footer}>
                       <p className={styles.tag}>Powered by Aselar, a TeX product.</p>
@@ -511,7 +774,8 @@ useEffect(() => {
                   </button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </>
       )}

@@ -152,6 +152,9 @@ const [scanLookupLoading, setScanLookupLoading] = useState<boolean>(false)
   const [status, setStatus] = useState<string | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
 const [paymentMethod, setPaymentMethod] = useState<string>('');
+// NEW: lay-buy sale type + due date, driven by the payment modal
+const [saleType, setSaleType] = useState<'full' | 'laybuy'>('full');
+const [laybuyDueDate, setLaybuyDueDate] = useState<string | null>(null);
 const { sellerName } = useSellerContext();
   
   // Use our receipt manager hook
@@ -313,8 +316,18 @@ const handleBarcodeScan = async (code: string) => {
       throw error; // Re-throw for handling in submit
     }
   };
-const handlePaymentMethodSelect = (method: string) => {
+// UPDATED: now accepts optional lay-buy details from the modal
+const handlePaymentMethodSelect = (method: string, details?: { dueDate?: string }) => {
   setPaymentMethod(method);
+
+  if (method === 'Lay-buy' && details?.dueDate) {
+    setSaleType('laybuy');
+    setLaybuyDueDate(details.dueDate);
+  } else {
+    setSaleType('full');
+    setLaybuyDueDate(null);
+  }
+
   setShowPaymentModal(false);
   toast.info(`Payment method: ${method}`);
 };
@@ -323,6 +336,22 @@ const handlePaymentMethodSelect = (method: string) => {
     if (receiptItems.length === 0 || receiptItems.every(item => item.quantity === 0)) {
       toast.warning('Cannot submit an empty receipt');
       return;
+    }
+
+    // NEW: lay-buy specific guardrails, mirrors backend validation
+    if (saleType === 'laybuy') {
+      if (!laybuyDueDate) {
+        toast.warning('Please choose a due date for this lay-buy');
+        return;
+      }
+      if (cashPaid <= 0) {
+        toast.warning('A deposit is required to start a lay-buy sale');
+        return;
+      }
+      if (cashPaid >= total) {
+        toast.warning('Deposit covers the full total — choose a normal payment method instead');
+        return;
+      }
     }
     
     setSubmitting(true);
@@ -348,6 +377,8 @@ const handlePaymentMethodSelect = (method: string) => {
         cashPaid,
         change,
         paymentMethod, // NEW
+        saleType, // NEW
+        dueDate: laybuyDueDate, // NEW
       };
       
       // Send to backend
@@ -368,6 +399,10 @@ const handlePaymentMethodSelect = (method: string) => {
       
       // Clear receipt after successful submission
       clearReceipt();
+      // NEW: reset lay-buy state alongside the rest of the receipt
+      setSaleType('full');
+      setLaybuyDueDate(null);
+      setPaymentMethod('');
       toast.success('Receipt submitted successfully!');
       navigate("/current-receipt")
     } catch (error: any) {
@@ -399,6 +434,8 @@ const handlePaymentMethodSelect = (method: string) => {
           onRemoveItem={removeItem}
           onItemDiscount={handleItemDiscount}
           onApplyGlobalDiscount={applyGlobalDiscount}
+          saleType={saleType}
+          dueDate={laybuyDueDate}
         />
         
         {/* Add the compose button and related controls */}

@@ -22,6 +22,15 @@ interface ReceiptItem {
   _id: string;
 }
 
+// NEW: mirrors the laybuy subdocument on the backend
+interface LaybuyDetails {
+  dueDate: string;
+  balanceRemaining: number;
+  status: 'active' | 'completed' | 'overdue' | 'cancelled';
+  reminderSentAt?: string | null;
+  overdueNoticeSentAt?: string | null;
+}
+
 interface ReceiptData {
   _id: string;
   items: ReceiptItem[];
@@ -37,6 +46,9 @@ interface ReceiptData {
   status: string;
   createdAt: string;
   __v: number;
+  // NEW
+  saleType?: 'full' | 'laybuy';
+  laybuy?: LaybuyDetails;
 }
 
 interface ApiResponse {
@@ -70,6 +82,10 @@ const DetailedReceipt: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const beepRef = useRef<HTMLAudioElement | null>(null);
   const { currency } = useCurrency();
+
+  // NEW: lay-buy installment payment state
+  const [paymentAmount, setPaymentAmount] = useState<string>('');
+  const [submittingPayment, setSubmittingPayment] = useState<boolean>(false);
 
 useEffect(() => {
   beepRef.current = new Audio(beep);
@@ -265,6 +281,63 @@ useEffect(() => {
 
   const WhatsAppModalclose = () => setIsWhatsAppModalOpen(false);
 
+  // NEW: derived lay-buy helpers, used both live and in the generated send-out HTML
+  const isLaybuy = receipt?.saleType === 'laybuy';
+  const laybuyBadgeClass = (r: ReceiptData | null) => {
+    if (!r?.laybuy) return styles.laybuyBadge;
+    if (r.laybuy.status === 'completed') return `${styles.laybuyBadge} ${styles.laybuyBadgePaid}`;
+    if (new Date(r.laybuy.dueDate) < new Date()) return `${styles.laybuyBadge} ${styles.laybuyBadgeOverdue}`;
+    return styles.laybuyBadge;
+  };
+  const laybuyBadgeLabel = (r: ReceiptData | null) => {
+    if (!r?.laybuy) return 'LAY-BUY';
+    return r.laybuy.status === 'completed' ? 'LAY-BUY — PAID IN FULL' : 'LAY-BUY';
+  };
+
+  // NEW: record an installment payment against this lay-buy
+  const handleAddPayment = async () => {
+    if (!receipt) return;
+    const amount = Number(paymentAmount);
+
+    if (!amount || amount <= 0) {
+      toast.warning('Enter a valid payment amount');
+      return;
+    }
+
+    setSubmittingPayment(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/laybuys/${receipt._id}/pay`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include',
+        body: JSON.stringify({ amount })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setReceipt(data.data);
+        setPaymentAmount('');
+        toast.success(
+          data.data.laybuy?.status === 'completed'
+            ? 'Lay-buy fully paid off!'
+            : 'Payment recorded'
+        );
+      } else {
+        toast.error(data.message || 'Failed to record payment');
+      }
+    } catch (err: any) {
+      console.error('Add lay-buy payment error:', err);
+      toast.error('Failed to record payment');
+    } finally {
+      setSubmittingPayment(false);
+    }
+  };
+
   const generateHTMLContent = () => {
     if (!receipt) return '';
     return ReactDOMServer.renderToString(
@@ -280,7 +353,11 @@ useEffect(() => {
         </div>
 
         <div className={styles.receiptHeader}>
-          <h3>SALES RECEIPT</h3>
+          <div className={styles.receiptTitleRow}>
+            <h3>SALES RECEIPT</h3>
+            {/* NEW: lay-buy badge on the customer-facing copy */}
+            {isLaybuy && <span className={laybuyBadgeClass(receipt)}>{laybuyBadgeLabel(receipt)}</span>}
+          </div>
           <h4>Date: {new Date(receipt.createdAt).toLocaleDateString()}</h4>
           {receiverName && <h4>Receiver: {receiverName}</h4>}
         </div>
@@ -337,10 +414,24 @@ useEffect(() => {
             <div className={styles.paidAmount}>{formatDecimalCurrency(receipt.cashPaid, currency)}</div>
           </div>
 
-          <div className={styles.balance}>
-            <h4>Balance</h4>
-            <div className={styles.balanceAmount}>{formatDecimalCurrency(receipt.change, currency)}</div>
-          </div>
+          {/* NEW: lay-buy shows balance remaining + due date instead of "change" */}
+          {isLaybuy && receipt.laybuy ? (
+            <>
+              <div className={styles.balance}>
+                <h4>Balance Remaining</h4>
+                <div className={styles.balanceAmount}>{formatDecimalCurrency(receipt.laybuy.balanceRemaining, currency)}</div>
+              </div>
+              <div className={styles.balance}>
+                <h4>Due Date</h4>
+                <div className={styles.balanceAmount}>{new Date(receipt.laybuy.dueDate).toLocaleDateString()}</div>
+              </div>
+            </>
+          ) : (
+            <div className={styles.balance}>
+              <h4>Balance</h4>
+              <div className={styles.balanceAmount}>{formatDecimalCurrency(receipt.change, currency)}</div>
+            </div>
+          )}
         </div>
 
         <div className={styles.security}>
@@ -519,7 +610,11 @@ useEffect(() => {
         </div>
 
         <div className={styles.receiptHeader}>
-          <h3>SALES RECEIPT</h3>
+          <div className={styles.receiptTitleRow}>
+            <h3>SALES RECEIPT</h3>
+            {/* NEW: lay-buy badge — orange while active, red once overdue, green once paid off */}
+            {isLaybuy && <span className={laybuyBadgeClass(receipt)}>{laybuyBadgeLabel(receipt)}</span>}
+          </div>
           <h4>Date: {new Date(receipt.createdAt).toLocaleDateString()}</h4>
           {receiverName && <h4>Receiver: {receiverName}</h4>}
         </div>
@@ -576,10 +671,24 @@ useEffect(() => {
             <div className={styles.paidAmount}>{formatDecimalCurrency(receipt.cashPaid, currency)}</div>
           </div>
 
-          <div className={styles.balance}>
-            <h4>Balance</h4>
-            <div className={styles.balanceAmount}>{formatDecimalCurrency(receipt.change, currency)}</div>
-          </div>
+          {/* NEW: lay-buy shows balance remaining + due date instead of "change" */}
+          {isLaybuy && receipt.laybuy ? (
+            <>
+              <div className={styles.balance}>
+                <h4>Balance Remaining</h4>
+                <div className={styles.balanceAmount}>{formatDecimalCurrency(receipt.laybuy.balanceRemaining, currency)}</div>
+              </div>
+              <div className={styles.balance}>
+                <h4>Due Date</h4>
+                <div className={styles.balanceAmount}>{new Date(receipt.laybuy.dueDate).toLocaleDateString()}</div>
+              </div>
+            </>
+          ) : (
+            <div className={styles.balance}>
+              <h4>Balance</h4>
+              <div className={styles.balanceAmount}>{formatDecimalCurrency(receipt.change, currency)}</div>
+            </div>
+          )}
         </div>
 
         <div className={styles.security}>
@@ -592,6 +701,34 @@ useEffect(() => {
           <p className={styles.thankYou}>Thank you for your business!</p>
         </div>
       </div>
+
+      {/* NEW: installment payment recording — lives outside the printable receipt itself */}
+      {isLaybuy && receipt.laybuy && receipt.laybuy.status !== 'completed' && receipt.laybuy.status !== 'cancelled' && (
+        <div className={styles.laybuyPaymentSection}>
+          <h4>Record a lay-buy payment</h4>
+          <div className={styles.laybuyPaymentRow}>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={paymentAmount}
+              onChange={(e) => setPaymentAmount(e.target.value)}
+              placeholder="Amount paid"
+              className={styles.laybuyPaymentInput}
+            />
+            <button
+              onClick={handleAddPayment}
+              disabled={submittingPayment}
+              className={styles.laybuyPaymentButton}
+            >
+              {submittingPayment ? 'Recording...' : 'Add Payment'}
+            </button>
+          </div>
+        </div>
+      )}
+      {isLaybuy && receipt.laybuy?.status === 'completed' && (
+        <div className={styles.laybuyPaidMessage}>✅ This lay-buy has been paid in full.</div>
+      )}
 
       <div className={styles.actions}>
         {/* CHANGE 5: SMS button shows remaining count and disables at limit */}

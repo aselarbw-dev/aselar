@@ -23,6 +23,7 @@ const AllReceipts = lazy(() => import("../Documents/AllReceipts"));
 const AllQuotes = lazy(() => import("../Documents/AllQuotes"));
 const AllInvoices = lazy(() => import("../Documents/AllInvoices"));
 const AllExpenses = lazy(() => import("../Documents/AllExpenses"));
+const LaybuyReceipts = lazy(() => import("../Documents/LaybuyReceipts"));
 const ScanHistory = lazy(() => import("../Scans/ScanHistory"));
 const AllCategoryReceipts = lazy(() => import("../Documents/AllCategoryReceipts"));
 const InvoiceTemplate = lazy(() => import("../Invoice/InvoiceTemplate"));
@@ -73,6 +74,7 @@ const Screens = () => {
         <Route path="/delete-account" element={<DeleteAccountButton />} />
         <Route path="/current-receipt" element={<DetailedReceipt />} />
         <Route path="/all-receipts" element={<AllReceipts />} />
+        <Route path="/laybuy-receipts" element={<LaybuyReceipts />} />
         <Route path="/scan-history" element={<ScanHistory />} />
         <Route path="/all-quotes" element={<AllQuotes/>} />
         <Route path="/all-invoices" element={<AllInvoices/>} />

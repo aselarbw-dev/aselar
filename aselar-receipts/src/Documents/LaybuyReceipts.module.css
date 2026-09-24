@@ -1,0 +1,326 @@
+.cover {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.topTitles {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 22px;
+}
+
+.statsCards {
+  display: flex;
+  gap: 12px;
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.laybuyStatCard {
+  border: 1px solid #e67e22;
+}
+
+.statNumber {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: #666;
+}
+
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: #f7f7f7;
+  border-radius: 8px;
+}
+
+.searchBox {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888;
+  font-size: 13px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 8px 8px 30px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.dateFilter {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: #555;
+}
+
+.dateInput {
+  padding: 7px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.clearFiltersButton {
+  padding: 8px 14px;
+  background-color: #eee;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  height: fit-content;
+}
+
+.reminderBanner {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.reminderItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fff8e1;
+  border: 1px solid #f0c060;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #7a5b00;
+}
+
+.reminderOverdue {
+  background-color: #fdecea;
+  border-color: #f1a19a;
+  color: #c0392b;
+}
+
+.reminderDismiss {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  font-size: 14px;
+  padding: 4px 8px;
+}
+
+.reminderDismiss:hover {
+  opacity: 0.7;
+}
+
+.noDataContainer {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.noDataIcon {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+.receiptsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.receiptCard {
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 14px;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cardHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+.receiptTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.receiptTitleRow h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.cardDate {
+  font-size: 12px;
+  color: #888;
+}
+
+.laybuyBadge {
+  background-color: #e67e22;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.laybuyBadgeOverdue {
+  background-color: #c0392b;
+}
+
+.laybuyBadgePaid {
+  background-color: #27ae60;
+}
+
+.itemsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: #444;
+}
+
+.itemRow {
+  display: flex;
+  justify-content: space-between;
+}
+
+.totalsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #eee;
+}
+
+.totalBlock {
+  display: flex;
+  flex-direction: column;
+}
+
+.laybuyBalanceCard {
+  font-weight: 700;
+}
+
+.totalLabel {
+  font-size: 11px;
+  color: #888;
+}
+
+.totalValue {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.laybuyPaymentSection {
+  padding-top: 6px;
+}
+
+.laybuyPaymentRow {
+  display: flex;
+  gap: 8px;
+}
+
+.laybuyPaymentInput {
+  flex: 1;
+  padding: 7px 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.laybuyPaymentButton {
+  padding: 7px 12px;
+  background-color: #2980b9;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.laybuyPaymentButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.laybuyPaidMessage {
+  padding: 8px 10px;
+  background-color: #eafaf1;
+  border: 1px solid #27ae60;
+  border-radius: 6px;
+  color: #1e8449;
+  font-weight: 600;
+  font-size: 13px;
+  text-align: center;
+}
+
+.downloadButton {
+  align-self: flex-start;
+  padding: 6px 12px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.downloadButton:hover {
+  background-color: #e4e4e4;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  gap: 10px;
+  color: #666;
+}

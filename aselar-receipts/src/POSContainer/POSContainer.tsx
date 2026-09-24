@@ -451,6 +451,9 @@ const handlePaymentMethodSelect = (method: string, details?: { dueDate?: string 
           <Link to="/current-receipt">
              <button className={styles.recent} >Recent</button>
              </Link>
+             <Link to="/laybuy-receipts">
+             <button className={styles.laybuy} >Laybuys</button>
+             </Link>
         <button className={styles.drawer} onClick={() => {
   console.log('Payment button clicked');
   setShowPaymentModal(true);

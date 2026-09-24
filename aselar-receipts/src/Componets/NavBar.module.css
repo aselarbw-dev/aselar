@@ -1,182 +1,415 @@
-.container{
-  padding:0.5rem;
-  
-}
-.wrapper{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    /*background-color: blue;*/
-    box-shadow: 0 0.6em 1.2em rgba(25, 20, 36, 0.06);
-   
-}
-.logo{
-  display:flex;
-  justify-content:center;
-  align-items: center;
-}
-.aselarLogo{
-  width:130px;
- height: 130px;
-}
-.logo img{
- width:100px;
- margin:0.5rem;
+/* =========================================================
+   ASELaR NAVBAR
+========================================================= */
 
-}
-.aselar{
-    color:#3b82f6;  /*#22c55e*/
-    font-size: 45px;
-    padding:10px;
-}
-.aselar span{
-  border-bottom: 4px solid #3b82f6;
-}
-.lists{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    
-}
-.lists li{
-    list-style-type: none;
-   background: #3b82f6;
-    border-radius: 20px;
-    padding:10px 50px;
-    color:color;
-    margin-left: 45px;
-    cursor: pointer;
-    font-size: 18px;
-   border:none;
-}
-.lists li:hover{
-  opacity:.7;
-}
-.lists a{
-  text-decoration: none;
-  color:white;
-  
-  
-}
-.buttons{
- 
-  padding:10px;
-}
-.buttons a{
-  text-decoration: none;
-}
-.signupButton{
-width:180px;
-height:50px;
-background-color: white;
-cursor: pointer;
-border: 2px solid #3b82f6;
-outline: none;
-padding:5px;
-color:#3b82f6;
-font-size:20px;
-font-weight: 400;
-border-radius: 15px;
-margin-left: 20px;
-box-shadow: 0 0.6em 1.2em rgba(28,0,80,0.06);
-transition: 1s all;
-}
-.contact {
-  color:#3b82f6;
-  padding:10px 10px;
-  font-size:20px;
-text-decoration: none;
-}
-.signupButton:hover{
-background-color: rgb(28, 149, 197);
-color:white;
-}
-.signinButton{
-  width:130px;
-  height:50px;
- 
-  cursor: pointer;
-  border: none;
-  outline: none;
-  padding:8px;
-  color:#007bff;
- background-color: #f2f2f2;
-  border-radius: 15px;
-  font-size: 20px;
-  margin-right:3px;
-  }
-  .buttons{
-    display: flex;
-    
-  }
-  .searchBusiness{
-    width:200px;
-    height:50px;
-     background: #3b82f6;
-    cursor: pointer;
-    border: none;
-    outline: none;
-    padding:5px;
-    color:white;
-    font-size:20px;
-    font-weight: 400;
-    border-radius: 15px;
-    margin-left: 30px;
-    box-shadow: 0 0.6em 1.2em rgba(28,0,80,0.06);
-    transition: 1s all;
-  }
-  .searchBusiness:hover{
-    background-color: #16a34a;
-  }
-  .socialIcons {
+.wrapper {
+  position: relative;
+  z-index: 50;
+
+  width: 100%;
+
   display: flex;
-  gap: 1rem;
-  z-index: 20;
+  align-items: center;
+  justify-content: space-between;
+
+  box-sizing: border-box;
+
+  padding: 0.7rem 3rem;
+
+  background: #ffffff;
+
+  border-bottom: 1px solid #eef1f5;
+
+  box-shadow:
+    0 4px 18px rgba(15, 23, 42, 0.05);
 }
 
-.iconWrapper {
-  width: 50px;
-  height: 50px;
-  background: #3b82f6;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+.logo {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 1.2rem;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+
+  flex-shrink: 0;
 }
 
-.iconWrapper:hover {
-  background: rgba(47, 4, 96, 0.2);
+
+.logoLink {
+  display: flex;
+  align-items: center;
+
+  text-decoration: none;
+  line-height: 0;
+}
+
+
+.aselarLogo {
+  display: block;
+
+  width: 118px;
+  height: 58px;
+
+  object-fit: contain;
+
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+
+.logoLink:hover .aselarLogo {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
+
+
+/* =========================================================
+   RIGHT SIDE
+========================================================= */
+
+.navRight {
+  display: flex;
+
+  align-items: center;
+
+  gap: 1.4rem;
+}
+
+
+/* =========================================================
+   SOCIAL MEDIA
+========================================================= */
+
+.socialIcons {
+  display: flex;
+
+  align-items: center;
+
+  gap: 0.2rem;
+
+  padding: 0.25rem;
+
+  background: #f7f9fc;
+
+  border: 1px solid #edf0f5;
+
+  border-radius: 10px;
+}
+
+
+.socialLink {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 8px;
+
+  color: #64748b;
+
+  font-size: 0.9rem;
+
+  text-decoration: none;
+
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+.socialLink:hover {
+  color: #3b82f6;
+
+  background: #ffffff;
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+.buttons {
+  display: flex;
+
+  align-items: center;
+
+  gap: 0.65rem;
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+.loginButton {
+  min-height: 42px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 0.5rem;
+
+  padding: 0.6rem 1rem;
+
+  box-sizing: border-box;
+
+  border: 1px solid #dfe5ed;
+
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  color: #334155;
+
+  font-size: 0.86rem;
+
+  font-weight: 600;
+
+  text-decoration: none;
+
+  white-space: nowrap;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+.loginButton:hover {
+  background: #f8fafc;
+
   border-color: #3b82f6;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(34, 197, 94, 0.3);
+
+  color: #2563eb;
+
+  transform: translateY(-1px);
 }
-@media (max-width: 768px) {
-  .iconWrapper {
-     width: 30px;
-  height: 30px;
-  background: #3b82f6;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  display: flex;
+
+
+/* =========================================================
+   GET STARTED
+========================================================= */
+
+.signupButton {
+  min-height: 42px;
+
+  display: inline-flex;
+
   align-items: center;
   justify-content: center;
-  color: white;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-  }
 
- 
+  gap: 0.55rem;
+
+  padding: 0.6rem 1rem;
+
+  box-sizing: border-box;
+
+  border: 1px solid #3b82f6;
+
+  border-radius: 10px;
+
+  background: #3b82f6;
+
+  color: #ffffff;
+
+  font-size: 0.86rem;
+
+  font-weight: 700;
+
+  text-decoration: none;
+
+  white-space: nowrap;
+
+  box-shadow:
+    0 5px 14px rgba(59, 130, 246, 0.18);
+
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
-@media (max-width: 500px) {
-  .iconWrapper {
-     display:none;
+
+
+.signupButton:hover {
+  background: #2563eb;
+
+  box-shadow:
+    0 7px 18px rgba(59, 130, 246, 0.25);
+
+  transform: translateY(-1px);
+}
+
+
+.buttonArrow {
+  margin-left: 0.1rem;
+
+  font-size: 1rem;
+
+  transition:
+    transform 0.2s ease;
+}
+
+
+.signupButton:hover .buttonArrow {
+  transform: translateX(3px);
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 1024px) {
+
+  .wrapper {
+    padding: 0.7rem 2rem;
   }
 
- 
+  .aselarLogo {
+    width: 108px;
+  }
+
+  .navRight {
+    gap: 0.8rem;
+  }
+
+  .socialLink {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 768px) {
+
+  .wrapper {
+    padding: 0.65rem 1rem;
+  }
+
+  .aselarLogo {
+    width: 100px;
+    height: 50px;
+  }
+
+  .navRight {
+    gap: 0.5rem;
+  }
+
+  .socialIcons {
+    gap: 0.1rem;
+  }
+
+  .socialLink {
+    width: 29px;
+    height: 29px;
+
+    font-size: 0.78rem;
+  }
+
+  .buttons {
+    gap: 0.4rem;
+  }
+
+  .loginButton,
+  .signupButton {
+    min-height: 38px;
+
+    padding: 0.5rem 0.7rem;
+
+    font-size: 0.76rem;
+
+    border-radius: 8px;
+  }
+
+  .buttonArrow {
+    display: none;
+  }
+}
+
+
+/* =========================================================
+   SMALL PHONES
+========================================================= */
+
+@media (max-width: 560px) {
+
+  .wrapper {
+    padding: 0.6rem 0.8rem;
+  }
+
+  .aselarLogo {
+    width: 88px;
+  }
+
+  .socialIcons {
+    display: none;
+  }
+
+  .navRight {
+    gap: 0.4rem;
+  }
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+========================================================= */
+
+@media (max-width: 380px) {
+
+  .wrapper {
+    padding: 0.55rem 0.7rem;
+  }
+
+  .aselarLogo {
+    width: 82px;
+  }
+
+  .loginButton span {
+    display: none;
+  }
+
+  .loginButton {
+    width: 38px;
+
+    padding: 0;
+  }
+
+  .signupButton {
+    font-size: 0.7rem;
+  }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .aselarLogo,
+  .socialLink,
+  .loginButton,
+  .signupButton,
+  .buttonArrow {
+    transition: none;
+  }
 }

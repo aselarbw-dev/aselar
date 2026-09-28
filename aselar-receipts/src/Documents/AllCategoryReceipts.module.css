@@ -821,3 +821,11 @@
   font-weight: 600;
   font-size: 13px;
 }
+/* Add this to AllCategoryReceipts.module.css — styles the new "Seller:" line
+   added inside .receiptHeader on each category receipt card. */
+
+.sellerLine {
+  font-weight: 600;
+  color: #333;
+  margin-top: 2px;
+}

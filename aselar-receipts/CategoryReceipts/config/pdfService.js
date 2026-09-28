@@ -82,6 +82,18 @@ class PDFServiceJsPDF {
 
     pdf.setFontSize(11);
     pdf.setFont(undefined, 'normal');
+
+    // Priority: daily seller name first → business name fallback → 'Unknown Seller'
+    const sellerName = receiptsData.sellerName ||
+                       (receiptsData.companyInfo?.nameOfBusiness ||
+                        receiptsData.companyInfo?.name || 'Unknown Seller');
+
+    // Seller line (bold, prominent)
+    pdf.setFont(undefined, 'bold');
+    pdf.text(`Seller: ${sellerName}`, margin, yPos);
+    yPos += lineHeight + 4;  // Extra spacing after seller
+
+    pdf.setFont(undefined, 'normal');
     if (receiptsData.companyInfo) {
       pdf.text(receiptsData.companyInfo.name || '', margin, yPos);
       yPos += lineHeight;
@@ -223,8 +235,10 @@ class PDFServiceJsPDF {
     pdf.setTextColor(102, 102, 102);
     pdf.text('Thank you for your business!', margin, yPos);
     yPos += lineHeight;
-    if (receiptsData.companyInfo && receiptsData.companyInfo.name) {
-      pdf.text(`For any questions, please contact ${receiptsData.companyInfo.name}`, margin, yPos);
+    const contactName = sellerName !== 'Unknown Seller' ? sellerName :
+                        (receiptsData.companyInfo && receiptsData.companyInfo.name);
+    if (contactName) {
+      pdf.text(`For any questions, please contact ${contactName}`, margin, yPos);
     }
   }
 

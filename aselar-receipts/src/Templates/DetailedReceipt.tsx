@@ -64,9 +64,14 @@ interface ProfileData {
   profilePicture: string;
 }
 
+interface SellerData {
+  name: string;
+}
+
 const DetailedReceipt: React.FC = () => {
   const [receipt, setReceipt] = useState<ReceiptData | null>(null);
   const [businessProfile, setBusinessProfile] = useState<ProfileData | null>(null);
+  const [seller, setSeller] = useState<SellerData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isReceiverModalOpen, setIsReceiverModalOpen] = useState<boolean>(false);
@@ -142,6 +147,32 @@ useEffect(() => {
     fetchReceipt();
   }, []);
 
+  // Daily Seller Fetch — same endpoint/logic as Receipt.tsx, keyed by the receipt's date
+  useEffect(() => {
+    if (!receipt) return;
+
+    const fetchDailySeller = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const formattedDate = new Date(receipt.createdAt || new Date()).toISOString().split('T')[0];
+        const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/daily-seller/${formattedDate}`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+          credentials: 'include'
+        });
+        if (response.ok) {
+          setSeller(await response.json());
+        } else {
+          setSeller(null);
+        }
+      } catch (err) {
+        console.warn('Seller fetch failed — using fallback');
+        setSeller(null);
+      }
+    };
+
+    fetchDailySeller();
+  }, [receipt?.createdAt]);
+
   const startQRScanner = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
@@ -193,6 +224,10 @@ useEffect(() => {
     }
   };
 
+  // NEW: seller-name fallback, mirrors the backend priority
+  // (explicit seller name → business name → 'Unknown Seller')
+  const getSellerName = () => seller?.name || businessProfile?.nameOfBusiness || 'Unknown Seller';
+
   const handleQRCode = async () => {
     try {
       const htmlContent = generateHTMLContent();
@@ -209,6 +244,7 @@ useEffect(() => {
         change: receipt?.change,
         createdAt: receipt?.createdAt,
         htmlContent,
+        sellerName: getSellerName(),
         companyInfo: {
           nameOfBusiness: businessProfile?.nameOfBusiness,
           emailBusiness: businessProfile?.emailBusiness,
@@ -436,7 +472,7 @@ useEffect(() => {
 
         <div className={styles.security}>
           <h4>RefNo.{receipt._id.substring(0, 8)}</h4>
-          <h4>Seller: {businessProfile?.nameOfBusiness}</h4>
+          <h4>Seller: {getSellerName()}</h4>
         </div>
 
         <div className={styles.footer}>
@@ -471,6 +507,7 @@ useEffect(() => {
           change: receipt?.change,
           createdAt: receipt?.createdAt,
           htmlContent,
+          sellerName: getSellerName(),
           companyInfo: {
             nameOfBusiness: businessProfile?.nameOfBusiness,
             emailBusiness: businessProfile?.emailBusiness,
@@ -529,6 +566,7 @@ useEffect(() => {
           change: receipt?.change,
           createdAt: receipt?.createdAt,
           htmlContent,
+          sellerName: getSellerName(),
           companyInfo: {
             nameOfBusiness: businessProfile?.nameOfBusiness,
             emailBusiness: businessProfile?.emailBusiness,
@@ -572,6 +610,7 @@ useEffect(() => {
           change: receipt?.change,
           createdAt: receipt?.createdAt,
           htmlContent,
+          sellerName: getSellerName(),
           companyInfo: {
             nameOfBusiness: businessProfile?.nameOfBusiness,
             emailBusiness: businessProfile?.emailBusiness,
@@ -693,7 +732,7 @@ useEffect(() => {
 
         <div className={styles.security}>
           <h4>RefNo.{receipt._id.substring(0, 8)}</h4>
-          <h4>Seller: {businessProfile?.nameOfBusiness}</h4>
+          <h4>Seller: {getSellerName()}</h4>
         </div>
 
         <div className={styles.footer}>

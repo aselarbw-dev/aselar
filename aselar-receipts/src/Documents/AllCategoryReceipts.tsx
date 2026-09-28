@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -90,6 +90,10 @@ const REMINDER_WINDOW_DAYS = 3;
 // until it's fully paid (it naturally drops out of the "active" list once completed)
 const DISMISSED_LAYBUYS_KEY = 'aselar_dismissed_laybuy_reminders';
 
+// yyyy-mm-dd key used by the daily-seller endpoint (same format as Receipt.tsx)
+const sellerDateKey = (date?: string) =>
+  date ? new Date(date).toISOString().split('T')[0] : '';
+
 const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
   isOpen,
   receiptId,
@@ -163,6 +167,10 @@ const AllCategoryReceipts: React.FC = () => {
   // per-card installment payment state
   const [paymentAmounts, setPaymentAmounts] = useState<Record<string, string>>({});
   const [submittingPaymentId, setSubmittingPaymentId] = useState<string | null>(null);
+
+  // daily seller names keyed by yyyy-mm-dd, plus a record of dates already requested
+  const [dailySellers, setDailySellers] = useState<Record<string, string>>({});
+  const fetchedSellerDates = useRef<Set<string>>(new Set());
 
   // load dismissed reminder ids once on mount
   useEffect(() => {
@@ -298,6 +306,41 @@ useEffect(() => {
     return r.laybuy.status === 'completed' ? 'LAY-BUY — PAID' : 'LAY-BUY';
   };
 
+  // NEW: seller-name fallback — per-receipt seller (if the backend set one) first,
+  // then the business name, then 'Unknown Seller'. Mirrors the PDF-service priority.
+  // Daily seller fetch — one request per unique receipt date, same endpoint as Receipt.tsx
+  useEffect(() => {
+    const dates = Array.from(
+      new Set(receipts.map((r) => sellerDateKey(r.createdAt)).filter(Boolean))
+    ).filter((d) => !fetchedSellerDates.current.has(d));
+
+    if (dates.length === 0) return;
+    dates.forEach((d) => fetchedSellerDates.current.add(d));
+
+    const token = localStorage.getItem('token');
+    Promise.all(
+      dates.map(async (d): Promise<[string, string]> => {
+        try {
+          const res = await axios.get(`${import.meta.env.VITE_AUTH_SERVICE_URL}api/daily-seller/${d}`, {
+            headers: { Authorization: `Bearer ${token}` },
+            withCredentials: true,
+          });
+          return [d, res.data?.name || ''];
+        } catch (err) {
+          return [d, '']; // no seller for that day — falls back to business name
+        }
+      })
+    ).then((entries) => {
+      setDailySellers((prev) => ({ ...prev, ...Object.fromEntries(entries) }));
+    });
+  }, [receipts]);
+
+  const getSellerName = (receipt: ReceiptData) =>
+    receipt.seller ||
+    dailySellers[sellerDateKey(receipt.createdAt)] ||
+    profileData?.nameOfBusiness ||
+    'Unknown Seller';
+
   // per-card installment payment
   const handlePaymentAmountChange = (id: string, value: string) => {
     setPaymentAmounts((prev) => ({ ...prev, [id]: value }));
@@ -364,6 +407,8 @@ useEffect(() => {
     const address2 = business?.businessDescription || 'Box 3456, Phakalane';
     const email = profile?.emailBusiness || 'tex@robotics.bw';
     const location = business?.businessNature || 'Fair Grounds';
+    // NEW: seller-name fallback, same priority as the live card view
+    const sellerName = getSellerName(receipt);
     
     // Add logo if available (fetch and add as base64)
     if (logoUrl && logoUrl !== '/default-logo.png') {
@@ -388,12 +433,14 @@ useEffect(() => {
       doc.text(`Date: ${new Date(receiptDate).toLocaleDateString()}`, 105, 80, { align: 'center' });
     }
     doc.text(`Receipt #: ${receipt.receiptsNumber || receipt._id.slice(-6)}`, 105, 85, { align: 'center' });
+    // NEW: seller line alongside the receipt number
+    doc.text(`Seller: ${sellerName}`, 105, 90, { align: 'center' });
     if (receipt.status) {
-      doc.text(`Status: ${receipt.status.toUpperCase()}`, 105, 90, { align: 'center' });
+      doc.text(`Status: ${receipt.status.toUpperCase()}`, 105, 95, { align: 'center' });
     }
     
     // Items Table
-    let yPosition = 100;
+    let yPosition = receipt.status ? 105 : 100;
     doc.setFontSize(14);
     doc.text('Item', 14, yPosition);
     doc.text('Qty', 60, yPosition);
@@ -635,6 +682,8 @@ useEffect(() => {
                         <h4 className={styles.statusText}>Status: {receipt.status.toUpperCase()}</h4>
                       )}
                       <h4>Receipt ID: {receipt.receiptsNumber || receipt._id.slice(-6)}</h4>
+                      {/* NEW: seller line, mirrors the fallback used in the PDF export */}
+                      <h4 className={styles.sellerLine}>Seller: {getSellerName(receipt)}</h4>
                     </div>
             
                     <div className={styles.items}>

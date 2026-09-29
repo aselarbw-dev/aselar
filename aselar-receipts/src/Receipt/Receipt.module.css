@@ -134,3 +134,18 @@
   font-weight: 700;
   color: #c0392b;
 }
+/* discount locked state */
+.discountInput:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+.discountButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.discountOffHint {
+  margin-top: 4px;
+  font-size: 11px;
+  color: #9ca3af;
+}

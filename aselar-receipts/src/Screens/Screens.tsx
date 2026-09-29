@@ -44,7 +44,7 @@ const Ledger = lazy(() => import("../Ledger/Ledger"));
 //const IncomeStatement = lazy(() => import("../Templates/IncomeStatement"));
 const FileUpload = lazy(() => import("../Uploads/FileUpload"));
 const ReceiptTemplate = lazy(() => import("../Templates/Receipt"));
-
+const AdminSettings = lazy(() => import("../Pages/AdminSettings"));
 const Profile = lazy(() => import("../Profile/Profile"));
 const Delivery = lazy(() => import("../Delivery/Delivery"));
 const DebtCollectionTemplate = lazy(() => import("../Delivery/DebtCollectionTemplate"));
@@ -83,6 +83,7 @@ const Screens = () => {
         <Route path="/pos-receipts" element={<AllCategoryReceipts/>} />
         <Route path="/aging-report" element={<AgingReport />} />
         <Route path="/sales-report" element={<SalesReport />} />
+        <Route path="/settings" element={<AdminSettings />} />
         <Route path="/recon" element={<ReconciliationView />} />
         <Route path="/process-return/:receiptId" element={<ProcessReturn />} />
         <Route path="/ledgers" element={<AllLedgers />} />

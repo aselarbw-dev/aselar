@@ -1,5 +1,6 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import styles from './Receipt.module.css';
+import { useDiscountEnabled } from '../Hooks/useDiscountEnabled';
 
 interface ReceiptItem {
   id: string; // Added for item removal functionality
@@ -21,9 +22,11 @@ interface ReceiptProps {
   onRemoveItem: (itemId: string) => void; // For removing items
   onItemDiscount?: (itemId: string) => void; // For applying item discounts
   onApplyGlobalDiscount?: (percent: number) => void; // For global discount
-  // NEW: optional lay-buy props — default behavior is completely unchanged when omitted
+  // optional lay-buy props — default behavior is completely unchanged when omitted
   saleType?: 'full' | 'laybuy';
   dueDate?: string | null;
+  // NEW: optional override — when omitted, the admin toggle setting is used
+  discountEnabled?: boolean;
 }
 
 const Receipt: React.FC<ReceiptProps> = ({ 
@@ -39,16 +42,37 @@ const Receipt: React.FC<ReceiptProps> = ({
   onItemDiscount,
   onApplyGlobalDiscount,
   saleType = 'full',
-  dueDate = null
+  dueDate = null,
+  discountEnabled
 }) => {
   const [discountPercent, setDiscountPercent] = React.useState<number>(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLaybuy = saleType === 'laybuy';
-  // NEW: balance owing for a lay-buy sale (deposit = cashPaid)
+  // balance owing for a lay-buy sale (deposit = cashPaid)
   const balanceRemaining = Math.max(total - cashPaid, 0);
+
+  // NEW: discounts are OFF by default — the admin toggle turns them on
+  const [toggleEnabled] = useDiscountEnabled();
+  const discountActive = discountEnabled ?? toggleEnabled;
+
+  // NEW: if discounts get switched off while one is applied, reset it so the totals stay honest
+  useEffect(() => {
+    if (!discountActive && discountPercent !== 0) {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+      setDiscountPercent(0);
+      if (onApplyGlobalDiscount) {
+        onApplyGlobalDiscount(0);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [discountActive]);
 
   // Handle discount percentage change
   const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!discountActive) return; // NEW: locked while the toggle is off
+
     const value = Math.min(100, Math.max(0, Number(e.target.value) || 0));
     setDiscountPercent(value); // updates instantly, input stays responsive
 
@@ -69,7 +93,7 @@ const Receipt: React.FC<ReceiptProps> = ({
     <div className={styles.receipt}>
       <div className={styles.receiptHeader}>
         <h3>Receipt</h3>
-        {/* NEW: Lay-buy badge */}
+        {/* Lay-buy badge */}
         {isLaybuy && <span className={styles.laybuyBadge}>LAY-BUY</span>}
       </div>
       <div className={styles.items}>
@@ -95,7 +119,8 @@ const Receipt: React.FC<ReceiptProps> = ({
                     <button 
                       className={styles.discountButton}
                       onClick={() => onItemDiscount(item.id)}
-                      title="Apply discount"
+                      disabled={!discountActive}
+                      title={discountActive ? 'Apply discount' : 'Discounts are turned off'}
                     >
                       %
                     </button>
@@ -142,9 +167,14 @@ const Receipt: React.FC<ReceiptProps> = ({
                 max="100"
                 value={discountPercent}
                 onChange={handleDiscountChange}
+                disabled={!discountActive}
+                title={discountActive ? undefined : 'Discounts are turned off'}
                 className={styles.discountInput}
               />
             </div>
+            {!discountActive && (
+              <div className={styles.discountOffHint}>Discounts are turned off</div>
+            )}
             
             {discount > 0 && (
               <div className={styles.totalRow}>
@@ -175,7 +205,7 @@ const Receipt: React.FC<ReceiptProps> = ({
           />
         </div>
         
-        {/* NEW: lay-buy shows balance + due date instead of change */}
+        {/* lay-buy shows balance + due date instead of change */}
         {isLaybuy ? (
           <>
             <div className={`${styles.totalRow} ${styles.laybuyBalance}`}>

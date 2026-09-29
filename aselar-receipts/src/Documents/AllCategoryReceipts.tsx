@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -84,15 +84,94 @@ interface DeleteModalProps {
   isDeleting: boolean;
 }
 
+type SaleTypeFilter = 'all' | 'full' | 'laybuy';
+
+// NEW: one row of a bar chart — the bar is split into normal and lay-buy portions
+interface BarRow {
+  label: string;
+  normal: number;
+  laybuy: number;
+}
+
 // how many days out from the due date a reminder starts showing (overdue always shows)
 const REMINDER_WINDOW_DAYS = 3;
 // localStorage key for dismissed reminders — dismissing a lay-buy hides it here
 // until it's fully paid (it naturally drops out of the "active" list once completed)
 const DISMISSED_LAYBUYS_KEY = 'aselar_dismissed_laybuy_reminders';
+// the backend paginates get-all (default 10). We pull everything so filters, seller
+// lookup and the summary are accurate, then paginate in the UI.
+const FETCH_ALL_LIMIT = 10000;
+const PAGE_SIZE_OPTIONS = [6, 12, 24, 48];
+const ITEM_BREAKDOWN_PREVIEW = 8;
+// NEW: how many rows each bar chart shows
+const CHART_TOP_N = 10;
 
 // yyyy-mm-dd key used by the daily-seller endpoint (same format as Receipt.tsx)
 const sellerDateKey = (date?: string) =>
   date ? new Date(date).toISOString().split('T')[0] : '';
+
+// yyyy-mm-dd in the viewer's LOCAL time — used by the date filter so it matches
+// the date the user actually sees on the card
+const localDateKey = (date?: string) => {
+  if (!date) return '';
+  const d = new Date(date);
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
+};
+
+// NEW: simple horizontal bar chart (pure CSS, blue). Dark blue = normal, light blue = lay-buy.
+const BarChart: React.FC<{
+  title: string;
+  rows: BarRow[];
+  format: (n: number) => string;
+}> = ({ title, rows, format }) => {
+  const max = Math.max(...rows.map((r) => r.normal + r.laybuy), 0);
+
+  return (
+    <div className={styles.chartCard}>
+      <h4 className={styles.summaryTableTitle}>{title}</h4>
+      <div className={styles.chartLegend}>
+        <span className={styles.legendItem}>
+          <span className={`${styles.legendDot} ${styles.chartSegNormal}`} /> Normal
+        </span>
+        <span className={styles.legendItem}>
+          <span className={`${styles.legendDot} ${styles.chartSegLaybuy}`} /> Lay-buy
+        </span>
+      </div>
+      <div className={styles.chartRows}>
+        {rows.map((r) => {
+          const total = r.normal + r.laybuy;
+          const normalPct = max > 0 ? (r.normal / max) * 100 : 0;
+          const laybuyPct = max > 0 ? (r.laybuy / max) * 100 : 0;
+          return (
+            <div key={r.label} className={styles.chartRow}>
+              <div className={styles.chartLabel} title={r.label}>{r.label}</div>
+              <div
+                className={styles.chartTrack}
+                title={`Normal: ${format(r.normal)} | Lay-buy: ${format(r.laybuy)}`}
+              >
+                {r.normal > 0 && (
+                  <div
+                    className={`${styles.chartSeg} ${styles.chartSegNormal}`}
+                    style={{ width: `${normalPct}%` }}
+                  />
+                )}
+                {r.laybuy > 0 && (
+                  <div
+                    className={`${styles.chartSeg} ${styles.chartSegLaybuy}`}
+                    style={{ width: `${laybuyPct}%` }}
+                  />
+                )}
+              </div>
+              <div className={styles.chartValue}>{format(total)}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 
 const DeleteConfirmationModal: React.FC<DeleteModalProps> = ({
   isOpen,
@@ -172,6 +251,16 @@ const AllCategoryReceipts: React.FC = () => {
   const [dailySellers, setDailySellers] = useState<Record<string, string>>({});
   const fetchedSellerDates = useRef<Set<string>>(new Set());
 
+  // filter + pagination state
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [dateFrom, setDateFrom] = useState<string>('');
+  const [dateTo, setDateTo] = useState<string>('');
+  const [sellerFilter, setSellerFilter] = useState<string>('all');
+  const [saleTypeFilter, setSaleTypeFilter] = useState<SaleTypeFilter>('all');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(12);
+  const [showAllItems, setShowAllItems] = useState<boolean>(false);
+
   // load dismissed reminder ids once on mount
   useEffect(() => {
     try {
@@ -225,14 +314,16 @@ useEffect(() => {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token')}`,
       },
-      params: { _t: Date.now() },
+      // ask for everything (backend default is 10) — filtering, the seller
+      // lookup and the summary all run on the full set; pagination happens in the UI
+      params: { limit: FETCH_ALL_LIMIT, _t: Date.now() },
       withCredentials: true,
     });
 
     console.log('Fetched receipts data:', response.data); // Debug log
     const receiptsData = response.data.data || [];
     setReceipts(receiptsData);
-    setTotalReceipts(response.data.count ?? receiptsData.length);
+    setTotalReceipts(receiptsData.length);
   } catch (error: any) {
     console.error('Fetch receipts error:', error);
     if (error.response?.status === 404) {
@@ -306,7 +397,7 @@ useEffect(() => {
     return r.laybuy.status === 'completed' ? 'LAY-BUY — PAID' : 'LAY-BUY';
   };
 
-  // NEW: seller-name fallback — per-receipt seller (if the backend set one) first,
+  // seller-name fallback — per-receipt seller (if the backend set one) first,
   // then the business name, then 'Unknown Seller'. Mirrors the PDF-service priority.
   // Daily seller fetch — one request per unique receipt date, same endpoint as Receipt.tsx
   useEffect(() => {
@@ -340,6 +431,181 @@ useEffect(() => {
     dailySellers[sellerDateKey(receipt.createdAt)] ||
     profileData?.nameOfBusiness ||
     'Unknown Seller';
+
+  // ───────────── filtering, summary, pagination ─────────────
+
+  // every distinct seller across all receipts (recomputes as daily sellers load in)
+  const sellerOptions = useMemo(
+    () => Array.from(new Set(receipts.map((r) => getSellerName(r)))).sort((a, b) => a.localeCompare(b)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [receipts, dailySellers, profileData]
+  );
+
+  const filteredReceipts = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    return receipts.filter((r) => {
+      // sale type — "normal" means anything that isn't a lay-buy (covers older receipts with no saleType)
+      if (saleTypeFilter === 'laybuy' && r.saleType !== 'laybuy') return false;
+      if (saleTypeFilter === 'full' && r.saleType === 'laybuy') return false;
+
+      // receipt number (also matches the short id shown when there's no receiptsNumber)
+      if (term) {
+        const number = (r.receiptsNumber || r._id.slice(-6)).toLowerCase();
+        if (!number.includes(term)) return false;
+      }
+
+      // date range (inclusive, local time)
+      if (dateFrom || dateTo) {
+        const key = localDateKey(r.createdAt);
+        if (!key) return false;
+        if (dateFrom && key < dateFrom) return false;
+        if (dateTo && key > dateTo) return false;
+      }
+
+      // seller
+      if (sellerFilter !== 'all' && getSellerName(r) !== sellerFilter) return false;
+
+      return true;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [receipts, searchTerm, dateFrom, dateTo, sellerFilter, saleTypeFilter, dailySellers, profileData]);
+
+  // summary over the WHOLE filtered set (all pages). Cancelled/refunded receipts are excluded.
+  const summary = useMemo(() => {
+    const countable = filteredReceipts.filter(
+      (r) => (!r.status || r.status === 'completed') && r.laybuy?.status !== 'cancelled'
+    );
+
+    let totalSales = 0;
+    let collected = 0;
+    let outstanding = 0;
+    let itemsSold = 0;
+    let laybuyCount = 0;
+    let normalCount = 0;
+    // CHANGED: item and seller maps now also track the normal / lay-buy split for the charts
+    const itemMap = new Map<
+      string,
+      {
+        name: string;
+        quantity: number;
+        revenue: number;
+        normalQty: number;
+        laybuyQty: number;
+        normalRevenue: number;
+        laybuyRevenue: number;
+      }
+    >();
+    const sellerMap = new Map<
+      string,
+      { name: string; receipts: number; total: number; normalTotal: number; laybuyTotal: number }
+    >();
+
+    countable.forEach((r) => {
+      const isLay = r.saleType === 'laybuy';
+      totalSales += r.total;
+      if (isLay) {
+        laybuyCount += 1;
+        collected += r.cashPaid;
+        if (r.laybuy && r.laybuy.status !== 'completed') outstanding += r.laybuy.balanceRemaining;
+      } else {
+        normalCount += 1;
+        collected += r.total;
+      }
+
+      (r.items || []).forEach((item) => {
+        itemsSold += item.quantity;
+        const key = item.name.trim().toLowerCase();
+        let entry = itemMap.get(key);
+        if (!entry) {
+          entry = {
+            name: item.name.trim(),
+            quantity: 0,
+            revenue: 0,
+            normalQty: 0,
+            laybuyQty: 0,
+            normalRevenue: 0,
+            laybuyRevenue: 0,
+          };
+          itemMap.set(key, entry);
+        }
+        entry.quantity += item.quantity;
+        entry.revenue += item.totalPrice;
+        if (isLay) {
+          entry.laybuyQty += item.quantity;
+          entry.laybuyRevenue += item.totalPrice;
+        } else {
+          entry.normalQty += item.quantity;
+          entry.normalRevenue += item.totalPrice;
+        }
+      });
+
+      const seller = getSellerName(r);
+      let s = sellerMap.get(seller);
+      if (!s) {
+        s = { name: seller, receipts: 0, total: 0, normalTotal: 0, laybuyTotal: 0 };
+        sellerMap.set(seller, s);
+      }
+      s.receipts += 1;
+      s.total += r.total;
+      if (isLay) s.laybuyTotal += r.total;
+      else s.normalTotal += r.total;
+    });
+
+    const items = Array.from(itemMap.values()).sort((a, b) => b.revenue - a.revenue);
+    const sellers = Array.from(sellerMap.values()).sort((a, b) => b.total - a.total);
+
+    // NEW: chart data — top N rows, split into normal / lay-buy
+    const qtyChart: BarRow[] = [...items]
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, CHART_TOP_N)
+      .map((i) => ({ label: i.name, normal: i.normalQty, laybuy: i.laybuyQty }));
+    const revenueChart: BarRow[] = items
+      .slice(0, CHART_TOP_N)
+      .map((i) => ({ label: i.name, normal: i.normalRevenue, laybuy: i.laybuyRevenue }));
+    const sellerChart: BarRow[] = sellers
+      .slice(0, CHART_TOP_N)
+      .map((s) => ({ label: s.name, normal: s.normalTotal, laybuy: s.laybuyTotal }));
+
+    return {
+      count: countable.length,
+      totalSales,
+      collected,
+      outstanding,
+      itemsSold,
+      laybuyCount,
+      normalCount,
+      items,
+      sellers,
+      qtyChart,
+      revenueChart,
+      sellerChart,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredReceipts, dailySellers, profileData]);
+
+  // back to page 1 whenever the filters or page size change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, dateFrom, dateTo, sellerFilter, saleTypeFilter, pageSize]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredReceipts.length / pageSize));
+  const safePage = Math.min(currentPage, totalPages);
+  const pagedReceipts = filteredReceipts.slice((safePage - 1) * pageSize, safePage * pageSize);
+
+  const hasActiveFilters =
+    searchTerm !== '' || dateFrom !== '' || dateTo !== '' || sellerFilter !== 'all' || saleTypeFilter !== 'all';
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setDateFrom('');
+    setDateTo('');
+    setSellerFilter('all');
+    setSaleTypeFilter('all');
+  };
+
+  const money = (n: number) => `BWP ${n.toFixed(2)}`;
+
+  // ───────────── end filtering/summary ─────────────
 
   // per-card installment payment
   const handlePaymentAmountChange = (id: string, value: string) => {
@@ -407,7 +673,7 @@ useEffect(() => {
     const address2 = business?.businessDescription || 'Box 3456, Phakalane';
     const email = profile?.emailBusiness || 'tex@robotics.bw';
     const location = business?.businessNature || 'Fair Grounds';
-    // NEW: seller-name fallback, same priority as the live card view
+    // seller-name fallback, same priority as the live card view
     const sellerName = getSellerName(receipt);
     
     // Add logo if available (fetch and add as base64)
@@ -433,7 +699,7 @@ useEffect(() => {
       doc.text(`Date: ${new Date(receiptDate).toLocaleDateString()}`, 105, 80, { align: 'center' });
     }
     doc.text(`Receipt #: ${receipt.receiptsNumber || receipt._id.slice(-6)}`, 105, 85, { align: 'center' });
-    // NEW: seller line alongside the receipt number
+    // seller line alongside the receipt number
     doc.text(`Seller: ${sellerName}`, 105, 90, { align: 'center' });
     if (receipt.status) {
       doc.text(`Status: ${receipt.status.toUpperCase()}`, 105, 95, { align: 'center' });
@@ -502,8 +768,8 @@ useEffect(() => {
     doc.save(fileName);
   };
 
-  const handleDownload = (index: number) => {
-    const receipt = receipts[index];
+  // takes the receipt itself (not an index) — indexes break once the list is filtered/paginated
+  const handleDownload = (receipt: ReceiptData) => {
     if (!receipt || !profileData || !businessData) {
       toast.error('Missing receipt or business data');
       return;
@@ -650,8 +916,206 @@ useEffect(() => {
         </div>
       ) : (
         <>
+          {/* filter bar */}
+          <div className={styles.filterBar}>
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Receipt number</label>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="e.g. RC-1A2B"
+                className={styles.filterInput}
+              />
+            </div>
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>From</label>
+              <input
+                type="date"
+                value={dateFrom}
+                max={dateTo || undefined}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className={styles.filterInput}
+              />
+            </div>
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>To</label>
+              <input
+                type="date"
+                value={dateTo}
+                min={dateFrom || undefined}
+                onChange={(e) => setDateTo(e.target.value)}
+                className={styles.filterInput}
+              />
+            </div>
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Seller</label>
+              <select
+                value={sellerFilter}
+                onChange={(e) => setSellerFilter(e.target.value)}
+                className={styles.filterInput}
+              >
+                <option value="all">All sellers</option>
+                {sellerOptions.map((name) => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>Sale type</label>
+              <div className={styles.typeChips}>
+                {([
+                  ['all', 'All'],
+                  ['full', 'Normal'],
+                  ['laybuy', 'Lay-buy'],
+                ] as [SaleTypeFilter, string][]).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setSaleTypeFilter(value)}
+                    className={`${styles.chip} ${saleTypeFilter === value ? styles.chipActive : ''}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {hasActiveFilters && (
+              <button type="button" onClick={clearFilters} className={styles.clearFilters}>
+                <FontAwesomeIcon icon={faTimes} /> Clear filters
+              </button>
+            )}
+          </div>
+
+          {/* summary for everything matching the current filters (all pages) */}
+          <div className={styles.summaryPanel}>
+            <div className={styles.summaryCards}>
+              <div className={styles.summaryCard}>
+                <span className={styles.summaryValue}>{filteredReceipts.length}</span>
+                <span className={styles.summaryLabel}>
+                  Receipts shown{hasActiveFilters ? ` (of ${receipts.length})` : ''}
+                </span>
+              </div>
+              <div className={styles.summaryCard}>
+                <span className={styles.summaryValue}>{money(summary.totalSales)}</span>
+                <span className={styles.summaryLabel}>Total sales</span>
+              </div>
+              <div className={styles.summaryCard}>
+                <span className={styles.summaryValue}>{money(summary.collected)}</span>
+                <span className={styles.summaryLabel}>Collected</span>
+              </div>
+              {summary.outstanding > 0 && (
+                <div className={`${styles.summaryCard} ${styles.summaryCardWarn}`}>
+                  <span className={styles.summaryValue}>{money(summary.outstanding)}</span>
+                  <span className={styles.summaryLabel}>Lay-buy outstanding</span>
+                </div>
+              )}
+              <div className={styles.summaryCard}>
+                <span className={styles.summaryValue}>{summary.itemsSold}</span>
+                <span className={styles.summaryLabel}>Items sold</span>
+              </div>
+              <div className={styles.summaryCard}>
+                <span className={styles.summaryValue}>{summary.normalCount} / {summary.laybuyCount}</span>
+                <span className={styles.summaryLabel}>Normal / Lay-buy</span>
+              </div>
+            </div>
+
+            {summary.items.length > 0 && (
+              <div className={styles.summaryTables}>
+                <div className={styles.tableWrap}>
+                  <h4 className={styles.summaryTableTitle}>
+                    Items sold{sellerFilter !== 'all' ? ` — ${sellerFilter}` : ''}
+                  </h4>
+                  <table className={styles.summaryTable}>
+                    <thead>
+                      <tr>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Revenue</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(showAllItems ? summary.items : summary.items.slice(0, ITEM_BREAKDOWN_PREVIEW)).map((it) => (
+                        <tr key={it.name}>
+                          <td>{it.name}</td>
+                          <td>{it.quantity}</td>
+                          <td>{money(it.revenue)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {summary.items.length > ITEM_BREAKDOWN_PREVIEW && (
+                    <button
+                      type="button"
+                      className={styles.showMoreButton}
+                      onClick={() => setShowAllItems((v) => !v)}
+                    >
+                      {showAllItems ? 'Show less' : `Show all ${summary.items.length} items`}
+                    </button>
+                  )}
+                </div>
+
+                {/* per-seller breakdown, only useful when not already filtered to one seller */}
+                {sellerFilter === 'all' && summary.sellers.length > 0 && (
+                  <div className={styles.tableWrap}>
+                    <h4 className={styles.summaryTableTitle}>Sales by seller</h4>
+                    <table className={styles.summaryTable}>
+                      <thead>
+                        <tr>
+                          <th>Seller</th>
+                          <th>Receipts</th>
+                          <th>Total sales</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {summary.sellers.map((s) => (
+                          <tr key={s.name}>
+                            <td>{s.name}</td>
+                            <td>{s.receipts}</td>
+                            <td>{money(s.total)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* NEW: blue bar charts below the numbers — dark blue = normal, light blue = lay-buy */}
+            {summary.items.length > 0 && (
+              <div className={styles.chartsGrid}>
+                <BarChart
+                  title={`Items sold — quantity (top ${Math.min(CHART_TOP_N, summary.qtyChart.length)})`}
+                  rows={summary.qtyChart}
+                  format={(n) => String(n)}
+                />
+                <BarChart
+                  title={`Items sold — revenue (top ${Math.min(CHART_TOP_N, summary.revenueChart.length)})`}
+                  rows={summary.revenueChart}
+                  format={money}
+                />
+                {sellerFilter === 'all' && summary.sellerChart.length > 0 && (
+                  <BarChart
+                    title="Sales by seller"
+                    rows={summary.sellerChart}
+                    format={money}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+
+          {filteredReceipts.length === 0 ? (
+            <div className={styles.noDataContainer}>
+              <div className={styles.noDataIcon}>🔍</div>
+              <h3>No receipts match your filters</h3>
+              <p>Try a different receipt number, date range, seller or sale type.</p>
+              <button className={styles.createButton} onClick={clearFilters}>Clear filters</button>
+            </div>
+          ) : (
           <div className={styles.receiptsGrid}>
-            {receipts.map((receipt, index) => {
+            {pagedReceipts.map((receipt) => {
               const isLaybuy = receipt.saleType === 'laybuy';
               const isOpenLaybuy = isLaybuy && receipt.laybuy && receipt.laybuy.status !== 'completed' && receipt.laybuy.status !== 'cancelled';
               return (
@@ -682,7 +1146,7 @@ useEffect(() => {
                         <h4 className={styles.statusText}>Status: {receipt.status.toUpperCase()}</h4>
                       )}
                       <h4>Receipt ID: {receipt.receiptsNumber || receipt._id.slice(-6)}</h4>
-                      {/* NEW: seller line, mirrors the fallback used in the PDF export */}
+                      {/* seller line, mirrors the fallback used in the PDF export */}
                       <h4 className={styles.sellerLine}>Seller: {getSellerName(receipt)}</h4>
                     </div>
             
@@ -803,7 +1267,7 @@ useEffect(() => {
                 <div className={styles.cardActions}>
                   <button 
                     className={`${styles.actionButton} ${styles.downloadButton}`}
-                    onClick={() => handleDownload(index)}
+                    onClick={() => handleDownload(receipt)}
                     title="Download PDF"
                   >
                     <FontAwesomeIcon icon={faDownload} />
@@ -826,6 +1290,61 @@ useEffect(() => {
               );
             })}
           </div>
+          )}
+
+          {/* pagination */}
+          {filteredReceipts.length > 0 && (
+            <div className={styles.pagination}>
+              <div className={styles.pageSizeWrap}>
+                <label className={styles.filterLabel}>Per page</label>
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  className={styles.pageSizeSelect}
+                >
+                  {PAGE_SIZE_OPTIONS.map((n) => (
+                    <option key={n} value={n}>{n}</option>
+                  ))}
+                </select>
+              </div>
+              <div className={styles.pageControls}>
+                <button
+                  className={styles.pageButton}
+                  onClick={() => setCurrentPage(1)}
+                  disabled={safePage === 1}
+                >
+                  «
+                </button>
+                <button
+                  className={styles.pageButton}
+                  onClick={() => setCurrentPage(safePage - 1)}
+                  disabled={safePage === 1}
+                >
+                  Prev
+                </button>
+                <span className={styles.pageInfo}>
+                  Page {safePage} of {totalPages}
+                  <span className={styles.pageRange}>
+                    {' '}({(safePage - 1) * pageSize + 1}–{Math.min(safePage * pageSize, filteredReceipts.length)} of {filteredReceipts.length})
+                  </span>
+                </span>
+                <button
+                  className={styles.pageButton}
+                  onClick={() => setCurrentPage(safePage + 1)}
+                  disabled={safePage === totalPages}
+                >
+                  Next
+                </button>
+                <button
+                  className={styles.pageButton}
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={safePage === totalPages}
+                >
+                  »
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
 

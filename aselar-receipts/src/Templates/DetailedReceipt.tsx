@@ -831,4 +831,4 @@ useEffect(() => {
   );
 };
 
-export default DetailedReceipt;
+export default DetailedReceipt;  

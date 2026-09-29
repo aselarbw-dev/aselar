@@ -81,7 +81,7 @@
 
 .buttonReceipt {
   background: #E8A33D;
-  color: #1B1F3B;
+  color: #ffffff;
 }
 
 .buttonReceipt:hover {
@@ -90,7 +90,7 @@
 }
 
 .buttonRecent {
-  background: #1B1F3B;
+  background: #0D6EFD;
   color: #ffffff;
 }
 
@@ -401,7 +401,7 @@
 }
 
 .downloadButton {
-  background: #1B1F3B;
+  background: #0D6EFD;
   color: #ffffff;
 }
 
@@ -828,4 +828,281 @@
   font-weight: 600;
   color: #333;
   margin-top: 2px;
+}
+/* ───────── filters ───────── */
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+  padding: 16px;
+  margin: 16px 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+}
+.filterLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+}
+.filterInput {
+  padding: 8px 10px;
+  font-size: 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  outline: none;
+}
+.filterInput:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+}
+.typeChips {
+  display: flex;
+  gap: 6px;
+}
+.chip {
+  padding: 8px 12px;
+  font-size: 13px;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+}
+.chipActive {
+  background: #6366f1;
+  border-color: #6366f1;
+  color: #fff;
+}
+.clearFilters {
+  padding: 8px 12px;
+  font-size: 13px;
+  border: none;
+  background: transparent;
+  color: #ef4444;
+  cursor: pointer;
+}
+
+/* ───────── summary ───────── */
+.summaryPanel {
+  margin-bottom: 20px;
+}
+.summaryCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+.summaryCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+.summaryCardWarn {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+.summaryValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+}
+.summaryLabel {
+  font-size: 12px;
+  color: #6b7280;
+}
+.summaryTables {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.tableWrap {
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+.summaryTableTitle {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: #111827;
+}
+.summaryTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.summaryTable th {
+  text-align: left;
+  padding: 6px 8px;
+  color: #6b7280;
+  font-weight: 600;
+  border-bottom: 1px solid #e5e7eb;
+}
+.summaryTable td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #f3f4f6;
+}
+.showMoreButton {
+  margin-top: 8px;
+  padding: 4px 0;
+  border: none;
+  background: transparent;
+  color: #6366f1;
+  font-size: 13px;
+  cursor: pointer;
+}
+/* ───────── bar charts (blue) ───────── */
+.chartsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.chartCard {
+  padding: 14px 16px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+.chartLegend {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: #6b7280;
+}
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}
+.chartRows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.chartRow {
+  display: grid;
+  grid-template-columns: 110px 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+.chartLabel {
+  font-size: 12px;
+  color: #374151;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chartTrack {
+  display: flex;
+  height: 16px;
+  background: #eff6ff;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.chartSeg {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+.chartSegNormal {
+  background: #2563eb; /* dark blue — normal sales */
+}
+.chartSegLaybuy {
+  background: #93c5fd; /* light blue — lay-buy sales */
+}
+.chartValue {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e3a8a;
+  min-width: 70px;
+  text-align: right;
+}
+/* ───────── pagination ───────── */
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 24px 0;
+}
+.pageSizeWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pageSizeSelect {
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+}
+.pageControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pageButton {
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+.pageButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.pageInfo {
+  font-size: 14px;
+  color: #374151;
+}
+.pageRange {
+  color: #9ca3af;
+  font-size: 12px;
+}
+@media (max-width: 480px) {
+  .filterGroup {
+    min-width: 100%;
+  }
+  .typeChips {
+    flex-wrap: wrap;
+  }
+  .chartRow {
+    grid-template-columns: 80px 1fr;
+    row-gap: 2px;
+  }
+  .chartValue {
+    grid-column: 2;
+    text-align: left;
+    min-width: 0;
+  }
+  .pagination,
+  .pageControls {
+    justify-content: center;
+  }
+  .pageControls {
+    flex-wrap: wrap;
+  }
 }

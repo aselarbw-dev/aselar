@@ -3,7 +3,8 @@ const router = express.Router();
 const {getLatestReceipt,getReceiptById,
     getReceipts, openCashDrawer,getReceiptsSummary,
     deleteReceipt,getLaybuys,addLaybuyPayment,
-    getSalesSummary,submitReceipt} = require('../controllers/inventoryReceipts');
+    getSalesSummary,submitReceipt,
+    getDiscountSetting,setDiscountSetting} = require('../controllers/inventoryReceipts');
 const { protect} = require('../../Shared/protect'); // Adjust the path as necessary
 
 
@@ -57,5 +58,9 @@ router.get(
   getSalesSummary
 );
 router.delete('/receipt/:id', protect, deleteReceipt);
+
+// NEW: discount on/off setting
+router.get('/discount-setting', protect, getDiscountSetting);
+router.put('/discount-setting', protect, setDiscountSetting);
 
 module.exports = router;

@@ -50,7 +50,21 @@ const submitReceipt = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Deposit cannot cover the full total — use a normal sale instead' });
       }
     }
+    // NEW: server-side discount lock — the UI toggle alone isn't enough
+    const hasDiscount =
+      discount > 0 ||
+      items.some((item) => Number(item.discount) > 0);
 
+    if (hasDiscount) {
+      await connectDB();
+      const discountAllowed = await isDiscountEnabledFor(req.user._id);
+      if (!discountAllowed) {
+        return res.status(403).json({
+          success: false,
+          message: 'Discounts are turned off. Ask the owner to enable them.'
+        });
+      }
+    }
     // Calculate total price for each item
     const processedItems = items.map(item => ({
       name: item.name,
@@ -489,7 +503,49 @@ const addLaybuyPayment = async (req, res) => {
     });
   }
 };
+// NEW: reads the discount setting for an account — missing document means OFF
+const isDiscountEnabledFor = async (userId) => {
+  const DiscountSetting = require('../models/discountSetting');
+  const setting = await DiscountSetting.findOne({ user: userId });
+  return !!(setting && setting.enabled);
+};
 
+// NEW: GET /discount-setting
+const getDiscountSetting = async (req, res) => {
+  try {
+    await connectDB();
+    const enabled = await isDiscountEnabledFor(req.user._id);
+    return res.status(200).json({ success: true, enabled });
+  } catch (error) {
+    console.error('Error reading discount setting:', error);
+    return res.status(500).json({ success: false, message: 'Server error. Please try again.' });
+  }
+};
+
+// NEW: PUT /discount-setting  { enabled: true|false }
+const setDiscountSetting = async (req, res) => {
+  try {
+    const { enabled } = req.body;
+
+    if (typeof enabled !== 'boolean') {
+      return res.status(400).json({ success: false, message: '"enabled" must be true or false' });
+    }
+
+    await connectDB();
+    const DiscountSetting = require('../models/discountSetting');
+
+    const setting = await DiscountSetting.findOneAndUpdate(
+      { user: req.user._id },
+      { enabled, updatedAt: new Date() },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+
+    return res.status(200).json({ success: true, enabled: setting.enabled });
+  } catch (error) {
+    console.error('Error saving discount setting:', error);
+    return res.status(500).json({ success: false, message: 'Server error. Please try again.' });
+  }
+};
 module.exports = {
   submitReceipt,
   getLatestReceipt,
@@ -500,5 +556,7 @@ module.exports = {
   openCashDrawer,
   getSalesSummary,
   getLaybuys,
-  addLaybuyPayment
+  addLaybuyPayment,
+  getDiscountSetting,
+  setDiscountSetting
 };

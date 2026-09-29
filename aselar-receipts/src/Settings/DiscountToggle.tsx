@@ -3,14 +3,25 @@ import { useDiscountEnabled } from '../Hooks/useDiscountEnabled';
 import styles from './DiscountToggle.module.css';
 
 const DiscountToggle: React.FC = () => {
-  const [enabled, setEnabled] = useDiscountEnabled();
+  const [enabled, setEnabled, loading] = useDiscountEnabled();
+  const [saving, setSaving] = React.useState<boolean>(false);
+
+  const handleToggle = async () => {
+    setSaving(true);
+    await setEnabled(!enabled);
+    setSaving(false);
+  };
 
   return (
     <div className={styles.wrapper}>
       <div className={styles.text}>
         <span className={styles.title}>Discounts</span>
         <span className={styles.status}>
-          {enabled ? 'On — cashiers can apply discounts' : 'Off — discount input is locked'}
+          {loading
+            ? 'Loading...'
+            : enabled
+            ? 'On — cashiers can apply discounts'
+            : 'Off — discount input is locked'}
         </span>
       </div>
       <button
@@ -18,7 +29,8 @@ const DiscountToggle: React.FC = () => {
         role="switch"
         aria-checked={enabled}
         aria-label="Toggle discounts"
-        onClick={() => setEnabled(!enabled)}
+        onClick={handleToggle}
+        disabled={loading || saving}
         className={`${styles.switch} ${enabled ? styles.switchOn : ''}`}
       >
         <span className={styles.knob} />

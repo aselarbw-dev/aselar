@@ -1,39 +1,74 @@
 import { useCallback, useEffect, useState } from 'react';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
-export const DISCOUNT_ENABLED_KEY = 'aselar_discount_enabled';
-// same-tab changes don't fire the browser's "storage" event, so we dispatch our own
+// same-tab components using the hook stay in sync through this event
 const CHANGE_EVENT = 'aselar-discount-setting-change';
 
-// default is OFF — only an explicit "true" turns discounts on
-const readSetting = (): boolean => {
+const settingUrl = () =>
+  `${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/discount-setting`;
+
+const authConfig = () => ({
+  headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+  withCredentials: true,
+});
+
+// module-level cache so several components don't each hit the API
+let cachedValue: boolean | null = null;
+
+const fetchSetting = async (): Promise<boolean> => {
   try {
-    return localStorage.getItem(DISCOUNT_ENABLED_KEY) === 'true';
-  } catch {
-    return false;
+    const res = await axios.get(settingUrl(), {
+      ...authConfig(),
+      params: { _t: Date.now() },
+    });
+    cachedValue = !!res.data?.enabled;
+  } catch (err) {
+    console.error('Failed to load discount setting — keeping discounts locked', err);
+    cachedValue = false; // fail safe: locked
   }
+  return cachedValue;
 };
 
-export const useDiscountEnabled = (): [boolean, (value: boolean) => void] => {
-  const [enabled, setEnabled] = useState<boolean>(readSetting);
+export const useDiscountEnabled = (): [boolean, (value: boolean) => Promise<void>, boolean] => {
+  // [enabled, setEnabled, loading]
+  const [enabled, setEnabledState] = useState<boolean>(cachedValue ?? false);
+  const [loading, setLoading] = useState<boolean>(cachedValue === null);
 
   useEffect(() => {
-    const sync = () => setEnabled(readSetting());
-    window.addEventListener('storage', sync); // other tabs
-    window.addEventListener(CHANGE_EVENT, sync); // this tab
+    let cancelled = false;
+
+    if (cachedValue === null) {
+      fetchSetting().then((value) => {
+        if (!cancelled) {
+          setEnabledState(value);
+          setLoading(false);
+        }
+      });
+    }
+
+    const sync = () => {
+      if (cachedValue !== null) setEnabledState(cachedValue);
+    };
+    window.addEventListener(CHANGE_EVENT, sync);
+
     return () => {
-      window.removeEventListener('storage', sync);
+      cancelled = true;
       window.removeEventListener(CHANGE_EVENT, sync);
     };
   }, []);
 
-  const update = useCallback((value: boolean) => {
+  const update = useCallback(async (value: boolean) => {
     try {
-      localStorage.setItem(DISCOUNT_ENABLED_KEY, String(value));
-    } catch (err) {
-      console.warn('Failed to persist discount setting', err);
+      const res = await axios.put(settingUrl(), { enabled: value }, authConfig());
+      cachedValue = !!res.data?.enabled;
+      setEnabledState(cachedValue);
+      window.dispatchEvent(new Event(CHANGE_EVENT));
+    } catch (err: any) {
+      console.error('Failed to save discount setting', err);
+      toast.error(err.response?.data?.message || 'Failed to update discount setting');
     }
-    window.dispatchEvent(new Event(CHANGE_EVENT));
   }, []);
 
-  return [enabled, update];
+  return [enabled, update, loading];
 };

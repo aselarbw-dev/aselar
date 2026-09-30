@@ -27,13 +27,44 @@ const initialSignup: FormSignUp = {
   profilePicture: null,
 };
 
+// ---- Password rules: ONE source of truth (change here if the pattern changes later) ----
+const ALLOWED_SPECIALS = ['@', '$', '!', '%', '*', '?', '&'];
+const SPECIAL_CHAR_REGEX = /[@$!%*?&]/;
+const ALLOWED_CHARS_ONLY_REGEX = /^[A-Za-z\d@$!%*?&]*$/;
+
+const getPasswordRequirements = (password: string) => [
+  { met: password.length >= 8, text: "At least 8 characters" },
+  { met: /[A-Z]/.test(password), text: "One uppercase letter (A-Z)" },
+  { met: /[a-z]/.test(password), text: "One lowercase letter (a-z)" },
+  { met: /\d/.test(password), text: "One number (0-9)" },
+  { met: SPECIAL_CHAR_REGEX.test(password), text: "One special character from the list above" },
+  { met: ALLOWED_CHARS_ONLY_REGEX.test(password), text: "Only letters, numbers and the symbols above (no spaces or other symbols)" },
+];
+
+const isPasswordValid = (password: string): boolean =>
+  getPasswordRequirements(password).every((req) => req.met);
+
 const SignUp: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [load, setLoad] = useState(false);
   const [userProfile, setUserProfile] = useState<FormSignUp>(initialSignup);
   const [preview, setPreview] = useState<any>();
-  const [passwordStrength, setPasswordStrength] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+
+  // Derived from the password on every render (no toasts, no stale state)
+  const hasPassword = userProfile.password.length > 0;
+  const requirements = getPasswordRequirements(userProfile.password);
+  const metCount = requirements.filter((req) => req.met).length;
+  const passwordStrength: string = !hasPassword
+    ? ""
+    : metCount === requirements.length
+    ? "strong"
+    : metCount < 4
+    ? "weak"
+    : "medium";
+
+  const submitDisabled = loading || passwordStrength !== 'strong';
 
   const handleEvents = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -41,53 +72,6 @@ const SignUp: React.FC = () => {
       ...userProfile,
       [name]: value,
     });
-
-    // Real-time password validation
-    if (name === 'password') {
-      validatePasswordStrength(value);
-    }
-  };
-const SPECIAL_CHARS = `@$!%*?&#^()_\\-+=[\\]{};:'",.<>/~`;
-  const validatePasswordStrength = (password: string) => {
-    const hasUpperCase = /[A-Z]/.test(password);
-    const hasLowerCase = /[a-z]/.test(password);
-    const hasNumbers = /\d/.test(password);
-    const hasSpecialChar = new RegExp(`[${SPECIAL_CHARS}]`).test(password);
-    
-    const hasMinLength = password.length >= 8;
-const isPasswordValid = (password: string): boolean => {
-  const passwordRegex = new RegExp(
-    `^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[${SPECIAL_CHARS}])[A-Za-z\\d${SPECIAL_CHARS}]{8,}$`
-  );
-  return passwordRegex.test(password);
-};
-    const requirements = [
-      { met: hasMinLength, text: "At least 8 characters" },
-      { met: hasUpperCase, text: "One uppercase letter" },
-      { met: hasLowerCase, text: "One lowercase letter" },
-      { met: hasNumbers, text: "One number" },
-      { met: hasSpecialChar, text: "One special character (@$!%*?&)" }
-    ];
-
-    const metRequirements = requirements.filter(req => req.met).length;
-    if (!isPasswordValid(userProfile.password)) {
-  const hasDisallowedChar = !new RegExp(`^[A-Za-z\\d${SPECIAL_CHARS}]*$`).test(userProfile.password);
-  if (hasDisallowedChar) {
-    toast.error("Your password contains a character we don't support. Please stick to letters, numbers, and common symbols like @ $ ! % * ? & # _ - + .");
-  } else {
-    toast.error("Password must be at least 8 characters and include an uppercase letter, a lowercase letter, a number, and a special character.");
-  }
-  return;
-}
-    if (password.length === 0) {
-      setPasswordStrength("");
-    } else if (metRequirements < 3) {
-      setPasswordStrength("weak");
-    } else if (metRequirements < 5) {
-      setPasswordStrength("medium");
-    } else {
-      setPasswordStrength("strong");
-    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,7 +79,7 @@ const isPasswordValid = (password: string): boolean => {
 
    // Check image size (2MB = 2 * 1024 * 1024 bytes)
     if (file && file.size > 2 * 1024 * 1024) {
-      toast.error("Image is too large. Please upload an image less than 2MB.");
+      toast.error("Image is too large. Please upload an image less than 2MB.", { toastId: 'logo-too-large' });
       return;
     }
 
@@ -116,33 +100,31 @@ const isPasswordValid = (password: string): boolean => {
     }
   };
 
-  const isPasswordValid = (password: string): boolean => {
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    return passwordRegex.test(password);
-  };
-
   const submitForm = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     if (!userProfile.nameOfBusiness || !userProfile.businessPhone ||
         !userProfile.emailBusiness || !userProfile.password || !userProfile.place || !userProfile.city) {
-      toast.error("Please enter necessary required information.");
+      toast.error("Please enter necessary required information.", { toastId: 'required-fields' });
       return;
     }
     
     if (!userProfile.emailBusiness.includes("@")) {
-      toast.error("Please enter a valid email.");
+      toast.error("Please enter a valid email.", { toastId: 'invalid-email' });
       return;
     }
     
-    // Enhanced password validation
+    // Password validation (only shown on submit, never while typing)
     if (!isPasswordValid(userProfile.password)) {
-      toast.error("Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)");
+      toast.error(
+        `Password must be at least 8 characters with an uppercase letter, a lowercase letter, a number and one special character from: ${ALLOWED_SPECIALS.join(' ')}`,
+        { toastId: 'invalid-password' }
+      );
       return;
     }
     
     if (!userProfile.profilePicture) {
-      toast.error("Please upload a profile picture.");
+      toast.error("Please upload a profile picture.", { toastId: 'missing-logo' });
       return;
     }
 
@@ -169,7 +151,7 @@ const isPasswordValid = (password: string): boolean => {
 console.log("Signup response data:", data); // add this
       
      if (!response.ok) {
-  toast.error(data.message || "Registration failed. Please try again.");
+  toast.error(data.message || "Registration failed. Please try again.", { toastId: 'signup-failed' });
   return;
 }
 
@@ -179,11 +161,10 @@ localStorage.setItem('token', data.token);
 toast.success(`Welcome on board ${userProfile.nameOfBusiness}!`);
 navigate("/create-passcode");
       setUserProfile(initialSignup);
-      setPasswordStrength("");
       
     } catch (error) {
       console.error('Registration error:', error);
-      toast.error("An error occurred. Please try again.");
+      toast.error("An error occurred. Please try again.", { toastId: 'signup-error' });
     } finally {
       setLoading(false);
       setLoad(false);
@@ -199,17 +180,6 @@ navigate("/create-passcode");
     }
   };
 
-  const getPasswordRequirements = () => {
-    const password = userProfile.password;
-    return [
-      { met: password.length >= 8, text: "At least 8 characters" },
-      { met: /[A-Z]/.test(password), text: "One uppercase letter" },
-      { met: /[a-z]/.test(password), text: "One lowercase letter" },
-      { met: /\d/.test(password), text: "One number" },
-      { met: /[@$!%*?&]/.test(password), text: "One special character (@$!%*?&)" }
-    ];
-  };
-
   return (
     <div className={user.mainUser}>
       {load && <Spinner />}
@@ -222,10 +192,10 @@ navigate("/create-passcode");
           <h1 className={user.registerHeader}>Business Signup</h1>
           
           <div className={user.formInfo}>
-            <label htmlFor="">Business Owner</label>
+            <label htmlFor="">Business Name</label>
             <input
               type="text"
-              placeholder="business owner"
+              placeholder="business name"
               name="nameOfBusiness"
               onChange={handleEvents}
               value={userProfile.nameOfBusiness}
@@ -275,17 +245,44 @@ navigate("/create-passcode");
   />
 </div>
           <div className={user.formInfo}>
-            <label htmlFor="">Password</label>
-            <input
-              type="password"
-              placeholder="password"
-              name="password"
-              onChange={handleEvents}
-              value={userProfile.password}
-            />
+            <label htmlFor="password">Password</label>
+
+            {/* Password input with Show / Hide toggle */}
+            <div style={{ position: 'relative', width: '100%' }}>
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="password"
+                name="password"
+                autoComplete="new-password"
+                onChange={handleEvents}
+                value={userProfile.password}
+                style={{ width: '100%', boxSizing: 'border-box', paddingRight: '4.5rem' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                style={{
+                  position: 'absolute',
+                  right: '8px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  color: '#3b82f6',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  padding: '4px 6px'
+                }}
+              >
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
             
             {/* Password Strength Indicator */}
-            {userProfile.password && (
+            {hasPassword && (
               <div style={{ marginTop: '8px' }}>
                 <div style={{
                   height: '4px',
@@ -314,33 +311,57 @@ navigate("/create-passcode");
               </div>
             )}
             
-            {/* Password Requirements */}
-            {userProfile.password && (
-              <div style={{ 
-                marginTop: '8px', 
-                padding: '8px', 
-                backgroundColor: '#f8f9fa', 
-                borderRadius: '4px',
-                fontSize: '12px'
-              }}>
-                <div style={{ fontWeight: 'bold', marginBottom: '4px', color: '#666' }}>
-                  Password Requirements:
-                </div>
-                {getPasswordRequirements().map((req, index) => (
-                  <div key={index} style={{ 
-                    color: req.met ? '#2ed573' : '#ff4757',
-                    display: 'flex',
-                    alignItems: 'center',
-                    marginBottom: '2px'
-                  }}>
-                    <span style={{ marginRight: '6px' }}>
-                      {req.met ? '✓' : '✗'}
-                    </span>
-                    {req.text}
-                  </div>
-                ))}
+            {/* Password Requirements - always visible so users know the rules before typing */}
+            <div style={{ 
+              marginTop: '8px', 
+              padding: '10px', 
+              backgroundColor: '#f8f9fa', 
+              borderRadius: '4px',
+              fontSize: '12px'
+            }}>
+              <div style={{ fontWeight: 'bold', marginBottom: '6px', color: '#666' }}>
+                Password rules:
               </div>
-            )}
+
+              <div style={{ marginBottom: '8px', color: '#666' }}>
+                Special characters allowed (use only these):
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
+                  {ALLOWED_SPECIALS.map((char) => (
+                    <span
+                      key={char}
+                      style={{
+                        fontFamily: 'monospace',
+                        fontWeight: 700,
+                        fontSize: '13px',
+                        minWidth: '24px',
+                        textAlign: 'center',
+                        padding: '2px 6px',
+                        background: '#fff',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '4px',
+                        color: '#0f172a'
+                      }}
+                    >
+                      {char}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {requirements.map((req, index) => (
+                <div key={index} style={{ 
+                  color: !hasPassword ? '#666' : req.met ? '#2ed573' : '#ff4757',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  marginBottom: '2px'
+                }}>
+                  <span style={{ marginRight: '6px' }}>
+                    {!hasPassword ? '•' : req.met ? '✓' : '✗'}
+                  </span>
+                  {req.text}
+                </div>
+              ))}
+            </div>
           </div>
           
           <div className={user.formInfo}>
@@ -369,10 +390,10 @@ navigate("/create-passcode");
           <div className={user.formButton}>
             <button 
               type="submit"
-              disabled={loading || passwordStrength !== 'strong'}
+              disabled={submitDisabled}
               style={{
-                opacity: loading || (userProfile.password && passwordStrength !== 'strong') ? 0.6 : 1,
-                cursor: loading || (userProfile.password && passwordStrength !== 'strong') ? 'not-allowed' : 'pointer'
+                opacity: submitDisabled ? 0.6 : 1,
+                cursor: submitDisabled ? 'not-allowed' : 'pointer'
               }}
             >
               Submit

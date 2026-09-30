@@ -6,7 +6,7 @@ const DiscountToggle: React.FC = () => {
   const [enabled, setEnabled, loading] = useDiscountEnabled();
   const [saving, setSaving] = React.useState<boolean>(false);
 
-  const handleToggle = async () => {
+  const handleToggle = async () => { 
     setSaving(true);
     await setEnabled(!enabled);
     setSaving(false);

@@ -1,0 +1,143 @@
+/* AdminSettings.module.css */
+.page {
+  min-height: 100%;
+  background: #f8fafc;
+  padding: 2rem 1.5rem 3rem;
+  box-sizing: border-box;
+}
+
+.header {
+  max-width: 1040px;
+  margin: 0 auto 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.subtitle {
+  margin: 0.35rem 0 0;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.layout {
+  max-width: 1040px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+/* ---- Side navigation ---- */
+.nav {
+  position: sticky;
+  top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.navLink {
+  display: block;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  color: #475569;
+  font-size: 0.92rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.navLink:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* ---- Content ---- */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+}
+
+.section {
+  scroll-margin-top: 1.5rem;
+}
+
+.sectionHeader {
+  margin-bottom: 0.85rem;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.sectionDescription {
+  margin: 0.25rem 0 0;
+  color: #64748b;
+  font-size: 0.88rem;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.08);
+  padding: 1.25rem 1.5rem;
+  overflow: hidden;
+}
+
+/*
+  Neutralise each child component's own outer box (border, margin, width,
+  padding) so the card is the only visible container.
+*/
+.card > * {
+  max-width: none !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  box-sizing: border-box;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .nav {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+
+  .navLink {
+    white-space: nowrap;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+  }
+
+  .page {
+    padding: 1.25rem 1rem 2rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+}

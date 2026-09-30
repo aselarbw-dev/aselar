@@ -82,3 +82,36 @@
 .submitButton:hover {
   background: #0056b3;
 }
+
+/* ---- Added for seller verification ---- */
+.submitButton:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.loading {
+  margin: 0;
+  color: #475569;
+}
+
+.notice {
+  font-size: 0.85rem;
+  color: #475569;
+  background: #f1f5f9;
+  border-radius: 4px;
+  padding: 0.6rem 0.75rem;
+  margin: 0.75rem 0;
+  text-align: left;
+}
+
+.ownerName {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #0f172a;
+  background: #fef9c3;
+  border: 1px dashed #eab308;
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin: 0.75rem 0;
+  word-break: break-word;
+}

@@ -1,9 +1,12 @@
 // SellerNameProvider.tsx
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import styles from './SellerNameProvider.module.css';
 
 const API_BASE = `${import.meta.env.VITE_AUTH_SERVICE_URL}api/seller`;
-const RECHECK_INTERVAL_MS = 5 * 60 * 1000; // re-verify every 5 minutes
+const RECHECK_INTERVAL_MS = 5 * 60 * 1000; // silent background re-verify every 5 minutes
+const VERIFY_TTL_MS = 5 * 60 * 1000;       // a verification stays "fresh" for 5 minutes
+const FOCUS_MIN_GAP_MS = 60 * 1000;        // tab-focus re-check at most once a minute
+const REQUEST_TIMEOUT_MS = 8000;
 
 const getTodayDate = (): string => {
   const today = new Date();
@@ -34,6 +37,19 @@ const authHeaders = () => ({
   Authorization: `Bearer ${localStorage.getItem('token')}`,
 });
 
+// Lives at module level so it survives the provider being remounted by route changes.
+// It resets on a full page refresh, which is when we want one real server check.
+let lastVerified: { key: string; at: number } | null = null;
+
+const isRecentlyVerified = (key: string, maxAgeMs: number): boolean =>
+  !!lastVerified && lastVerified.key === key && Date.now() - lastVerified.at < maxAgeMs;
+
+// Read today's stored seller key for the logged-in user (if any)
+const getCurrentKey = (): string | null => {
+  const userId = getUserIdFromToken();
+  return userId ? getSellerKey(userId, getTodayDate()) : null;
+};
+
 interface SellerContextType {
   sellerName: string;
 }
@@ -47,16 +63,32 @@ interface SellerNameProviderProps {
 }
 
 const SellerNameProvider: React.FC<SellerNameProviderProps> = ({ children }) => {
-  const [checking, setChecking] = useState<boolean>(true);
-  const [showPrompt, setShowPrompt] = useState<boolean>(false);
-  const [sellerName, setSellerName] = useState<string>('');
+  // Initial state is read synchronously from localStorage, so remounts don't flash anything
+  const [sellerName, setSellerName] = useState<string>(() => {
+    const key = getCurrentKey();
+    return key ? localStorage.getItem(key) || '' : '';
+  });
+  // Only block the screen when there is a stored name that hasn't been verified recently
+  const [checking, setChecking] = useState<boolean>(() => {
+    const key = getCurrentKey();
+    if (!key) return false;
+    return !!localStorage.getItem(key) && !isRecentlyVerified(key, VERIFY_TTL_MS);
+  });
+  const [showPrompt, setShowPrompt] = useState<boolean>(() => {
+    const key = getCurrentKey();
+    return !!key && !localStorage.getItem(key);
+  });
   const [inputName, setInputName] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [ownerNotice, setOwnerNotice] = useState<string>(''); // set on first-time owner registration
 
+  const inFlightRef = useRef<boolean>(false);
+
   // Verify the stored seller name against the server (admin-managed list)
   const verifyStoredSeller = useCallback(async () => {
+    if (inFlightRef.current) return; // never run two checks at once
+
     const userId = getUserIdFromToken();
     if (!userId) {
       // No valid session yet — don't prompt, let auth flow handle redirect
@@ -69,57 +101,87 @@ const SellerNameProvider: React.FC<SellerNameProviderProps> = ({ children }) => 
     const storedName = localStorage.getItem(key);
 
     if (!storedName) {
+      // First time today: ask once
       setSellerName('');
       setShowPrompt(true);
       setChecking(false);
       return;
     }
 
+    inFlightRef.current = true;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
     try {
-      const response = await fetch(`${API_BASE}/${today}`, {
+      let response = await fetch(`${API_BASE}/${today}`, {
         headers: authHeaders(),
         credentials: 'include',
+        signal: controller.signal,
       });
 
+      if (response.status === 404) {
+        // Server has no record for today (e.g. an earlier save failed):
+        // silently re-register the stored name instead of bothering the user.
+        response = await fetch(API_BASE, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ name: storedName, date: today }),
+          credentials: 'include',
+          signal: controller.signal,
+        });
+      }
+
       if (response.ok) {
-        const data = await response.json();
-        const officialName = data.name || storedName;
+        const data = await response.json().catch(() => ({}));
+        const officialName: string = data.name || storedName;
         localStorage.setItem(key, officialName);
         setSellerName(officialName);
         setShowPrompt(false);
-      } else if (response.status === 403 || response.status === 404) {
-        // Removed/deactivated by admin (403) or no record for today (404)
+        lastVerified = { key, at: Date.now() };
+
+        if (data.firstTimeSetup) {
+          setOwnerNotice(officialName);
+        }
+      } else if (response.status === 403) {
+        // Removed/deactivated by the admin: the ONLY case that kicks someone out
         localStorage.removeItem(key);
+        lastVerified = null;
         setSellerName('');
         setInputName('');
-        setError(
-          response.status === 403
-            ? 'This seller name is no longer authorised. Enter a valid seller name or contact the admin.'
-            : ''
-        );
+        setError('This seller name is no longer authorised. Enter a valid seller name or contact the admin.');
         setShowPrompt(true);
       } else {
-        // Other server problem (e.g. 401/500): keep the stored name, don't lock the shop
+        // Any other server problem (401/500...): keep working with the stored name
         setSellerName(storedName);
       }
     } catch (err) {
-      // Network problem: keep working with the stored name
+      // Network problem or timeout: keep working with the stored name
       console.error('Seller verification failed:', err);
       setSellerName(storedName);
     } finally {
+      window.clearTimeout(timeout);
+      inFlightRef.current = false;
       setChecking(false);
     }
   }, []);
 
-  // Verify on load
+  // Verify on mount, unless this seller was verified recently (route changes remount this provider)
   useEffect(() => {
+    const key = getCurrentKey();
+    if (key && isRecentlyVerified(key, VERIFY_TTL_MS)) {
+      setChecking(false);
+      return;
+    }
     verifyStoredSeller();
   }, [verifyStoredSeller]);
 
-  // Re-verify when the tab regains focus and on a timer, so removals take effect mid-day
+  // Silent background re-checks so removals take effect mid-day (throttled)
   useEffect(() => {
     const onVisible = () => {
-      if (document.visibilityState === 'visible') verifyStoredSeller();
+      if (document.visibilityState !== 'visible') return;
+      const key = getCurrentKey();
+      if (key && isRecentlyVerified(key, FOCUS_MIN_GAP_MS)) return;
+      verifyStoredSeller();
     };
     document.addEventListener('visibilitychange', onVisible);
     const interval = window.setInterval(verifyStoredSeller, RECHECK_INTERVAL_MS);
@@ -129,7 +191,10 @@ const SellerNameProvider: React.FC<SellerNameProviderProps> = ({ children }) => 
       window.clearInterval(interval);
     };
   }, [verifyStoredSeller]);
-
+useEffect(() => {
+  console.log('SellerNameProvider mounted');
+  return () => console.log('SellerNameProvider unmounted');
+}, []);
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const trimmedName = inputName.trim();
@@ -169,9 +234,12 @@ const SellerNameProvider: React.FC<SellerNameProviderProps> = ({ children }) => 
 
       // Use the official name stored in the system (not what was typed)
       const officialName: string = data.name || trimmedName;
-      localStorage.setItem(getSellerKey(userId, today), officialName);
+      const key = getSellerKey(userId, today);
+      localStorage.setItem(key, officialName);
+      lastVerified = { key, at: Date.now() }; // just verified by the server
       setSellerName(officialName);
       setShowPrompt(false);
+      setChecking(false);
 
       // First time on this account: tell the owner not to forget this name
       if (data.firstTimeSetup) {
@@ -185,15 +253,9 @@ const SellerNameProvider: React.FC<SellerNameProviderProps> = ({ children }) => 
     }
   };
 
-  // Still verifying — don't show the dashboard yet
+  // Still verifying after a fresh page load: show nothing rather than a popup
   if (checking) {
-    return (
-      <div className={styles.modalOverlay}>
-        <div className={styles.modalContent}>
-          <p className={styles.loading}>Verifying seller...</p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   // One-time owner notice

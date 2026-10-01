@@ -38,6 +38,7 @@ const inventoryReceipt = require("./routes/inventoryRoute.js");
 const bankingRoute = require("./routes/banking.js");
 const drawerRoute = require("./routes/drawer.js");
 const sellersRoute = require("./routes/dailySeller.js");
+const receiptPolicyRoutes = require("./routes/receiptPolicyRoutes.js");
 // Apply routes
 app.use("/api", smsRoute);
 app.use("/api", businessRoute);
@@ -56,8 +57,7 @@ app.use("/api",inventoryReceipt);
 app.use("/api", bankingRoute);
 app.use("/api", drawerRoute);
 app.use("/api", sellersRoute);
-
-
+app.use("/api", receiptPolicyRoutes);
 // 5. Static file serving
 app.use('/upload', express.static('upload'));
 

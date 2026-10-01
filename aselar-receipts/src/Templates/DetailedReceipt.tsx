@@ -13,6 +13,7 @@ import useSMSLimit from '../Hooks/useSMSLimit';
 import { CountryCode } from '../utility/phoneFormat';
 import { useCurrency } from '../context/CurrencyContext'
 import { formatDecimalCurrency } from '../utility/formatCurrency'
+import { fetchReceiptPolicy } from '../Policy/ReceiptPolicyStep'; // NEW (policy) — adjust path if needed
 interface ReceiptItem {
   name: string;
   quantity: number;
@@ -88,6 +89,9 @@ const DetailedReceipt: React.FC = () => {
   const beepRef = useRef<HTMLAudioElement | null>(null);
   const { currency } = useCurrency();
 
+  // NEW (policy): refund / liability clause set by the business during onboarding
+  const [policyClause, setPolicyClause] = useState<string>('');
+
   // NEW: lay-buy installment payment state
   const [paymentAmount, setPaymentAmount] = useState<string>('');
   const [submittingPayment, setSubmittingPayment] = useState<boolean>(false);
@@ -105,6 +109,17 @@ useEffect(() => {
     timeUntilReset,
     recordSMS,
   } = useSMSLimit();
+
+  // NEW (policy): load the clause once (empty string if the business hasn't set one)
+  useEffect(() => {
+    let active = true;
+    fetchReceiptPolicy().then((clause) => {
+      if (active) setPolicyClause(clause);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     const fetchReceipt = async () => {
@@ -245,6 +260,7 @@ useEffect(() => {
         createdAt: receipt?.createdAt,
         htmlContent,
         sellerName: getSellerName(),
+        policyClause, // NEW (policy)
         companyInfo: {
           nameOfBusiness: businessProfile?.nameOfBusiness,
           emailBusiness: businessProfile?.emailBusiness,
@@ -475,6 +491,14 @@ useEffect(() => {
           <h4>Seller: {getSellerName()}</h4>
         </div>
 
+        {/* NEW (policy): refund / liability clause on the send-out copy */}
+        {policyClause && (
+          <div className={styles.policy}>
+            <p className={styles.policyTitle}>Refund &amp; Returns Policy</p>
+            <p className={styles.policyText}>{policyClause}</p>
+          </div>
+        )}
+
         <div className={styles.footer}>
           <p className={styles.tag}>Powered by Aselar, a TeX product.</p>
           <p className={styles.thankYou}>Thank you for your business!</p>
@@ -508,6 +532,7 @@ useEffect(() => {
           createdAt: receipt?.createdAt,
           htmlContent,
           sellerName: getSellerName(),
+          policyClause, // NEW (policy)
           companyInfo: {
             nameOfBusiness: businessProfile?.nameOfBusiness,
             emailBusiness: businessProfile?.emailBusiness,
@@ -567,6 +592,7 @@ useEffect(() => {
           createdAt: receipt?.createdAt,
           htmlContent,
           sellerName: getSellerName(),
+          policyClause, // NEW (policy)
           companyInfo: {
             nameOfBusiness: businessProfile?.nameOfBusiness,
             emailBusiness: businessProfile?.emailBusiness,
@@ -611,6 +637,7 @@ useEffect(() => {
           createdAt: receipt?.createdAt,
           htmlContent,
           sellerName: getSellerName(),
+          policyClause, // NEW (policy)
           companyInfo: {
             nameOfBusiness: businessProfile?.nameOfBusiness,
             emailBusiness: businessProfile?.emailBusiness,
@@ -735,6 +762,14 @@ useEffect(() => {
           <h4>Seller: {getSellerName()}</h4>
         </div>
 
+        {/* NEW (policy): refund / liability clause on the on-screen / printed receipt */}
+        {policyClause && (
+          <div className={styles.policy}>
+            <p className={styles.policyTitle}>Refund &amp; Returns Policy</p>
+            <p className={styles.policyText}>{policyClause}</p>
+          </div>
+        )}
+
         <div className={styles.footer}>
           <p className={styles.tag}>Powered by Aselar, a TeX product.</p>
           <p className={styles.thankYou}>Thank you for your business!</p>
@@ -831,4 +866,4 @@ useEffect(() => {
   );
 };
 
-export default DetailedReceipt;  
+export default DetailedReceipt;

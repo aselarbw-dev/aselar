@@ -17,6 +17,20 @@ const twilioClient = twilio(
 // Initialize PDF service
 const pdfService = new PDFServiceJsPDF();
 
+// NEW (policy): sanitise the refund / liability clause that arrives from the client
+const CLAUSE_MAX_LENGTH = 1000;
+const cleanClause = (value) =>
+  typeof value === 'string' ? value.trim().slice(0, CLAUSE_MAX_LENGTH) : '';
+
+// NEW (policy): escape user-typed text before placing it inside HTML (email body)
+const escapeHtml = (str) =>
+  String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
 // SMS receipt endpoint (generates PDF, uploads, sends SMS with details and link)
 const SMSUpload = async (req, res) => {
   try {
@@ -33,7 +47,9 @@ const SMSUpload = async (req, res) => {
       discount,
       subtotal,  // ← ADD
       createdAt,  // ← ADD
-      companyInfo  // ← ADD
+      companyInfo,  // ← ADD
+      sellerName,   // NEW (policy): was missing, so the PDF never got the seller name here either
+      policyClause  // NEW (policy)
     } = req.body;
     
     const authenticatedUser = req.user;
@@ -72,6 +88,8 @@ const SMSUpload = async (req, res) => {
       createdAt,  // ← ADD (for date)
       companyInfo,  // ← ADD (for header)
       change,
+      sellerName,                           // NEW (policy)
+      policyClause: cleanClause(policyClause), // NEW (policy)
       companyInfo: {
         name: companyInfo?.nameOfBusiness || '',
         address: `${companyInfo?.place || ''}\n${companyInfo?.businessNature || ''}`,
@@ -188,7 +206,9 @@ const generateQR = async (req, res) => {
       htmlContent,
       createdAt,  // ← ADD (for date)
       companyInfo,  // ← ADD (for header)
-      change
+      change,
+      sellerName,   // NEW (policy)
+      policyClause  // NEW (policy)
     } = req.body;
     
     const authenticatedUser = req.user;
@@ -229,6 +249,8 @@ const generateQR = async (req, res) => {
       createdAt,  // ← ADD (for date)
       companyInfo,  // ← ADD (for header)
       change,
+      sellerName,                           // NEW (policy)
+      policyClause: cleanClause(policyClause), // NEW (policy)
       companyInfo: {
         name: companyInfo?.nameOfBusiness || '',
         address: `${companyInfo?.place || ''}\n${companyInfo?.businessNature || ''}`,
@@ -314,7 +336,9 @@ const EmailUpload = async (req, res) => {
       subtotal,
       createdAt,
       htmlContent,
-      companyInfo
+      companyInfo,
+      sellerName,   // NEW (policy)
+      policyClause  // NEW (policy)
     } = req.body;
 
     const authenticatedUser = req.user;
@@ -331,6 +355,9 @@ const EmailUpload = async (req, res) => {
       return res.status(400).json({ success: false, error: 'Items must be an array' });
     }
 
+    // NEW (policy): cleaned once, reused for the PDF and the email body
+    const safeClause = cleanClause(policyClause);
+
     // Prepare data for PDF
     const receiptsData = {
       receiptsNumber,
@@ -344,6 +371,8 @@ const EmailUpload = async (req, res) => {
       createdAt,
       companyInfo,
       change,
+      sellerName,                // NEW (policy)
+      policyClause: safeClause,  // NEW (policy)
       companyInfo: {
         name: companyInfo?.nameOfBusiness || '',
         address: `${companyInfo?.place || ''}\n${companyInfo?.businessNature || ''}`,
@@ -403,6 +432,12 @@ const EmailUpload = async (req, res) => {
             📄 Download Full PDF Receipt
           </a>
         </p>
+
+        ${safeClause ? `
+        <div style="margin-top:20px; padding-top:12px; border-top:1px dashed #999; text-align:center;">
+          <p style="font-weight:bold; font-size:13px; margin:0 0 6px;">Refund &amp; Returns Policy</p>
+          <p style="font-size:12px; color:#555; margin:0; white-space:pre-wrap;">${escapeHtml(safeClause)}</p>
+        </div>` : ''}
         
         <p>Thank you for your business!</p>
         <p><strong>${companyInfo?.nameOfBusiness || 'Your Business'}</strong></p>

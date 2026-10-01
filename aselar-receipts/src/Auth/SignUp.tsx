@@ -159,7 +159,7 @@ console.log("Signup response data:", data); // add this
 localStorage.setItem('token', data.token);
 
 toast.success(`Welcome on board ${userProfile.nameOfBusiness}!`);
-navigate("/create-passcode");
+navigate("/receipt-policy");
       setUserProfile(initialSignup);
       
     } catch (error) {

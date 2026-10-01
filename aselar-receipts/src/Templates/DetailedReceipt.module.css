@@ -296,3 +296,23 @@ display: none;
   color: #1e8449;
   font-weight: 600;
 }
+/* ---- Refund / liability clause ---- */
+.policy {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed #999;
+  text-align: center;
+}
+
+.policyTitle {
+  font-weight: 700;
+  font-size: 0.75rem;
+  margin: 0 0 0.25rem;
+}
+
+.policyText {
+  font-size: 0.7rem;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

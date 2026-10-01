@@ -220,10 +220,46 @@ class PDFServiceJsPDF {
     yPos += 15;
 
     // Status (if not completed)
-    if (receiptsData.status && receiptsData.status !== 'completed') {
+    const showStatus = receiptsData.status && receiptsData.status !== 'completed';
+    if (showStatus) {
       pdf.setFont(undefined, 'bold');
       pdf.setTextColor(255, 0, 0); // Red for non-completed
       pdf.text(`Status: ${receiptsData.status.toUpperCase()}`, totalsX, yPos);
+      pdf.setTextColor(0, 0, 0); // Reset
+      yPos += 10; // NEW: keep the clause clear of the status line
+    }
+
+    // NEW: Refund / liability clause (optional, set by the business during onboarding)
+    const policyClause = String(receiptsData.policyClause || '').trim().slice(0, 1000);
+    if (policyClause) {
+      const pageWidth = pdf.internal.pageSize.width;
+      const centerX = pageWidth / 2;
+
+      checkNewPage(25);
+
+      // Divider
+      pdf.setDrawColor(200, 200, 200);
+      pdf.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 6;
+
+      // Title
+      pdf.setFontSize(9);
+      pdf.setFont(undefined, 'bold');
+      pdf.setTextColor(51, 51, 51);
+      pdf.text('Refund & Returns Policy', centerX, yPos, { align: 'center' });
+      yPos += 5;
+
+      // Clause text (font must be set BEFORE splitTextToSize so wrapping is measured correctly)
+      pdf.setFont(undefined, 'normal');
+      pdf.setFontSize(8.5);
+      pdf.setTextColor(85, 85, 85);
+      const clauseLines = pdf.splitTextToSize(policyClause, pageWidth - margin * 2);
+      clauseLines.forEach((line) => {
+        checkNewPage(5);
+        pdf.text(line, centerX, yPos, { align: 'center' });
+        yPos += 4.5;
+      });
+
       pdf.setTextColor(0, 0, 0); // Reset
     }
 

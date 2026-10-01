@@ -6,6 +6,7 @@ import { Routes, Route } from "react-router-dom";
 import { ClipLoader } from "react-spinners";
 const Home = lazy(() => import("../Pages/Home"));
 const ReceiptsList = lazy(() => import("../Returns/ReceiptsList"));
+const ReceiptPolicyStep = lazy(() => import("../Policy/ReceiptPolicyStep"));
 const NotFound = lazy(() => import("../Componets/NotFound"));
 const OrderForm = lazy(() => import("../Orders/OrderForm"));
 const AselarAI = lazy(() => import("../AselarGPT/AselarAI"));
@@ -89,6 +90,7 @@ const Screens = () => {
         <Route path="/ledgers" element={<AllLedgers />} />
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/sign-in" element={<SignIn />} />
+         <Route path="/receipt-policy" element={<ReceiptPolicyStep />} />
         <Route path="/receipt-template" element={<ReceiptTemplate />} />
         <Route path="/balance-sheet" element={<BalanceSheet />} />
         <Route path="/user-agreements" element={<Agreements />} />

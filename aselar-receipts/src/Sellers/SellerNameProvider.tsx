@@ -190,7 +190,7 @@ const SellerNameProvider: React.FC<SellerNameProviderProps> = ({ children }) => 
       document.removeEventListener('visibilitychange', onVisible);
       window.clearInterval(interval);
     };
-  }, [verifyStoredSeller]);
+  }, [verifyStoredSeller]); 
 useEffect(() => {
   console.log('SellerNameProvider mounted');
   return () => console.log('SellerNameProvider unmounted');

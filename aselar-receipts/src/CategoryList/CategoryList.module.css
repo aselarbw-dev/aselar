@@ -21,9 +21,8 @@
 }
 .beverage img{
     margin-left: 40px;
-      width: 80px;
-      height:80px;
-      border-radius: 50%;
+      width: 200px;
+      
   }
   .grid{
     display:flex;
@@ -487,4 +486,88 @@
     flex-direction: column;
     align-items: flex-start;
   }
+}
+/* NEW: item + category images, wide and fills the card.
+   Higher-specificity selectors plus !important so global img rules can't shrink them. */
+.itemCard .itemImage,
+.itemImage {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 8px !important;
+  margin: 0 0 8px 0 !important;
+  background-color: #f1f5f9;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+}
+
+.imageContainer .categoryImage,
+.categoryImage {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 8px !important;
+  margin: 0 0 8px 0 !important;
+}
+
+.placeholderImage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background-color: #f1f5f9;
+  color: #94a3b8;
+  font-size: 13px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+/* Item cards: lay the products out in a tidy grid inside each category */
+.itemsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.itemCard {
+  position: relative;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.itemCard h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+.itemCard p {
+  margin: 2px 0;
+  font-size: 12px;
+}
+
+.itemHoverContainer {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+}
+
+.hoverEditButton {
+  cursor: pointer;
+  color: #ffffff;
+  background: rgba(15, 23, 42, 0.65);
+  border-radius: 4px;
+  padding: 4px;
+  font-size: 22px;
 }

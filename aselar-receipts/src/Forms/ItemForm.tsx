@@ -5,6 +5,54 @@ import { submitItem, editItem } from '../Store/store';
 import { Item } from '../Store/store';
 import styles from "./ItemForm.module.css";
 
+// NEW: image resize settings — tweak these if you want sharper or smaller images
+const MAX_IMAGE_DIMENSION = 1000;   // longest side in pixels
+const IMAGE_QUALITY = 0.8;          // JPEG quality, 0 to 1
+const MAX_RAW_FILE_MB = 15;         // reject absurdly large originals before even trying
+
+// NEW: shrink an image file in the browser and return it as a base64 JPEG data URL
+const resizeImage = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+
+      let { width, height } = img;
+      const longest = Math.max(width, height);
+      if (longest > MAX_IMAGE_DIMENSION) {
+        const scale = MAX_IMAGE_DIMENSION / longest;
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Could not process image'));
+        return;
+      }
+
+      // White background so transparent PNGs don't turn black when saved as JPEG
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
+
+      resolve(canvas.toDataURL('image/jpeg', IMAGE_QUALITY));
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Could not read that image file'));
+    };
+
+    img.src = objectUrl;
+  });
+
 interface ItemFormProps {
   categoryId: string;
   editingItem?: {
@@ -31,6 +79,7 @@ const ItemForm: React.FC<ItemFormProps> = ({ categoryId, editingItem, onEditComp
   const [expiryDate, setExpiryDate] = useState('');
   const [unit, setUnit] = useState('');  // NEW: Unit state (e.g., 'kg', 'pcs'—optional)
   const [image, setImage] = useState('');  // NEW: Image state if needed (base64 or URL)
+  const [processingImage, setProcessingImage] = useState(false); // NEW: true while resizing
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -112,15 +161,34 @@ const ItemForm: React.FC<ItemFormProps> = ({ categoryId, editingItem, onEditComp
     }
   };
 
-  // NEW: Image upload handler (if you want file support—stubbed)
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  // UPDATED: resizes the picked image in the browser before storing it as base64
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setError(null);
+
+    if (!file.type.startsWith('image/')) {
+      setError('Please choose an image file.');
+      e.target.value = '';
+      return;
+    }
+
+    if (file.size > MAX_RAW_FILE_MB * 1024 * 1024) {
+      setError(`That image is over ${MAX_RAW_FILE_MB}MB. Please choose a smaller one.`);
+      e.target.value = '';
+      return;
+    }
+
+    setProcessingImage(true);
+    try {
+      const resized = await resizeImage(file);
+      setImage(resized);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to process image');
+      e.target.value = '';
+    } finally {
+      setProcessingImage(false);
     }
   };
 
@@ -185,9 +253,10 @@ const ItemForm: React.FC<ItemFormProps> = ({ categoryId, editingItem, onEditComp
         accept="image/*" 
         onChange={handleImageUpload} 
       />
-      {image && <small>Image selected</small>}
+      {processingImage && <small>Processing image...</small>}
+      {!processingImage && image && <small>Image selected</small>}
 
-      <button type="submit">
+      <button type="submit" disabled={processingImage}>
         {editingItem ? "Update Item" : "Add Item"}
       </button>
     </form>

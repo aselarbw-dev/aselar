@@ -9,10 +9,8 @@ dotenv.config()
 const cors=require("cors")
 // initiate app 
 const app=express()
-app.use(express.json())
-app.use(bodyParser.json({ limit: '10mb' }));
-app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 app.use(cookieParser())
 

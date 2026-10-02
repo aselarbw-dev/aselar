@@ -117,9 +117,8 @@ const items = async (req, res) => {
 const editItem = async (req, res) => {
   try {
     const { categoryId, itemId } = req.params;
-    const updates = req.body;
+    const updates = { ...req.body };
 
-    // Ensure the user owns the category
     await connectDB();
     const category = await Category.findOne({
       _id: categoryId,
@@ -130,16 +129,27 @@ const editItem = async (req, res) => {
       return res.status(404).json({ message: 'Category not found' });
     }
 
-    // Find the item in the category
     const item = category.items.id(itemId);
     if (!item) {
       return res.status(404).json({ message: 'Item not found' });
     }
 
-    // Update the item fields
+    // NEW: only upload when a fresh base64 image was sent; keep existing URLs as-is
+    if (updates.image && updates.image.startsWith('data:')) {
+      try {
+        const uploadResponse = await uploadToCloudinary(updates.image);
+        updates.image = uploadResponse.secure_url;
+      } catch (uploadError) {
+        console.error('Cloudinary upload error (edit item):', uploadError);
+        return res.status(500).json({ message: 'Failed to upload image' });
+      }
+    } else if (!updates.image) {
+      delete updates.image; // don't wipe the existing image with an empty value
+    }
+
     Object.assign(item, updates);
     if (updates.quantity !== undefined) {
-      item.lowStock = item.quantity <= 10; // Re-check lowStock if qty edited
+      item.lowStock = item.quantity <= 10;
     }
     await category.save();
 

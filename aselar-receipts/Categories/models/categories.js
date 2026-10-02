@@ -14,6 +14,7 @@ const categorySchema = new mongoose.Schema({
       lowStock: { type: Boolean, default: false },
       unit: { type: String, default: '' },
       expiryDate: { type: String },  // NEW: ISO date string for expiry (optional) // New: for restock alerts
+      image: { type: String, default: '' }, // NEW: item image URL (Cloudinary)
       soldQuantity: { type: Number, default: 0 }, // NEW: cumulative units sold, for reporting
       revenue: { type: Number, default: 0 },       // NEW: cumulative revenue from this item, for reporting
     },

@@ -94,7 +94,8 @@ const SMSUpload = async (req, res) => {
         name: companyInfo?.nameOfBusiness || '',
         address: `${companyInfo?.place || ''}\n${companyInfo?.businessNature || ''}`,
         phone: companyInfo?.businessPhone || '',
-        email: companyInfo?.emailBusiness || ''
+        email: companyInfo?.emailBusiness || '',
+        profilePicture: companyInfo?.profilePicture || ''   // ← NEW
       },
     };
 
@@ -255,7 +256,8 @@ const generateQR = async (req, res) => {
         name: companyInfo?.nameOfBusiness || '',
         address: `${companyInfo?.place || ''}\n${companyInfo?.businessNature || ''}`,
         phone: companyInfo?.businessPhone || '',
-        email: companyInfo?.emailBusiness || ''
+        email: companyInfo?.emailBusiness || '',
+        profilePicture: companyInfo?.profilePicture || ''   // ← NEW
       },
     };
 
@@ -417,7 +419,8 @@ const EmailUpload = async (req, res) => {
         name: companyInfo?.nameOfBusiness || '',
         address: `${companyInfo?.place || ''}\n${companyInfo?.businessNature || ''}`,
         phone: companyInfo?.businessPhone || '',
-        email: companyInfo?.emailBusiness || ''
+        email: companyInfo?.emailBusiness || '',
+        profilePicture: companyInfo?.profilePicture || ''   // ← NEW
       },
     };
 

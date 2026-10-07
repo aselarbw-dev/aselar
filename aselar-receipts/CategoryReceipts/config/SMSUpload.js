@@ -1,6 +1,6 @@
 const path = require('path');
 const dotenv = require('dotenv');
-const { Resend } = require('resend');
+// const { Resend } = require('resend'); // replaced by Mailtrap HTTP API (see sendEmail below)
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const nodemailer = require('nodemailer');
 //const Brevo = require('@getbrevo/brevo');
@@ -304,23 +304,63 @@ const generateQR = async (req, res) => {
     });
   }
 };
-// Initialize resend mail Transporter
-const sendEmail = async ({ to, subject, html, attachments }) => {
-  const resend = new Resend(process.env.RESEND_API_KEY);
 
-  await resend.emails.send({
-    from: 'Aselar <onboarding@resend.dev>',
-    to,
+// Mailtrap HTTP API (no SMTP, so it works on Render; no extra packages needed)
+const sendEmail = async ({ to, cc, replyTo, subject, html, attachments }) => {
+  const payload = {
+    from: {
+      email: process.env.EMAIL_FROM_ADDRESS,
+      name: process.env.EMAIL_FROM_NAME || 'Aselar'
+    },
+    to: [{ email: to }],
     subject,
     html,
-    attachments: attachments?.map(a => ({
+    category: 'Receipt'
+  };
+
+  if (cc) payload.cc = [{ email: cc }];
+  if (replyTo) payload.reply_to = { email: replyTo };
+
+  if (attachments?.length) {
+    payload.attachments = attachments.map(a => ({
       filename: a.filename,
       content: Buffer.isBuffer(a.content)
         ? a.content.toString('base64')
-        : a.content
-    }))
-  });
+        : a.content,
+      type: a.contentType || 'application/pdf',
+      disposition: 'attachment'
+    }));
+  }
+
+  try {
+    const response = await fetch('https://send.api.mailtrap.io/api/send', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.MAILTRAP_API_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    let result = {};
+    try {
+      result = await response.json();
+    } catch (parseError) {
+      result = {};
+    }
+
+    if (!response.ok) {
+      console.error('Mailtrap send failed:', response.status, result);
+      throw new Error(result?.errors?.join(', ') || 'Failed to send email');
+    }
+
+    return result;
+  } catch (error) {
+    console.error('sendEmail error:', error.message);
+    throw error;
+  }
 };
+
 // ====================== EMAIL UPLOAD (New) ======================
 const EmailUpload = async (req, res) => {
   try {
@@ -443,34 +483,35 @@ const EmailUpload = async (req, res) => {
         <p><strong>${companyInfo?.nameOfBusiness || 'Your Business'}</strong></p>
       </div>
     `;
-await sendEmail({
-  to: email,                    // ← customer's email (required)
-  cc: companyInfo?.emailBusiness || null,   // ← add this line
-  subject: `Receipt #${receiptsNumber} - ${companyInfo?.nameOfBusiness || 'Your Business'}`,
-  html: emailBody,
-  attachments: [{
-    filename: filename,
-    content: pdfBuffer,
-    contentType: 'application/pdf'
-  }]
-});
-  
+
+    await sendEmail({
+      to: email,                                // ← customer's email (required)
+      cc: companyInfo?.emailBusiness || null,   // ← business gets a copy
+      subject: `Receipt #${receiptsNumber} - ${companyInfo?.nameOfBusiness || 'Your Business'}`,
+      html: emailBody,
+      attachments: [{
+        filename: filename,
+        content: pdfBuffer,
+        contentType: 'application/pdf'
+      }]
+    });
+
     console.log(`✅ Email sent to ${email} `);
 
-   res.json({
-  success: true,
-  message: 'Receipt sent successfully via Email with PDF attachment',
-  data: {
-    downloadUrl: uploadResultWithQR.publicUrl,
-    filename,
-    emailAddress: email
-  },
-  sentBy: {
-    userId: authenticatedUser.id,
-    email: authenticatedUser.email || null
-  },
-  timestamp: new Date().toISOString()
-});
+    res.json({
+      success: true,
+      message: 'Receipt sent successfully via Email with PDF attachment',
+      data: {
+        downloadUrl: uploadResultWithQR.publicUrl,
+        filename,
+        emailAddress: email
+      },
+      sentBy: {
+        userId: authenticatedUser.id,
+        email: authenticatedUser.email || null
+      },
+      timestamp: new Date().toISOString()
+    });
 
   } catch (error) {
     console.error('Error in EmailUpload:', error);
@@ -480,4 +521,4 @@ await sendEmail({
     });
   }
 };
-module.exports = { SMSUpload, generateQR,EmailUpload };
+module.exports = { SMSUpload, generateQR, EmailUpload };

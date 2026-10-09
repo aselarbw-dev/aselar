@@ -25,6 +25,20 @@ interface ReceiptItem {
   itemId: string; // NEW: Item _id for targeted deduction
 }
 
+// NEW: one row returned by GET /bulk/search
+interface SearchResult {
+  _id: string;
+  name: string;
+  sellingPrice: number;
+  quantity: number;
+  unit: string;
+  barcode: string;
+  customCode: string;
+  categoryId: string;
+  categoryName: string;
+  matchType: 'code' | 'category_code' | 'text';
+}
+
 // Constants
 const VAT_RATE = 0.14; // 14% VAT in Botswana
 
@@ -155,6 +169,10 @@ const [paymentMethod, setPaymentMethod] = useState<string>('');
 // NEW: lay-buy sale type + due date, driven by the payment modal
 const [saleType, setSaleType] = useState<'full' | 'laybuy'>('full');
 const [laybuyDueDate, setLaybuyDueDate] = useState<string | null>(null);
+// NEW: search / filter state (name, category, barcode or custom code)
+const [searchTerm, setSearchTerm] = useState<string>('');
+const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+const [searchLoading, setSearchLoading] = useState<boolean>(false);
 const { sellerName } = useSellerContext();
   
   // Use our receipt manager hook
@@ -219,6 +237,61 @@ const { sellerName } = useSellerContext();
     }
   }, [selectedCategoryId]);
 
+  // NEW: calls GET /bulk/search. In scan-only mode only exact codes are returned (codesOnly=true)
+  const runSearch = async (term: string, signal?: AbortSignal): Promise<SearchResult[]> => {
+    const response = await fetch(
+      `${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/bulk/search?q=${encodeURIComponent(term)}&codesOnly=${scanOnlyMode}`,
+      {
+        signal,
+        headers: {
+          'Content-Type': 'application/json',
+          'authorization': `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return Array.isArray(data.results) ? data.results : [];
+  };
+
+  // NEW: debounced search as the cashier types
+  useEffect(() => {
+    const term = searchTerm.trim();
+
+    if (!term) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setSearchLoading(true);
+
+    const timer = setTimeout(async () => {
+      try {
+        const results = await runSearch(term, controller.signal);
+        setSearchResults(results);
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.error('Search failed:', err);
+          setSearchResults([]);
+        }
+      } finally {
+        if (!controller.signal.aborted) setSearchLoading(false);
+      }
+    }, 250);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, scanOnlyMode]);
+
   const handleSelectCategory = (categoryId: string) => {
     setSelectedCategoryId(categoryId);
   };
@@ -227,6 +300,17 @@ const { sellerName } = useSellerContext();
   
     setSelectedItem(item);
     setShowNumberPad(true);
+  };
+
+  // NEW: tapping a search result opens the quantity pad, same as clicking an item manually.
+  // The search term is kept so the cashier can add another flavour from the same search.
+  const handleSelectSearchResult = (result: SearchResult) => {
+    handleSelectItem({
+      _id: result._id,
+      name: result.name,
+      sellingPrice: result.sellingPrice,
+      categoryId: result.categoryId,
+    });
   };
 
   const handleConfirmQuantity = (quantity: number) => {
@@ -255,7 +339,7 @@ const handleBarcodeScan = async (code: string) => {
 
   try {
     const response = await fetch(
-      `${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/bulk/lookup-barcode/${code}?sellerName=${encodeURIComponent(sellerName)}`,
+      `${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/bulk/lookup-barcode/${encodeURIComponent(code)}?sellerName=${encodeURIComponent(sellerName)}`,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -279,7 +363,7 @@ const handleBarcodeScan = async (code: string) => {
       toast.success(`Scanned: ${data.item.name}`);
       handleSelectItem(scannedItem); // opens NumberPad, same as manual click
     } else {
-      toast.warning('No match found for this barcode in your inventory.');
+      toast.warning('No match found for this code in your inventory.');
     }
   } catch (error) {
     console.error('Barcode lookup error:', error);
@@ -288,6 +372,33 @@ const handleBarcodeScan = async (code: string) => {
     setScanLookupLoading(false);
   }
 };
+
+  // NEW: pressing Enter in the search box. A hardware barcode scanner types the code and
+  // presses Enter, and a cashier can type a custom code like 3452 and press Enter.
+  // If the text is an exact barcode / custom code we go through the normal scan flow
+  // (so it is logged against the seller). Otherwise the result list stays on screen.
+  const handleSearchKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+
+    const term = searchTerm.trim();
+    if (!term) return;
+
+    try {
+      const results = await runSearch(term);
+
+      if (results.length > 0 && results[0].matchType === 'code') {
+        setSearchTerm('');
+        await handleBarcodeScan(term);
+      } else if (results.length === 0) {
+        toast.warning('No items match that search.');
+      }
+    } catch (err) {
+      console.error('Search failed:', err);
+      toast.error('Search failed. Please try again.');
+    }
+  };
+
   // NEW: Direct API call to process sale and deduct inventory (no Redux needed)
   const processSaleDirect = async (soldItems: { categoryId: string; itemId: string; soldQuantity: number }[],paymentMethod: string) => {
     try {
@@ -418,6 +529,8 @@ const handlePaymentMethodSelect = (method: string, details?: { dueDate?: string 
     }
   };
 
+  const hasSearch = searchTerm.trim().length > 0;
+
   return (
     <div className={styles.posContainer}>
       <div className={styles.receiptSection}>
@@ -478,13 +591,72 @@ const handlePaymentMethodSelect = (method: string, details?: { dueDate?: string 
         ⚠️ Best used on a laptop or desktop while plugged in — continuous camera use drains mobile batteries quickly.
       </p>
     )}
+
+    {/* NEW: search / filter — name, category, barcode or custom code */}
+    <div className={styles.searchWrapper}>
+      <input
+        type="text"
+        className={styles.searchInput}
+        placeholder={scanOnlyMode ? 'Type barcode or custom code…' : '🔍 Search name, category, barcode or code…'}
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        onKeyDown={handleSearchKeyDown}
+        autoComplete="off"
+      />
+      {searchTerm && (
+        <button
+          type="button"
+          className={styles.clearSearch}
+          onClick={() => setSearchTerm('')}
+          aria-label="Clear search"
+        >
+          ✕
+        </button>
+      )}
+    </div>
   </div>
 
-  {showScanner || scanOnlyMode ? (
-  <BarcodeScanner onScan={handleBarcodeScan} isActive={showScanner || scanOnlyMode} />
-) : (
-  <CategoryLists onSelectCategory={handleSelectCategory} />
-)}
+  {/* NEW: search results replace the category list while the box has text */}
+  {hasSearch && (
+    <div className={styles.searchResults}>
+      {searchLoading && searchResults.length === 0 && (
+        <p className={styles.searchEmpty}>Searching...</p>
+      )}
+      {!searchLoading && searchResults.length === 0 && (
+        <p className={styles.searchEmpty}>
+          {scanOnlyMode
+            ? 'No item with that barcode or code.'
+            : 'No matches. Try a different name, barcode or code.'}
+        </p>
+      )}
+      {searchResults.map((result) => (
+        <button
+          type="button"
+          key={`${result.categoryId}-${result._id}`}
+          className={styles.searchResultItem}
+          onClick={() => handleSelectSearchResult(result)}
+        >
+          <span className={styles.searchResultName}>{result.name}</span>
+          <span className={styles.searchResultMeta}>
+            {result.categoryName} · P{Number(result.sellingPrice).toFixed(2)} ·{' '}
+            {result.quantity > 0 ? `Qty: ${result.quantity}` : <span className={styles.outOfStock}>Out of stock</span>}
+          </span>
+          {(result.customCode || result.barcode) && (
+            <span className={styles.codeBadge}>{result.customCode || result.barcode}</span>
+          )}
+        </button>
+      ))}
+    </div>
+  )}
+
+  {/* Scanner / category list stay mounted (display: contents keeps layout identical) so the camera doesn't restart while typing */}
+  <div style={{ display: hasSearch ? 'none' : 'contents' }}>
+    {showScanner || scanOnlyMode ? (
+      <BarcodeScanner onScan={handleBarcodeScan} isActive={showScanner || scanOnlyMode} />
+    ) : (
+      <CategoryLists onSelectCategory={handleSelectCategory} />
+    )}
+  </div>
 </div>
   
       <div className={styles.itemsSection}>

@@ -5,15 +5,30 @@ const multer = require('multer');
 const Papa = require('papaparse');
 const XLSX = require('xlsx');
 
-/**
- * Find the best matching item WITHIN a specific category's items array.
- */
 // ─────────────────────────────────────────────
 // MATCHING HELPERS
 // ─────────────────────────────────────────────
 
 function normalize(name = '') {
   return name.toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
+// NEW: codes (barcode / customCode) can arrive as numbers from Excel, so always coerce to a trimmed string
+function cleanCode(value) {
+  if (value === undefined || value === null) return '';
+  return String(value).trim();
+}
+
+// NEW: case-insensitive exact comparison for codes. Empty codes never match.
+function sameCode(a, b) {
+  const x = cleanCode(a).toLowerCase();
+  const y = cleanCode(b).toLowerCase();
+  return !!x && !!y && x === y;
+}
+
+// NEW: escape user input before it goes into a RegExp
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function matchCategory(incomingName, existingCategories) {
@@ -31,9 +46,10 @@ function matchCategory(incomingName, existingCategories) {
 }
 
 /**
- * Barcode match takes priority over fuzzy name matching — it's an exact
- * identifier, not a guess. Falls back to fuzzy name matching if no
- * barcode was provided or no item in this category has a matching one.
+ * The incoming "barcode" value can be a real barcode, a shop's custom code, or any
+ * other identifier. It is checked against BOTH the item's barcode and customCode.
+ * An identifier match takes priority over fuzzy name matching — it's exact, not a
+ * guess. It's optional: if empty or unmatched we fall back to fuzzy name matching.
  */
 function matchItem(incomingName, existingItems, incomingBarcode) {
   if (!existingItems || !existingItems.length) {
@@ -41,8 +57,11 @@ function matchItem(incomingName, existingItems, incomingBarcode) {
   }
 
   if (incomingBarcode) {
-    const barcodeMatch = existingItems.find(i => i.barcode && i.barcode === incomingBarcode);
+    const barcodeMatch = existingItems.find(
+      i => sameCode(i.barcode, incomingBarcode) || sameCode(i.customCode, incomingBarcode)
+    );
     if (barcodeMatch) {
+      // matchType stays 'barcode' so the frontend needs no changes
       return { match: barcodeMatch, confidence: 1, matchType: 'barcode' };
     }
   }
@@ -103,7 +122,7 @@ const previewBulkImport = async (req, res) => {
         itemResult = matchItem(itemName, categoryResult.match.items, incomingBarcode);
       }
 
-      // Barcode matches are always treated as 'matched' — certain, not a guess
+      // Identifier matches are always treated as 'matched' — certain, not a guess
       const itemStatus = itemResult.matchType === 'barcode'
         ? 'matched'
         : (categoryResult.match ? classifyConfidence(itemResult.confidence) : 'new');
@@ -182,6 +201,9 @@ const commitBulkImport = async (req, res) => {
           continue;
         }
 
+        // "barcode" may be a real barcode, a custom code or any identifier — optional
+        const cleanBarcode = cleanCode(barcode);
+
         // ── Step 1: resolve the category (existing or new) ──
         let category;
 
@@ -228,8 +250,10 @@ const commitBulkImport = async (req, res) => {
           if (unit !== undefined) existingItem.unit = unit;
           if (expiryDate !== undefined) existingItem.expiryDate = expiryDate;
 
-          // Fill in a barcode if this item didn't already have one
-          if (barcode) existingItem.barcode = barcode;
+          // Fill in the identifier if the row has one (unless it's already this item's custom code)
+          if (cleanBarcode && !sameCode(existingItem.customCode, cleanBarcode)) {
+            existingItem.barcode = cleanBarcode;
+          }
 
           await category.save();
 
@@ -245,7 +269,7 @@ const commitBulkImport = async (req, res) => {
         } else if (itemDecision.action === 'create_new') {
           const newItem = {
             name: itemName,
-            barcode: barcode || '',
+            barcode: cleanBarcode,          // optional — '' when the row has none
             costPrice,
             sellingPrice,
             quantity: parsedQuantity,
@@ -319,7 +343,8 @@ function normalizeRow(rawRow) {
   return {
     category: get('category', 'category name'),
     name: get('name', 'item name', 'product name'),
-    barcode: get('barcode', 'bar code', 'upc', 'ean') || '',
+    // Single optional identifier column: real barcode, shop custom code, SKU... whichever the file has
+    barcode: cleanCode(get('barcode', 'bar code', 'upc', 'ean', 'custom code', 'customcode', 'item code', 'code', 'sku', 'identifier')),
     costPrice: parseFloat(get('costprice', 'cost price', 'cost')) || 0,
     sellingPrice: parseFloat(get('sellingprice', 'selling price', 'price')) || 0,
     quantity: parseInt(get('quantity', 'qty'), 10) || 0,
@@ -377,7 +402,8 @@ const parseBulkFile = async (req, res) => {
 
     const normalizedRows = rawRows.map(normalizeRow);
 
-    // Flag rows missing required fields so the frontend can warn the user early
+    // Flag rows missing required fields so the frontend can warn the user early.
+    // Only category + name are required — the barcode/identifier is optional.
     const rowsWithValidation = normalizedRows.map((row, index) => ({
       ...row,
       rowIndex: index,
@@ -397,7 +423,7 @@ const parseBulkFile = async (req, res) => {
   }
 };
 // ─────────────────────────────────────────────
-// BARCODE LOOKUP ENDPOINT (real-time, single scan)
+// BARCODE / CUSTOM CODE LOOKUP ENDPOINT (real-time, single scan or typed code)
 // ─────────────────────────────────────────────
 
  // was the cross-service require
@@ -408,60 +434,66 @@ const lookupBarcode = async (req, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-   const { code } = req.params;
-    const { sellerName } = req.query; // NEW —
+    const code = cleanCode(req.params.code);
+    const { sellerName } = req.query;
     if (!code) {
       return res.status(400).json({ message: 'No barcode provided' });
     }
 
     await connectDB();
 
+    // NEW: matches either the barcode (exact) or the shop's custom code (case-insensitive exact)
+    const codeRegex = new RegExp(`^${escapeRegex(code)}$`, 'i');
     const category = await Category.findOne({
       user: req.user._id.toString(),
-      'items.barcode': code,
+      $or: [
+        { 'items.barcode': code },
+        { 'items.customCode': codeRegex },
+      ],
     });
 
-  if (category) {
-  const item = category.items.find(i => i.barcode === code);
+    if (category) {
+      const item = category.items.find(i => i.barcode === code || sameCode(i.customCode, code));
 
-  // ── Scan logging — genuinely non-blocking now. We don't await this,
-  // so a slow or failing write can never delay the cashier's response.
-  // Errors still get logged server-side via .catch(), just not awaited. ──
-  ScanLog.create({
-    user: req.user._id,
-    sellerName: sellerName || 'Unknown',
-    barcode: code,
-    categoryId: category._id,
-    itemId: item._id,
-    itemName: item.name,
-    priceAtScan: item.sellingPrice,
-    outcome: 'added_to_cart',
-  }).catch(logError => {
-    console.error('Scan log write failed (non-blocking):', logError.message);
-  });
+      // ── Scan logging — genuinely non-blocking. We don't await this,
+      // so a slow or failing write can never delay the cashier's response.
+      // Errors still get logged server-side via .catch(), just not awaited. ──
+      ScanLog.create({
+        user: req.user._id,
+        sellerName: sellerName || 'Unknown',
+        barcode: code,
+        categoryId: category._id,
+        itemId: item._id,
+        itemName: item.name,
+        priceAtScan: item.sellingPrice,
+        outcome: 'added_to_cart',
+      }).catch(logError => {
+        console.error('Scan log write failed (non-blocking):', logError.message);
+      });
 
-  // Response fires immediately — doesn't wait for the log write above
-  return res.status(200).json({
-    found: true,
-    source: 'business',
-    categoryId: category._id,
-    categoryName: category.name,
-    item: {
-      _id: item._id,
-      name: item.name,
-      barcode: item.barcode,
-      costPrice: item.costPrice,
-      sellingPrice: item.sellingPrice,
-      quantity: item.quantity,
-      unit: item.unit,
-    },
-  });
-}
+      // Response fires immediately — doesn't wait for the log write above
+      return res.status(200).json({
+        found: true,
+        source: 'business',
+        categoryId: category._id,
+        categoryName: category.name,
+        item: {
+          _id: item._id,
+          name: item.name,
+          barcode: item.barcode,
+          customCode: item.customCode,
+          costPrice: item.costPrice,
+          sellingPrice: item.sellingPrice,
+          quantity: item.quantity,
+          unit: item.unit,
+        },
+      });
+    }
 
     return res.status(200).json({
       found: false,
       source: null,
-      message: 'No item in your inventory matches this barcode.',
+      message: 'No item in your inventory matches this code.',
     });
 
   } catch (error) {
@@ -469,11 +501,99 @@ const lookupBarcode = async (req, res) => {
     res.status(500).json({ message: 'Failed to look up barcode', error: error.message });
   }
 };
+
+// ─────────────────────────────────────────────
+// NEW: POS SEARCH ENDPOINT
+// GET /bulk/search?q=go-slow mango&codesOnly=false&limit=40
+//
+// Searches across item name, category name, barcode, item custom code and
+// category custom code. Returns a flat list of items ready to add to the
+// receipt. With codesOnly=true (used in scan-only mode) only exact
+// barcode / custom code / category code matches are returned, so scan-only
+// mode can't be bypassed by browsing items by name.
+// ─────────────────────────────────────────────
+
+const searchItems = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    const rawQuery = cleanCode(req.query.q);
+    if (!rawQuery) {
+      return res.status(200).json({ results: [], total: 0 });
+    }
+
+    const codesOnly = req.query.codesOnly === 'true';
+    const limit = Math.min(parseInt(req.query.limit, 10) || 40, 100);
+
+    await connectDB();
+
+    const categories = await Category.find({ user: req.user._id.toString() }).lean();
+
+    const q = rawQuery.toLowerCase();
+    const tokens = q.split(/\s+/).filter(Boolean);
+    const matches = [];
+
+    for (const cat of categories) {
+      const categoryCodeExact = sameCode(cat.customCode, rawQuery);
+
+      for (const item of cat.items || []) {
+        let rank = null;
+        let matchType = null;
+
+        if (sameCode(item.barcode, rawQuery) || sameCode(item.customCode, rawQuery)) {
+          rank = 0;
+          matchType = 'code';            // exact barcode or item custom code
+        } else if (categoryCodeExact) {
+          rank = 1;
+          matchType = 'category_code';   // whole category via its code
+        } else if (!codesOnly) {
+          // Every word typed must appear somewhere in category / item / codes
+          const nameLower = (item.name || '').toLowerCase();
+          const haystack = [cat.name, item.name, item.barcode, item.customCode, cat.customCode]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+
+          if (tokens.every(t => haystack.includes(t))) {
+            rank = nameLower.startsWith(q) ? 2 : 3;
+            matchType = 'text';
+          }
+        }
+
+        if (rank === null) continue;
+
+        matches.push({
+          rank,
+          _id: item._id,
+          name: item.name,
+          sellingPrice: item.sellingPrice,
+          quantity: item.quantity,
+          unit: item.unit || '',
+          barcode: item.barcode || '',
+          customCode: item.customCode || '',
+          categoryId: cat._id,
+          categoryName: cat.name,
+          matchType,
+        });
+      }
+    }
+
+    matches.sort((a, b) => a.rank - b.rank || a.name.localeCompare(b.name));
+
+    const results = matches.slice(0, limit).map(({ rank, ...rest }) => rest);
+
+    res.status(200).json({ results, total: matches.length });
+  } catch (error) {
+    console.error('Search items error:', error);
+    res.status(500).json({ message: 'Failed to search items', error: error.message });
+  }
+};
+
 // ─────────────────────────────────────────────
 // SCAN HISTORY ENDPOINT (read-only reporting)
 // ─────────────────────────────────────────────
-
-
 
 const getScanLogs = async (req, res) => {
   try {
@@ -523,8 +643,7 @@ const getScanLogs = async (req, res) => {
 };
 
 module.exports = {
-  // matching helpers exported for now so we can test them independently;
-  // the actual route handlers (preview, commit) get added next
+  // matching helpers exported for now so we can test them independently
   normalize,
   matchCategory,
   previewBulkImport,
@@ -532,7 +651,8 @@ module.exports = {
   classifyConfidence,
   commitBulkImport,
   parseBulkFile,
-   lookupBarcode,
+  lookupBarcode,
+  searchItems, // NEW
   getScanLogs,
   upload, // export multer config so the route can use it
 };

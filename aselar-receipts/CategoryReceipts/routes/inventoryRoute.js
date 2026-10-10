@@ -4,7 +4,8 @@ const {getLatestReceipt,getReceiptById,
     getReceipts, openCashDrawer,getReceiptsSummary,
     deleteReceipt,getLaybuys,addLaybuyPayment,
     getSalesSummary,submitReceipt,
-    getDiscountSetting,setDiscountSetting} = require('../controllers/inventoryReceipts');
+    getDiscountSetting,setDiscountSetting,
+    getDiscountRecords} = require('../controllers/inventoryReceipts'); // NEW: getDiscountRecords
 const { protect} = require('../../Shared/protect'); // Adjust the path as necessary
 
 
@@ -62,5 +63,8 @@ router.delete('/receipt/:id', protect, deleteReceipt);
 // NEW: discount on/off setting
 router.get('/discount-setting', protect, getDiscountSetting);
 router.put('/discount-setting', protect, setDiscountSetting);
+
+// NEW: who gave discounts, and when (powers Discount Activity in SellerManagement)
+router.get('/discount-records', protect, getDiscountRecords);
 
 module.exports = router;

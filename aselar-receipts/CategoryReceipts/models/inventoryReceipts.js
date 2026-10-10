@@ -24,6 +24,12 @@ const ReceiptItemSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
+  // NEW: name of the seller who gave this item's discount (empty when no discount)
+  discountBy: {
+    type: String,
+    default: '',
+    trim: true
+  },
   totalPrice: {
     type: Number,
     required: true,
@@ -73,6 +79,11 @@ const ReceiptSchema = new mongoose.Schema({
     type: Number,
     default: 0,
     min: 0
+  },
+  // NEW: unique names of the sellers who gave a discount on this receipt
+  discountedBy: {
+    type: [String],
+    default: []
   },
   vat: {
     type: Number,
@@ -215,7 +226,7 @@ ReceiptSchema.pre('save', function(next) {
 
 // Index for better performance on receiptsNumber queries
 ReceiptSchema.index({ receiptsNumber: 1 });
-// NEW: Index to make "which lay-buys are due soon" scans cheap
+// NEW: Index to make "which lay-buy are due soon" scans cheap
 ReceiptSchema.index({ 'saleType': 1, 'laybuy.status': 1, 'laybuy.dueDate': 1 });
 
 // Export the Receipt model (kept as NewReceipt per your original)

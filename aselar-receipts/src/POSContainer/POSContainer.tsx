@@ -21,6 +21,7 @@ interface ReceiptItem {
   quantity: number;
   price: number;
   discount: number; // Optional item discount
+  discountBy?: string; // NEW: seller who gave this item's discount
   categoryId: string; // NEW: For processSale
   itemId: string; // NEW: Item _id for targeted deduction
 }
@@ -48,12 +49,23 @@ const useReceiptManager = () => {
   const [subtotal, setSubtotal] = useState<number>(0);
   const [discountAmount, setDiscountAmount] = useState<number>(0);
   const [cashPaid, setCashPaid] = useState<number>(0);
+  const [globalDiscountBy, setGlobalDiscountBy] = useState<string>(''); // NEW: seller who gave the global discount
 
 
   // Calculate derived values
   const vat = (subtotal - discountAmount) * VAT_RATE;
   const total = subtotal - discountAmount + vat;
   const change = cashPaid - total;
+
+  // NEW: unique list of sellers who gave a discount on this receipt
+  const discountedBy: string[] = Array.from(
+    new Set([
+      ...receiptItems
+        .filter(i => i.discount > 0 && i.discountBy)
+        .map(i => i.discountBy as string),
+      ...(globalDiscountBy ? [globalDiscountBy] : []),
+    ])
+  );
 
   // Add item to receipt
   const addItem = useCallback((item: Item, quantity: number) => {
@@ -91,8 +103,8 @@ const useReceiptManager = () => {
     });
   }, []);
 
-  // Apply discount to specific item
-  const applyItemDiscount = useCallback((itemId: string, discount: number) => {
+  // Apply discount to specific item (records who gave it)
+  const applyItemDiscount = useCallback((itemId: string, discount: number, discountBy: string) => {
     setReceiptItems(prev => prev.map(item => {
       if (item.id === itemId) {
         // If item already had a discount, remove it from total first
@@ -103,16 +115,17 @@ const useReceiptManager = () => {
         }
         
         // Return updated item
-        return { ...item, discount };
+        return { ...item, discount, discountBy: discount > 0 ? discountBy : '' };
       }
       return item;
     }));
   }, []);
 
-  // Apply global discount percentage
-  const applyGlobalDiscount = useCallback((percentage: number) => {
+  // Apply global discount percentage (records who gave it)
+  const applyGlobalDiscount = useCallback((percentage: number, discountBy: string) => {
     const newDiscountAmount = (subtotal * percentage) / 100;
     setDiscountAmount(newDiscountAmount);
+    setGlobalDiscountBy(percentage > 0 ? discountBy : '');
   }, [subtotal]);
 
   // Update cash paid
@@ -126,6 +139,7 @@ const useReceiptManager = () => {
     setSubtotal(0);
     setDiscountAmount(0);
     setCashPaid(0);
+    setGlobalDiscountBy('');
   }, []);
 
   return {
@@ -133,6 +147,7 @@ const useReceiptManager = () => {
     subtotal,
     vat,
     discountAmount,
+    discountedBy,
     total,
     cashPaid,
     change,
@@ -181,6 +196,7 @@ const { sellerName } = useSellerContext();
     subtotal,
     vat,
     discountAmount,
+    discountedBy,
     total,
     cashPaid,
     change,
@@ -326,14 +342,20 @@ const { sellerName } = useSellerContext();
     setShowDiscountPad(true);
   };
 
-  // Handler for confirming discount amount
+  // Handler for confirming discount amount (records the current seller)
   const handleConfirmDiscount = (amount: number) => {
     if (discountItemId) {
-      applyItemDiscount(discountItemId, amount);
+      applyItemDiscount(discountItemId, amount, sellerName);
     }
     setShowDiscountPad(false);
     setDiscountItemId(null);
   };
+
+  // NEW: global discount wrapper (records the current seller)
+  const handleGlobalDiscount = (percentage: number) => {
+    applyGlobalDiscount(percentage, sellerName);
+  };
+
 const handleBarcodeScan = async (code: string) => {
   setScanLookupLoading(true);
 
@@ -480,10 +502,11 @@ const handlePaymentMethodSelect = (method: string, details?: { dueDate?: string 
 
       // Prepare receipt data (keep your existing sales logging)
       const receiptData = {
-        items: receiptItems,
+        items: receiptItems, // each item now carries discountBy
         subtotal,
         vat,
         discount: discountAmount,
+        discountedBy: discountAmount > 0 ? discountedBy : [], // NEW: sellers who gave a discount
         total,
         cashPaid,
         change,
@@ -546,7 +569,7 @@ const handlePaymentMethodSelect = (method: string, details?: { dueDate?: string 
           onCashPaidChange={updateCashPaid}
           onRemoveItem={removeItem}
           onItemDiscount={handleItemDiscount}
-          onApplyGlobalDiscount={applyGlobalDiscount}
+          onApplyGlobalDiscount={handleGlobalDiscount}
           saleType={saleType}
           dueDate={laybuyDueDate}
         />

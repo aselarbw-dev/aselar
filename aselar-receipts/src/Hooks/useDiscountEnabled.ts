@@ -15,28 +15,54 @@ const authConfig = () => ({
 
 // module-level cache so several components don't each hit the API
 let cachedValue: boolean | null = null;
+// NEW: which login (token) the cached value belongs to
+let cachedToken: string | null = null;
+
+const currentToken = (): string | null => localStorage.getItem('token');
+
+// NEW: if a different account is logged in now, forget the old account's value
+const ensureCacheMatchesLogin = () => {
+  const token = currentToken();
+  if (cachedToken !== token) {
+    cachedValue = null;
+    cachedToken = token;
+  }
+};
 
 const fetchSetting = async (): Promise<boolean> => {
+  const tokenAtStart = currentToken(); // NEW
+  let value = false;
   try {
     const res = await axios.get(settingUrl(), {
       ...authConfig(),
       params: { _t: Date.now() },
     });
-    cachedValue = !!res.data?.enabled;
+    value = !!res.data?.enabled;
   } catch (err) {
     console.error('Failed to load discount setting — keeping discounts locked', err);
-    cachedValue = false; // fail safe: locked
+    value = false; // fail safe: locked
   }
-  return cachedValue;
+  // NEW: only keep the result if the same account is still logged in
+  if (currentToken() === tokenAtStart) {
+    cachedValue = value;
+    cachedToken = tokenAtStart;
+  }
+  return value;
 };
 
 export const useDiscountEnabled = (): [boolean, (value: boolean) => Promise<void>, boolean] => {
   // [enabled, setEnabled, loading]
-  const [enabled, setEnabledState] = useState<boolean>(cachedValue ?? false);
-  const [loading, setLoading] = useState<boolean>(cachedValue === null);
+  // NEW: check the login before reading the cache
+  const [enabled, setEnabledState] = useState<boolean>(() => {
+    ensureCacheMatchesLogin();
+    return cachedValue ?? false;
+  });
+  const [loading, setLoading] = useState<boolean>(() => cachedValue === null);
 
   useEffect(() => {
     let cancelled = false;
+
+    ensureCacheMatchesLogin(); // NEW
 
     if (cachedValue === null) {
       fetchSetting().then((value) => {
@@ -62,6 +88,7 @@ export const useDiscountEnabled = (): [boolean, (value: boolean) => Promise<void
     try {
       const res = await axios.put(settingUrl(), { enabled: value }, authConfig());
       cachedValue = !!res.data?.enabled;
+      cachedToken = currentToken(); // NEW
       setEnabledState(cachedValue);
       window.dispatchEvent(new Event(CHANGE_EVENT));
     } catch (err: any) {

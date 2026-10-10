@@ -2,7 +2,7 @@ const {mongoose,connectDB} = require('../../Shared/config');
 
 const submitReceipt = async (req, res) => {
   try {
-    const { items, subtotal, vat, discount, total, cashPaid, change, paymentMethod, saleType, dueDate } = req.body;
+    const { items, subtotal, vat, discount, discountedBy, total, cashPaid, change, paymentMethod, saleType, dueDate } = req.body;
 
     // Validate the request
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -71,8 +71,21 @@ const submitReceipt = async (req, res) => {
       quantity: item.quantity,
       price: item.price,
       discount: item.discount || 0,
+      // NEW: only keep the seller name when this item actually has a discount
+      discountBy: Number(item.discount) > 0 && typeof item.discountBy === 'string' ? item.discountBy.trim() : '',
       totalPrice: (item.quantity * item.price) - (item.discount || 0)
     }));
+
+    // NEW: clean list of sellers who gave a discount (empty when the receipt has no discount)
+    const cleanDiscountedBy = hasDiscount && Array.isArray(discountedBy)
+      ? Array.from(
+          new Set(
+            discountedBy
+              .filter(name => typeof name === 'string' && name.trim())
+              .map(name => name.trim())
+          )
+        )
+      : [];
 
     // Create a new receipt
     await connectDB();
@@ -83,6 +96,7 @@ const submitReceipt = async (req, res) => {
       subtotal,
       vat,
       discount,
+      discountedBy: cleanDiscountedBy, // NEW
       total,
       cashPaid,
       change,
@@ -135,7 +149,6 @@ const submitReceipt = async (req, res) => {
     });
   }
 };
-
 const getLatestReceipt = async (req, res) => {
   try {
      await connectDB();
@@ -546,6 +559,48 @@ const setDiscountSetting = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Server error. Please try again.' });
   }
 };
+
+// NEW: GET /discount-records — receipts that had a discount, newest first, with the seller who gave it
+const getDiscountRecords = async (req, res) => {
+  try {
+    await connectDB();
+    const NewReceipt = require('../models/inventoryReceipts');
+
+    // A receipt counts if the whole-receipt discount or any item discount is above zero
+    const filterOptions = {
+      $or: [
+        { discount: { $gt: 0 } },
+        { 'items.discount': { $gt: 0 } }
+      ]
+    };
+
+    // Non-admins only see their own account's receipts
+    if (req.user.role !== 'admin') {
+      filterOptions.createdBy = req.user._id;
+    }
+
+    // Latest 100 by default, never more than 200
+    const limit = Math.min(parseInt(req.query.limit, 10) || 100, 200);
+
+    const records = await NewReceipt.find(filterOptions)
+      .select('receiptsNumber createdAt discount discountedBy items.name items.discount items.discountBy')
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      count: records.length,
+      data: records
+    });
+  } catch (error) {
+    console.error('Error retrieving discount records:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error. Please try again.'
+    });
+  }
+};
 module.exports = {
   submitReceipt,
   getLatestReceipt,
@@ -558,5 +613,6 @@ module.exports = {
   getLaybuys,
   addLaybuyPayment,
   getDiscountSetting,
-  setDiscountSetting
+  setDiscountSetting,
+  getDiscountRecords // NEW
 };

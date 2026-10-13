@@ -557,13 +557,15 @@ const handleEmailModalSubmit = async (customerEmail: string) => {
           cash: receipt?.cash,
           change: receipt?.change,
           date: receipt?.date || receipt?.createdAt,
-          htmlContent,
+                    htmlContent,
+          sellerName: getSellerName(),   // ← NEW
           companyInfo: {
             nameOfBusiness: profileData?.nameOfBusiness,
             place: businessData?.place,
             businessNature: businessData?.businessNature,
             businessPhone: profileData?.businessPhone,
             emailBusiness: profileData?.emailBusiness,
+            profilePicture: profileData?.profilePicture   // ← NEW
           }
         }),
       });

@@ -2,7 +2,7 @@ const path = require('path');
 const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
-const { Resend } = require('resend');
+// const { Resend } = require('resend'); // replaced by Mailtrap HTTP API (see sendEmail below)
 const twilio = require('twilio');
 const { PDFServiceJsPDF } = require('./pdfService');
 const SibApiV3Sdk = require('sib-api-v3-sdk');
@@ -34,7 +34,8 @@ const SMSUpload = async (req, res) => {
       discountType,
       subtotal,     // ← Already present
       date,         // ← Changed from 'createdAt'
-      companyInfo   // ← Already present
+      companyInfo,  // ← Already present
+      sellerName    // NEW: daily seller shown as "Served by" on the PDF
     } = req.body;
     
     const authenticatedUser = req.user;
@@ -73,13 +74,14 @@ const SMSUpload = async (req, res) => {
       discountType,
       htmlContent,
       date,  // ← Use for PDF date
-      companyInfo,  // ← For header
+      sellerName,  // NEW
       change,
       companyInfo: {  // ← Keep formatting
         name: companyInfo?.nameOfBusiness || '',
         address: `${companyInfo?.place || ''}\n${companyInfo?.businessNature || ''}`,
         phone: companyInfo?.businessPhone || '',
-        email: companyInfo?.emailBusiness || ''
+        email: companyInfo?.emailBusiness || '',
+        profilePicture: companyInfo?.profilePicture || ''   // NEW: logo for the PDF header
       },
     };
 
@@ -197,7 +199,8 @@ const generateQR = async (req, res) => {
       htmlContent,
       date,  // ← Changed
       companyInfo,
-      change
+      change,
+      sellerName  // NEW
     } = req.body;
     
     const authenticatedUser = req.user;
@@ -238,13 +241,14 @@ const generateQR = async (req, res) => {
       discountType,
       htmlContent,
       date,
-      companyInfo,
+      sellerName,  // NEW
       change,
       companyInfo: {  // ← Keep formatting
         name: companyInfo?.nameOfBusiness || '',
         address: `${companyInfo?.place || ''}\n${companyInfo?.businessNature || ''}`,
         phone: companyInfo?.businessPhone || '',
-        email: companyInfo?.emailBusiness || ''
+        email: companyInfo?.emailBusiness || '',
+        profilePicture: companyInfo?.profilePicture || ''   // NEW: logo for the PDF header
       },
     };
 
@@ -312,7 +316,8 @@ const WhatsAppUpload = async (req, res) => {
       subtotal,
       date,
       companyInfo,
-      htmlContent
+      htmlContent,
+      sellerName  // NEW
     } = req.body;
 
     const authenticatedUser = req.user;
@@ -345,13 +350,14 @@ const WhatsAppUpload = async (req, res) => {
       discountType,
       htmlContent,
       date,
-      companyInfo,
+      sellerName,  // NEW
       change,
       companyInfo: {
         name: companyInfo?.nameOfBusiness || '',
         address: `${companyInfo?.place || ''}\n${companyInfo?.businessNature || ''}`,
         phone: companyInfo?.businessPhone || '',
-        email: companyInfo?.emailBusiness || ''
+        email: companyInfo?.emailBusiness || '',
+        profilePicture: companyInfo?.profilePicture || ''   // NEW: logo for the PDF header
       },
     };
 
@@ -423,24 +429,64 @@ const WhatsAppUpload = async (req, res) => {
     });
   }
 };
-// Initialize Gmail transporter
-const sendEmail = async ({ to, subject, html, attachments }) => {
-  const resend = new Resend(process.env.RESEND_API_KEY);
 
-  await resend.emails.send({
-    from: 'Aselar <onboarding@resend.dev>',
-    to,
+// Mailtrap HTTP API (no SMTP, so it works on Render; no extra packages needed)
+const sendEmail = async ({ to, cc, replyTo, subject, html, attachments }) => {
+  const payload = {
+    from: {
+      email: process.env.EMAIL_FROM_ADDRESS,
+      name: process.env.EMAIL_FROM_NAME || 'Aselar'
+    },
+    to: [{ email: to }],
     subject,
     html,
-    attachments: attachments?.map(a => ({
+    category: 'Receipt'
+  };
+
+  if (cc) payload.cc = [{ email: cc }];
+  if (replyTo) payload.reply_to = { email: replyTo };
+
+  if (attachments?.length) {
+    payload.attachments = attachments.map(a => ({
       filename: a.filename,
       content: Buffer.isBuffer(a.content)
         ? a.content.toString('base64')
-        : a.content
-    }))
-  });
+        : a.content,
+      type: a.contentType || 'application/pdf',
+      disposition: 'attachment'
+    }));
+  }
+
+  try {
+    const response = await fetch('https://send.api.mailtrap.io/api/send', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.MAILTRAP_API_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    let result = {};
+    try {
+      result = await response.json();
+    } catch (parseError) {
+      result = {};
+    }
+
+    if (!response.ok) {
+      console.error('Mailtrap send failed:', response.status, result);
+      throw new Error(result?.errors?.join(', ') || 'Failed to send email');
+    }
+
+    return result;
+  } catch (error) {
+    console.error('sendEmail error:', error.message);
+    throw error;
+  }
 };
-// ====================== FULL EMAIL UPLOAD FUNCTION (Gmail) ======================
+
+// ====================== FULL EMAIL UPLOAD FUNCTION ======================
 const EmailUpload = async (req, res) => {
   try {
     const {
@@ -457,7 +503,8 @@ const EmailUpload = async (req, res) => {
       subtotal,
       date,
       companyInfo,
-      htmlContent
+      htmlContent,
+      sellerName  // NEW
     } = req.body;
 
     const authenticatedUser = req.user;
@@ -490,13 +537,14 @@ const EmailUpload = async (req, res) => {
       discountType,
       htmlContent,
       date,
-      companyInfo,
+      sellerName,  // NEW
       change,
       companyInfo: {
         name: companyInfo?.nameOfBusiness || '',
         address: `${companyInfo?.place || ''}\n${companyInfo?.businessNature || ''}`,
         phone: companyInfo?.businessPhone || '',
-        email: companyInfo?.emailBusiness || ''
+        email: companyInfo?.emailBusiness || '',
+        profilePicture: companyInfo?.profilePicture || ''   // NEW: logo for the PDF header
       },
     };
 
@@ -561,16 +609,17 @@ const EmailUpload = async (req, res) => {
     `;
 
     // Send Email
-   await sendEmail({
-     to: email,                    // ← customer's email (required)
-  cc: companyInfo?.emailBusiness || null,   // ← add this line                  // ← customer's email (required)
-      html: emailBody,  
+    await sendEmail({
+      to: email,                                // ← customer's email (required)
+      cc: companyInfo?.emailBusiness || null,   // ← business gets a copy
+      subject: `Receipt #${receiptsNumber} - ${companyInfo?.nameOfBusiness || 'Your Business'}`,
+      html: emailBody,
       attachments: [{
-    filename: filename,
-    content: pdfBuffer,
-    contentType: 'application/pdf'
-  }]
-   })
+        filename: filename,
+        content: pdfBuffer,
+        contentType: 'application/pdf'
+      }]
+    });
 
     console.log(`✅ Email sent to ${email} `);
 
@@ -598,4 +647,4 @@ const EmailUpload = async (req, res) => {
   }
 };
 
-module.exports = { SMSUpload, generateQR, WhatsAppUpload,EmailUpload };
+module.exports = { SMSUpload, generateQR, WhatsAppUpload, EmailUpload };

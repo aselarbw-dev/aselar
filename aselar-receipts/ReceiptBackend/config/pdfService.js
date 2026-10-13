@@ -5,18 +5,91 @@ const { jsPDF } = require('jspdf');
 const admin = require('firebase-admin');
 const QRCode = require('qrcode');
 
+// Receipt colour palette (navy matches the email template)
+const COLORS = {
+  navy: [30, 58, 138],
+  ink: [31, 41, 55],
+  muted: [107, 114, 128],
+  line: [229, 231, 235],
+  band: [243, 246, 252],
+  white: [255, 255, 255],
+  softWhite: [203, 213, 240],
+  green: [21, 128, 61]
+};
+
+const LOGO_MAX_BYTES = 2 * 1024 * 1024; // 2 MB
+const LOGO_TIMEOUT_MS = 5000;
+
 class PDFServiceJsPDF {
   async generatePDFFromHTML(htmlContent, receiptsData = {}) {
     try {
       const pdf = new jsPDF('p', 'mm', 'a4');
-      
-      // Add content to PDF with proper formatting (adapted for receipts)
-      this.buildReceiptPDF(pdf, receiptsData);
-      
+
+      // Logo is optional: if it cannot be loaded the receipt still generates
+      const logo = await this.loadLogo(receiptsData.companyInfo?.profilePicture);
+
+      this.buildReceiptPDF(pdf, receiptsData, logo);
+
       return Buffer.from(pdf.output('arraybuffer'));
     } catch (error) {
       console.error('Error generating PDF:', error);
       throw new Error(`PDF generation failed: ${error.message}`);
+    }
+  }
+
+  // Loads the business logo (https URL or base64 data URL). PNG and JPEG only.
+  // Never throws: returns null if anything goes wrong.
+  async loadLogo(source) {
+    if (!source || typeof source !== 'string') return null;
+
+    try {
+      let buffer;
+
+      if (source.startsWith('data:image/')) {
+        const base64 = source.split(',')[1];
+        if (!base64) return null;
+        buffer = Buffer.from(base64, 'base64');
+      } else if (/^https:\/\//i.test(source)) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), LOGO_TIMEOUT_MS);
+        let response;
+        try {
+          response = await fetch(source, { signal: controller.signal });
+        } finally {
+          clearTimeout(timer);
+        }
+        if (!response.ok) {
+          console.warn('Logo fetch failed with status', response.status);
+          return null;
+        }
+        buffer = Buffer.from(await response.arrayBuffer());
+      } else {
+        return null;
+      }
+
+      if (!buffer.length || buffer.length > LOGO_MAX_BYTES) {
+        console.warn('Logo skipped: empty or larger than 2 MB');
+        return null;
+      }
+
+      // Detect the real format from the file header (jsPDF supports PNG and JPEG only)
+      let format = null;
+      if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) {
+        format = 'PNG';
+      } else if (buffer[0] === 0xff && buffer[1] === 0xd8) {
+        format = 'JPEG';
+      }
+
+      if (!format) {
+        console.warn('Logo skipped: unsupported image format (use PNG or JPEG)');
+        return null;
+      }
+
+      const mime = format === 'PNG' ? 'image/png' : 'image/jpeg';
+      return { dataUrl: `data:${mime};base64,${buffer.toString('base64')}`, format };
+    } catch (error) {
+      console.warn('Logo load skipped:', error.message);
+      return null;
     }
   }
 
@@ -42,217 +115,295 @@ class PDFServiceJsPDF {
     }
   }
 
- buildReceiptPDF(pdf, receiptsData) {
-  let yPos = 20;
-  const pageHeight = pdf.internal.pageSize.height;
-  const margin = 20;
-  const lineHeight = 7;
+  buildReceiptPDF(pdf, receiptsData, logo = null) {
+    const C = COLORS;
+    const pageW = pdf.internal.pageSize.getWidth();
+    const pageH = pdf.internal.pageSize.getHeight();
+    const margin = 15;
+    const contentW = pageW - margin * 2;
+    const bottomLimit = pageH - 28; // keeps content clear of the footer
 
-  // Helper function to check if new page is needed
-  const checkNewPage = (additionalHeight = lineHeight) => {
-    if (yPos + additionalHeight > pageHeight - margin) {
-      pdf.addPage();
-      yPos = 20;
-    }
-  };
+    pdf.setLineHeightFactor(1.4);
 
-  // Header - Receipt Title
-  pdf.setFontSize(24);
-  pdf.setFont(undefined, 'bold');
-  pdf.setTextColor(0, 123, 255); // Blue color
-  pdf.text('RECEIPT', margin, yPos);
-  yPos += 15;
+    // ---------- small helpers ----------
+    const fill = (c) => pdf.setFillColor(c[0], c[1], c[2]);
+    const stroke = (c) => pdf.setDrawColor(c[0], c[1], c[2]);
+    const color = (c) => pdf.setTextColor(c[0], c[1], c[2]);
+    const font = (style = 'normal', size = 10) => {
+      pdf.setFont('helvetica', style);
+      pdf.setFontSize(size);
+    };
+    const money = (v) =>
+      `BWP ${(Number(v) || 0).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })}`;
 
-  // Receipt Number
-  pdf.setFontSize(12);
-  pdf.setFont(undefined, 'normal');
-  pdf.setTextColor(102, 102, 102); // Gray color
-  pdf.text(`Receipt Number: ${receiptsData.receiptsNumber || 'N/A'}`, margin, yPos);
-  yPos += 15;
+    // ---------- data ----------
+    const company = receiptsData.companyInfo || {};
+    const businessName = company.name || company.nameOfBusiness || '';
+    const sellerName = receiptsData.sellerName || businessName || 'Unknown Seller';
+    const items = Array.isArray(receiptsData.inputs) ? receiptsData.inputs : [];
 
-  // Reset text color to black
-  pdf.setTextColor(0, 0, 0);
-
-  // Company / Seller Information Section
-  checkNewPage(60);
-  pdf.setFontSize(14);
-  pdf.setFont(undefined, 'bold');
-  pdf.setTextColor(0, 123, 255);
-  pdf.text('FROM:', margin, yPos);
-  yPos += 10;
-
-  pdf.setFontSize(11);
-  pdf.setFont(undefined, 'normal');
-  pdf.setTextColor(0, 0, 0);
-
-  // Priority: daily seller name first → business name fallback → 'Unknown Seller'
-  const sellerName = receiptsData.sellerName || 
-                     (receiptsData.companyInfo?.nameOfBusiness || 
-                      receiptsData.companyInfo?.name || 'Unknown Seller');
-
-  // Seller line (bold, prominent)
-  pdf.setFont(undefined, 'bold');
-  pdf.text(`Seller: ${sellerName}`, margin, yPos);
-  yPos += lineHeight + 4;  // Extra spacing after seller
-
-  // Business details (normal font, slight indent to distinguish)
-  pdf.setFont(undefined, 'normal');
-  if (receiptsData.companyInfo) {
-    const businessName = receiptsData.companyInfo.nameOfBusiness || 
-                         receiptsData.companyInfo.name || '';
-
-    // Only show business name if it's different from seller
-    if (businessName && businessName !== sellerName) {
-      pdf.text(businessName, margin + 10, yPos);
-      yPos += lineHeight;
-    }
-
-    if (receiptsData.companyInfo.place || receiptsData.companyInfo.address) {
-      pdf.text(receiptsData.companyInfo.place || receiptsData.companyInfo.address, margin + 10, yPos);
-      yPos += lineHeight;
-    }
-
-    if (receiptsData.companyInfo.businessPhone || receiptsData.companyInfo.phone) {
-      pdf.text(`Phone: ${receiptsData.companyInfo.businessPhone || receiptsData.companyInfo.phone}`, margin + 10, yPos);
-      yPos += lineHeight;
-    }
-
-    if (receiptsData.companyInfo.emailBusiness || receiptsData.companyInfo.email) {
-      pdf.text(`Email: ${receiptsData.companyInfo.emailBusiness || receiptsData.companyInfo.email}`, margin + 10, yPos);
-      yPos += lineHeight;
-    }
-
-    // Optional: business nature/description if you want to include it
-    if (receiptsData.companyInfo.businessNature || receiptsData.companyInfo.businessDescription) {
-      pdf.text(receiptsData.companyInfo.businessNature || receiptsData.companyInfo.businessDescription, margin + 10, yPos);
-      yPos += lineHeight;
-    }
-  }
-  yPos += 10;
-
-  // Date (with fallback)
-  checkNewPage(20);
-  const pdfDate = receiptsData.createdAt || receiptsData.date || Date.now();
-  const currentDate = new Date(pdfDate).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-  pdf.text(`Date: ${currentDate}`, margin, yPos);
-  yPos += lineHeight + 15;
-
-  // Items Table Header
-  checkNewPage(60);
-  pdf.setFontSize(14);
-  pdf.setFont(undefined, 'bold');
-  pdf.text('RECEIPT ITEMS', margin, yPos);
-  yPos += 15;
-
-  // Table setup
-  const tableStart = yPos;
-  const colWidths = [10, 60, 15, 20, 25, 35]; // # | Item | Qty | Unit | Price | Total
-  const colPositions = [margin];
-  for (let i = 0; i < colWidths.length - 1; i++) {
-    colPositions.push(colPositions[i] + colWidths[i]);
-  }
-
-  // Table header background
-  pdf.setFillColor(248, 249, 250);
-  pdf.rect(margin, yPos - 5, colWidths.reduce((a, b) => a + b, 0), 10, 'F');
-
-  pdf.setFontSize(10);
-  pdf.setFont(undefined, 'bold');
-  const headers = ['#', 'Item', 'Qty', 'Unit', 'Price', 'Total'];
-  headers.forEach((header, index) => {
-    pdf.text(header, colPositions[index] + 2, yPos);
-  });
-  yPos += 15;
-
-  // Table rows
-  pdf.setFont(undefined, 'normal');
-  if (receiptsData.inputs && receiptsData.inputs.length > 0) {
-    receiptsData.inputs.forEach((input, index) => {
-      checkNewPage(15);
-
-      const itemTotal = (input.field1 || 0) * (input.field2 || 0);
-      const values = [
-        (index + 1).toString(),
-        input.field3 || '',
-        input.field1?.toString() || '0',
-        input.field4 || '',
-        `BWP ${input.field2 || 0}`,
-        `BWP ${itemTotal.toFixed(2)}`
-      ];
-
-      values.forEach((value, colIndex) => {
-        const maxWidth = colWidths[colIndex] - 4;
-        const splitText = pdf.splitTextToSize(value, maxWidth);
-        pdf.text(splitText, colPositions[colIndex] + 2, yPos);
-      });
-
-      yPos += 12;
-
-      // Separator line
-      pdf.setDrawColor(238, 238, 238);
-      pdf.line(margin, yPos - 2, margin + colWidths.reduce((a, b) => a + b, 0), yPos - 2);
+    const dateStr = new Date(
+      receiptsData.date || receiptsData.createdAt || Date.now()
+    ).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
     });
+
+    // ---------- HEADER BAND ----------
+    const contactLines = [];
+    if (company.phone || company.businessPhone) {
+      contactLines.push(`Tel: ${company.phone || company.businessPhone}`);
+    }
+    if (company.email || company.emailBusiness) {
+      contactLines.push(company.email || company.emailBusiness);
+    }
+    String(company.address || '')
+      .split('\n')
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .forEach((l) => contactLines.push(l));
+
+    font('normal', 8.5);
+    const shownContacts = contactLines.slice(0, 4).map((l) => pdf.splitTextToSize(l, 90)[0]);
+
+    font('bold', 15);
+    const nameLines = pdf.splitTextToSize(businessName || sellerName, 90).slice(0, 2);
+
+    const bandH = Math.max(40, 14 + nameLines.length * 6.5 + shownContacts.length * 4.6 + 4);
+
+    fill(C.navy);
+    pdf.rect(0, 0, pageW, bandH, 'F');
+
+    // Logo tile (white rounded square) with initial as fallback
+    const tileSize = 26;
+    const tileY = (bandH - tileSize) / 2;
+    fill(C.white);
+    pdf.roundedRect(margin, tileY, tileSize, tileSize, 3, 3, 'F');
+
+    let logoDrawn = false;
+    if (logo) {
+      try {
+        const props = pdf.getImageProperties(logo.dataUrl);
+        const box = tileSize - 4;
+        const scale = Math.min(box / props.width, box / props.height);
+        const drawW = props.width * scale;
+        const drawH = props.height * scale;
+        pdf.addImage(
+          logo.dataUrl,
+          logo.format,
+          margin + (tileSize - drawW) / 2,
+          tileY + (tileSize - drawH) / 2,
+          drawW,
+          drawH
+        );
+        logoDrawn = true;
+      } catch (error) {
+        console.warn('Logo could not be drawn:', error.message);
+      }
+    }
+    if (!logoDrawn) {
+      const initial = (businessName || sellerName || 'A').trim().charAt(0).toUpperCase();
+      font('bold', 20);
+      color(C.navy);
+      pdf.text(initial, margin + tileSize / 2, tileY + tileSize / 2 + 3.5, { align: 'center' });
+    }
+
+    // Business name + contact details (left)
+    const textX = margin + tileSize + 6;
+    let ly = 14;
+    font('bold', 15);
+    color(C.white);
+    nameLines.forEach((line) => {
+      pdf.text(line, textX, ly);
+      ly += 6.5;
+    });
+    font('normal', 8.5);
+    color(C.softWhite);
+    shownContacts.forEach((line) => {
+      pdf.text(line, textX, ly);
+      ly += 4.6;
+    });
+
+    // Receipt title, number and date (right)
+    font('bold', 24);
+    color(C.white);
+    pdf.text('RECEIPT', pageW - margin, 18, { align: 'right' });
+    font('normal', 10);
+    color(C.softWhite);
+    pdf.text(`No. ${receiptsData.receiptsNumber || 'N/A'}`, pageW - margin, 26, { align: 'right' });
+    pdf.text(dateStr, pageW - margin, 32, { align: 'right' });
+
+    let y = bandH + 8;
+
+    // ---------- INFO STRIP ----------
+    fill(C.band);
+    pdf.roundedRect(margin, y, contentW, 16, 2, 2, 'F');
+
+    font('bold', 10.5);
+    const sellerShown = pdf.splitTextToSize(sellerName, contentW * 0.42)[0];
+    const fields = [
+      { x: margin + 6, label: 'SERVED BY', value: sellerShown },
+      { x: margin + contentW * 0.55, label: 'DATE ISSUED', value: dateStr },
+      { x: margin + contentW * 0.82, label: 'ITEMS', value: String(items.length) }
+    ];
+    fields.forEach((f) => {
+      font('bold', 7);
+      color(C.muted);
+      pdf.text(f.label, f.x, y + 6);
+      font('bold', 10.5);
+      color(C.ink);
+      pdf.text(f.value, f.x, y + 12);
+    });
+
+    y += 16 + 10;
+
+    // ---------- ITEMS TABLE ----------
+    // Columns: # (10) | Item (68) | Qty (16) | Unit (22) | Price (30) | Total (34) = 180
+    const itemX = margin + 12;
+    const qtyR = margin + 94 - 3;
+    const unitX = margin + 94 + 2;
+    const priceR = margin + 146 - 3;
+    const totalR = margin + 180 - 3;
+    const itemWrapW = 62;
+
+    const drawTableHeader = (yy) => {
+      fill(C.navy);
+      pdf.roundedRect(margin, yy, contentW, 9, 1.5, 1.5, 'F');
+      font('bold', 8);
+      color(C.white);
+      pdf.text('#', margin + 5, yy + 6, { align: 'center' });
+      pdf.text('ITEM', itemX, yy + 6);
+      pdf.text('QTY', qtyR, yy + 6, { align: 'right' });
+      pdf.text('UNIT', unitX, yy + 6);
+      pdf.text('PRICE', priceR, yy + 6, { align: 'right' });
+      pdf.text('TOTAL', totalR, yy + 6, { align: 'right' });
+    };
+
+    drawTableHeader(y);
+    y += 9;
+
+    if (items.length === 0) {
+      font('normal', 9.5);
+      color(C.muted);
+      pdf.text('No items on this receipt.', itemX, y + 7);
+      y += 10;
+    }
+
+    items.forEach((input, index) => {
+      // Schema: field1 = quantity, field2 = unit price, field3 = name, field4 = unit
+      const qty = Number(input.field1) || 0;
+      const unitPrice = Number(input.field2) || 0;
+      const lineTotal = qty * unitPrice;
+      const unitLabel = !input.field4 || input.field4 === 'na' ? '-' : String(input.field4);
+
+      font('normal', 9.5);
+      const wrapped = pdf.splitTextToSize(String(input.field3 || ''), itemWrapW);
+      const rowH = Math.max(10, wrapped.length * 4.7 + 5.4);
+
+      if (y + rowH > bottomLimit) {
+        pdf.addPage();
+        y = margin;
+        drawTableHeader(y);
+        y += 9;
+      }
+
+      if (index % 2 === 1) {
+        fill(C.band);
+        pdf.rect(margin, y, contentW, rowH, 'F');
+      }
+
+      font('normal', 9.5);
+      color(C.ink);
+      pdf.text(String(index + 1), margin + 5, y + 6.4, { align: 'center' });
+      pdf.text(wrapped, itemX, y + 6.4);
+      pdf.text(String(qty), qtyR, y + 6.4, { align: 'right' });
+      pdf.text(pdf.splitTextToSize(unitLabel, 18)[0], unitX, y + 6.4);
+      pdf.text(money(unitPrice), priceR, y + 6.4, { align: 'right' });
+      font('bold', 9.5);
+      pdf.text(money(lineTotal), totalR, y + 6.4, { align: 'right' });
+
+      stroke(C.line);
+      pdf.setLineWidth(0.2);
+      pdf.line(margin, y + rowH, margin + contentW, y + rowH);
+
+      y += rowH;
+    });
+
+    y += 8;
+
+    // ---------- TOTALS CARD ----------
+    const discountValue = Number(receiptsData.discountValue) || 0;
+    const showDiscount = discountValue > 0;
+    const summaryRows = 2 + (showDiscount ? 1 : 0); // subtotal, (discount), VAT
+    const totalsH = summaryRows * 7 + 12 + 7 + 14 + 4;
+
+    if (y + totalsH > bottomLimit) {
+      pdf.addPage();
+      y = margin;
+    }
+
+    const boxW = 85;
+    const boxX = pageW - margin - boxW;
+
+    const summaryRow = (label, value, opts = {}) => {
+      font(opts.bold ? 'bold' : 'normal', 9.5);
+      color(C.muted);
+      pdf.text(label, boxX + 4, y + 5);
+      color(opts.valueColor || C.ink);
+      pdf.text(value, boxX + boxW - 4, y + 5, { align: 'right' });
+      y += 7;
+    };
+
+    summaryRow('Sub-Total', money(receiptsData.subtotal));
+    if (showDiscount) {
+      const discountLabel = receiptsData.discountName
+        ? `Discount (${pdf.splitTextToSize(String(receiptsData.discountName), 30)[0]})`
+        : 'Discount';
+      summaryRow(discountLabel, `-${money(discountValue)}`, { valueColor: C.green });
+    }
+    summaryRow('VAT', money(receiptsData.vatAmount));
+
+    y += 1;
+    fill(C.navy);
+    pdf.roundedRect(boxX, y, boxW, 12, 2, 2, 'F');
+    font('bold', 10);
+    color(C.white);
+    pdf.text('TOTAL', boxX + 4, y + 8);
+    font('bold', 12);
+    pdf.text(money(receiptsData.grandTotal), boxX + boxW - 4, y + 8, { align: 'right' });
+    y += 12 + 3;
+
+    summaryRow('Cash Paid', money(receiptsData.cash));
+    summaryRow('Change', money(receiptsData.change), { bold: true });
+
+    // ---------- FOOTER (every page) ----------
+    const totalPages = pdf.getNumberOfPages();
+    const contactName = businessName || sellerName;
+    const contactPhone = company.phone || company.businessPhone;
+    const contactText = `Questions? Contact ${contactName}${contactPhone ? ' on ' + contactPhone : ''}`;
+
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+
+      stroke(C.line);
+      pdf.setLineWidth(0.3);
+      pdf.line(margin, pageH - 22, pageW - margin, pageH - 22);
+
+      font('bold', 10);
+      color(C.navy);
+      pdf.text('Thank you for your business!', margin, pageH - 15);
+
+      font('normal', 8);
+      color(C.muted);
+      pdf.text(pdf.splitTextToSize(contactText, 110)[0], margin, pageH - 10);
+      pdf.text('Powered by Aselar, a TeX product.', pageW - margin, pageH - 15, { align: 'right' });
+      pdf.text(`Page ${i} of ${totalPages}`, pageW - margin, pageH - 10, { align: 'right' });
+    }
   }
-
-  yPos += 10;
-
-  // Totals Section
-  checkNewPage(80);
-  const totalsX = margin + 80;
-
-  pdf.setFont(undefined, 'normal');
-  pdf.setFontSize(10);
-  pdf.text('Sub-Total:', totalsX, yPos);
-  pdf.text(`BWP ${receiptsData.subtotal || '0.00'}`, totalsX + 40, yPos);
-  yPos += lineHeight;
-
-  if (receiptsData.discountValue && receiptsData.discountValue > 0) {
-    const discountLabel = receiptsData.discountName 
-      ? `${receiptsData.discountName} (${receiptsData.discountType || ''})` 
-      : 'Discount';
-    pdf.text(`${discountLabel}:`, totalsX, yPos);
-    pdf.text(`BWP -${receiptsData.discountValue || '0.00'}`, totalsX + 40, yPos);
-    yPos += lineHeight;
-  }
-
-  pdf.text('VAT:', totalsX, yPos);
-  pdf.text(`BWP ${receiptsData.vatAmount || '0.00'}`, totalsX + 40, yPos);
-  yPos += lineHeight + 3;
-
-  pdf.setFont(undefined, 'bold');
-  pdf.setFontSize(12);
-  pdf.text('Grand Total:', totalsX, yPos);
-  pdf.text(`BWP ${receiptsData.grandTotal || '0.00'}`, totalsX + 40, yPos);
-  yPos += lineHeight;
-
-  pdf.setFont(undefined, 'normal');
-  pdf.setFontSize(10);
-  pdf.text('Cash:', totalsX, yPos);
-  pdf.text(`BWP ${receiptsData.cash || '0.00'}`, totalsX + 40, yPos);
-  yPos += lineHeight;
-
-  pdf.setFont(undefined, 'bold');
-  pdf.text('Change:', totalsX, yPos);
-  pdf.text(`BWP ${receiptsData.change || '0.00'}`, totalsX + 40, yPos);
-  yPos += 15;
-
-  // Footer
-  checkNewPage(40);
-  yPos = pageHeight - 40;
-  pdf.setFontSize(10);
-  pdf.setFont(undefined, 'italic');
-  pdf.setTextColor(102, 102, 102);
-  pdf.text('Thank you for your business!', margin, yPos);
-  yPos += lineHeight;
-
-  const contactName = sellerName !== 'Unknown Seller' ? sellerName : 
-                      (receiptsData.companyInfo?.nameOfBusiness || 'the business');
-  pdf.text(`For any questions, please contact ${contactName}`, margin, yPos);
-}
 
 async uploadToFirebase(pdfBuffer, filename, metadata = {}) {
   try {

@@ -16,7 +16,7 @@
 .contentForm{
     margin-top:20px;
     width:400px;
-   max-height:860px;
+   min-height:600px;
     padding:10px;
      background: #3b82f6;
     border-radius: 15px;

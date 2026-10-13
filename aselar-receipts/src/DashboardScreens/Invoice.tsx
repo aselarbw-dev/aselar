@@ -7,6 +7,7 @@ import { IconContext } from 'react-icons'
 import {toast} from "react-toastify"
 import { useNavigate,Link } from 'react-router-dom'
 import ReceiverForm from '../Receivers/ReceiversForm'
+import NumericInput from '../utility/NumericInput'
 interface invoiceFields{
   id:number,
   services:{
@@ -69,7 +70,8 @@ const [showReceiverForm, setShowReceiverForm] = useState(false);
         const updatedInputs = fields.filter((input) => input.id !== id);
         setFields(updatedInputs);
       };
-  const handleInputChange = (id: number, field: string, value: string) => {
+  // CHANGED: value can now be a string (text fields) or a number (NumericInput)
+  const handleInputChange = (id: number, field: string, value: string | number) => {
     setFields((prevInputs) =>
       prevInputs.map((fields) =>
         fields.id === id
@@ -77,7 +79,7 @@ const [showReceiverForm, setShowReceiverForm] = useState(false);
               ...fields,
               services: {
                 ...fields.services,
-                [field]: field === 'field3' || field === 'field4' ? parseFloat(value) || 0 : value,
+                [field]: field === 'field3' || field === 'field4' ? Number(value) || 0 : value,
               },
             }
           : fields
@@ -169,14 +171,14 @@ const [showReceiverForm, setShowReceiverForm] = useState(false);
 
 
                          </textarea>
-                         <input type="number" 
+                         <NumericInput
                           value={input.services.field3}
-                          onChange={(e) => handleInputChange(input.id, 'field3', e.target.value)}
+                          onValueChange={(v) => handleInputChange(input.id, 'field3', v)}
                          
                          placeholder='quantity'/>
-                         <input type="number"
+                         <NumericInput
                           value={input.services.field4}
-                          onChange={(e) => handleInputChange(input.id, 'field4', e.target.value)}
+                          onValueChange={(v) => handleInputChange(input.id, 'field4', v)}
                           placeholder='price of service'/>
                           <IconContext.Provider value={{className:styles.delete}}>
                           <FaTrash color="red" onClick={() => handleRemoveInput(input.id)} />

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import styles from './Receipt.module.css';
 import { useDiscountEnabled } from '../Hooks/useDiscountEnabled';
 
@@ -45,11 +45,23 @@ const Receipt: React.FC<ReceiptProps> = ({
   dueDate = null,
   discountEnabled
 }) => {
-  const [discountPercent, setDiscountPercent] = React.useState<number>(0);
+  // CHANGED: discount input is kept as text so the box can be truly empty (no leading "0")
+  const [discountText, setDiscountText] = useState<string>('');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLaybuy = saleType === 'laybuy';
   // balance owing for a lay-buy sale (deposit = cashPaid)
   const balanceRemaining = Math.max(total - cashPaid, 0);
+
+  // NEW: cash input is kept as text so the box can be empty; the parent still receives a number
+  const [cashText, setCashText] = useState<string>(cashPaid ? String(cashPaid) : '');
+
+  // NEW: if the parent changes cashPaid (e.g. receipt cleared after a sale), resync the text
+  useEffect(() => {
+    if (Number(cashText || 0) !== cashPaid) {
+      setCashText(cashPaid ? String(cashPaid) : '');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cashPaid]);
 
   // NEW: discounts are OFF by default — the admin toggle turns them on
   const [toggleEnabled] = useDiscountEnabled();
@@ -57,11 +69,11 @@ const Receipt: React.FC<ReceiptProps> = ({
 
   // NEW: if discounts get switched off while one is applied, reset it so the totals stay honest
   useEffect(() => {
-    if (!discountActive && discountPercent !== 0) {
+    if (!discountActive && discountText !== '') {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
-      setDiscountPercent(0);
+      setDiscountText('');
       if (onApplyGlobalDiscount) {
         onApplyGlobalDiscount(0);
       }
@@ -71,10 +83,18 @@ const Receipt: React.FC<ReceiptProps> = ({
 
   // Handle discount percentage change
   const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!discountActive) return; // NEW: locked while the toggle is off
+    if (!discountActive) return; // locked while the toggle is off
 
-    const value = Math.min(100, Math.max(0, Number(e.target.value) || 0));
-    setDiscountPercent(value); // updates instantly, input stays responsive
+    const raw = e.target.value;
+    const num = Number(raw) || 0;
+
+    // keep the text as typed, but clamp to 0–100
+    let nextText = raw;
+    if (raw !== '' && num > 100) nextText = '100';
+    else if (raw !== '' && num < 0) nextText = '0';
+    setDiscountText(nextText); // updates instantly, input stays responsive
+
+    const value = Math.min(100, Math.max(0, num));
 
     // Clear any pending update so we don't fire multiple times while typing
     if (debounceRef.current) {
@@ -87,6 +107,13 @@ const Receipt: React.FC<ReceiptProps> = ({
         onApplyGlobalDiscount(value);
       }
     }, 400);
+  };
+
+  // NEW: cash paid change — text for the box, number for the parent
+  const handleCashChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    setCashText(raw);
+    onCashPaidChange(Number(raw) || 0); // empty / invalid → 0, payload stays a number
   };
 
   return (
@@ -165,7 +192,8 @@ const Receipt: React.FC<ReceiptProps> = ({
                 type="number"
                 min="0"
                 max="100"
-                value={discountPercent}
+                value={discountText}
+                placeholder="0"
                 onChange={handleDiscountChange}
                 disabled={!discountActive}
                 title={discountActive ? undefined : 'Discounts are turned off'}
@@ -199,8 +227,9 @@ const Receipt: React.FC<ReceiptProps> = ({
           <label>{isLaybuy ? 'Deposit Paid:' : 'Cash Paid:'}</label>
           <input
             type="number"
-            value={cashPaid}
-            onChange={(e) => onCashPaidChange(Number(e.target.value))}
+            value={cashText}
+            placeholder="0"
+            onChange={handleCashChange}
             className={styles.cashInput}
           />
         </div>

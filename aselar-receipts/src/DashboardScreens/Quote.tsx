@@ -6,6 +6,7 @@ import { FaPlus } from 'react-icons/fa'
 import { IconContext } from 'react-icons'
 import { useNavigate,Link } from 'react-router-dom'
 import ReceiverForm from '../Receivers/ReceiversForm'
+import NumericInput from '../utility/NumericInput'
 
 interface quoteFields{
    id:number,
@@ -84,7 +85,8 @@ const Quote:React.FC = () => {
     setIsSaved(true); // Mark as saved
   };
 
-  const handleInputChange = (id: number, field: string, value: string) => {
+  // CHANGED: value can now be a string (text fields) or a number (NumericInput)
+  const handleInputChange = (id: number, field: string, value: string | number) => {
     setData((prevInputs) =>
       prevInputs.map((data) =>
         data.id === id
@@ -92,7 +94,7 @@ const Quote:React.FC = () => {
               ...data,
               services: {
                 ...data.services,
-                [field]: field === 'field3' || field === 'field4' ? parseFloat(value) || 0 : value,
+                [field]: field === 'field3' || field === 'field4' ? Number(value) || 0 : value,
               },
             }
           : data
@@ -185,13 +187,13 @@ const Quote:React.FC = () => {
                            onChange={(e) => handleInputChange(input.id, 'field2', e.target.value)}
                          placeholder='description'>
                          </textarea>
-                         <input type="number" 
+                         <NumericInput
                           value={input.services.field3}
-                          onChange={(e) => handleInputChange(input.id, 'field3', e.target.value)}
+                          onValueChange={(v) => handleInputChange(input.id, 'field3', v)}
                          placeholder='quantity'/>
-                         <input type="number"
+                         <NumericInput
                           value={input.services.field4}
-                          onChange={(e) => handleInputChange(input.id, 'field4', e.target.value)}
+                          onValueChange={(v) => handleInputChange(input.id, 'field4', v)}
                           placeholder='price of service'/>
                           <IconContext.Provider value={{className:styles.delete}}>
                           <FaTrash color="red" onClick={() => handleRemoveInput(input.id)} />

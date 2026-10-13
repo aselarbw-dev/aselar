@@ -7,7 +7,7 @@ import { IconContext } from "react-icons";
 import { formatNumber } from "../Helperfunctions/formatNumbers";
 import { useNavigate, Link } from "react-router-dom";
 import Spinner from "../Spinners/Spinner";
-
+import NumericInput from "../utility/NumericInput";
 interface InputField {
   id: number;
   values: {
@@ -47,13 +47,13 @@ const DiscountPopup: React.FC<DiscountPopupProps> = ({ discount, setDiscount, se
           value={discount.name}
           onChange={(e) => setDiscount({ ...discount, name: e.target.value })}
         />
-        <input
-          type="number"
+        {/* CHANGED: NumericInput so the box isn't stuck showing "0" */}
+        <NumericInput
           placeholder="Value"
           value={discount.value}
-          onChange={(e) => setDiscount({ ...discount, value: parseFloat(e.target.value) || 0 })}
+          onValueChange={(v) => setDiscount({ ...discount, value: v })}
           step="0.01"
-          min="0"
+          min={0}
         />
         <label>
           <input
@@ -118,11 +118,13 @@ const Receipt: React.FC = () => {
     setIsSaved(false);
   };
 
-  const handleSubtractionChange = (value: string) => {
-    setSubtraction({ value: parseFloat(value) || 0 });
+  // CHANGED: receives a number straight from NumericInput
+  const handleSubtractionChange = (value: number) => {
+    setSubtraction({ value });
   };
 
-  const handleInputChange = (id: number, field: string, value: string) => {
+  // CHANGED: value can now be a string (text fields) or a number (NumericInput)
+  const handleInputChange = (id: number, field: string, value: string | number) => {
     setInputs((prevInputs) =>
       prevInputs.map((input) =>
         input.id === id
@@ -130,7 +132,7 @@ const Receipt: React.FC = () => {
               ...input,
               values: {
                 ...input.values,
-                [field]: field === 'field1' || field === 'field2' ? parseFloat(value) || 0 : value,
+                [field]: field === 'field1' || field === 'field2' ? Number(value) || 0 : value,
               },
             }
           : input
@@ -281,13 +283,12 @@ navigate("/receipt-template");
                 value={input.values.field3}
                 onChange={(e) => handleInputChange(input.id, 'field3', e.target.value)}
               />
-              <input
-                type="number"
+              <NumericInput
                 placeholder="quantity"
                 value={input.values.field1}
-                onChange={(e) => handleInputChange(input.id, 'field1', e.target.value)}
+                onValueChange={(v) => handleInputChange(input.id, 'field1', v)}
                 step="0.01"
-                min="0"
+                min={0}
               />
               <input
                 type="text"
@@ -295,13 +296,12 @@ navigate("/receipt-template");
                 value={input.values.field4}
                 onChange={(e) => handleInputChange(input.id, 'field4', e.target.value)}
               />
-              <input
-                type="number"
+              <NumericInput
                 placeholder="Price"
                 value={input.values.field2}
-                onChange={(e) => handleInputChange(input.id, 'field2', e.target.value)}
+                onValueChange={(v) => handleInputChange(input.id, 'field2', v)}
                 step="0.01"
-                min="0"
+                min={0}
               />
               <IconContext.Provider value={{className: receipts.delete}}>
                 <FaTrash color="red" onClick={() => handleRemoveInput(input.id)} />
@@ -334,13 +334,12 @@ navigate("/receipt-template");
             </div>
             <div className={receipts.cash}>
               <h3>Cash BWP</h3>
-              <input
-                type="number"
+              <NumericInput
                 placeholder="enter cash received"
                 value={subtraction.value}
-                onChange={(e) => handleSubtractionChange(e.target.value)}
+                onValueChange={handleSubtractionChange}
                 step="0.01"
-                min="0"
+                min={0}
               />
             </div>
             <div className={receipts.balance}>

@@ -49,7 +49,8 @@ const SMSUpload = async (req, res) => {
       createdAt,  // ← ADD
       companyInfo,  // ← ADD
       sellerName,   // NEW (policy): was missing, so the PDF never got the seller name here either
-      policyClause  // NEW (policy)
+      policyClause,
+      vatEnabled   // NEW  // NEW (policy)
     } = req.body;
     
     const authenticatedUser = req.user;
@@ -88,8 +89,10 @@ const SMSUpload = async (req, res) => {
       createdAt,  // ← ADD (for date)
       companyInfo,  // ← ADD (for header)
       change,
-      sellerName,                           // NEW (policy)
+      sellerName,
+      vatEnabled: vatEnabled !== false,   // NEW                            // NEW (policy)
       policyClause: cleanClause(policyClause), // NEW (policy)
+      vatEnabled,   // NEW (policy)
       companyInfo: {
         name: companyInfo?.nameOfBusiness || '',
         address: `${companyInfo?.place || ''}\n${companyInfo?.businessNature || ''}`,
@@ -209,7 +212,8 @@ const generateQR = async (req, res) => {
       companyInfo,  // ← ADD (for header)
       change,
       sellerName,   // NEW (policy)
-      policyClause  // NEW (policy)
+      policyClause,  // NEW (policy)
+      vatEnabled    // NEW (policy)
     } = req.body;
     
     const authenticatedUser = req.user;
@@ -250,8 +254,11 @@ const generateQR = async (req, res) => {
       createdAt,  // ← ADD (for date)
       companyInfo,  // ← ADD (for header)
       change,
-      sellerName,                           // NEW (policy)
+      sellerName,     
+      
+      vatEnabled: vatEnabled !== false,   // NEW                           // NEW (policy)
       policyClause: cleanClause(policyClause), // NEW (policy)
+      vatEnabled,   // NEW (policy)
       companyInfo: {
         name: companyInfo?.nameOfBusiness || '',
         address: `${companyInfo?.place || ''}\n${companyInfo?.businessNature || ''}`,
@@ -380,7 +387,8 @@ const EmailUpload = async (req, res) => {
       htmlContent,
       companyInfo,
       sellerName,   // NEW (policy)
-      policyClause  // NEW (policy)
+      policyClause ,
+      vatEnabled    // NEW (policy)
     } = req.body;
 
     const authenticatedUser = req.user;
@@ -413,8 +421,10 @@ const EmailUpload = async (req, res) => {
       createdAt,
       companyInfo,
       change,
-      sellerName,                // NEW (policy)
+      sellerName, 
+      vatEnabled: vatEnabled !== false,   // NEW               // NEW (policy)
       policyClause: safeClause,  // NEW (policy)
+      vatEnabled,                // NEW (policy)
       companyInfo: {
         name: companyInfo?.nameOfBusiness || '',
         address: `${companyInfo?.place || ''}\n${companyInfo?.businessNature || ''}`,
@@ -464,7 +474,7 @@ const EmailUpload = async (req, res) => {
         
         Subtotal: <strong>BWP ${subtotal?.toFixed(2) || '0.00'}</strong><br>
         ${discount && discount > 0 ? `Discount: <strong>-BWP ${discount.toFixed(2)}</strong><br>` : ''}
-        VAT: <strong>BWP ${vat?.toFixed(2) || '0.00'}</strong><br>
+        VAT:${vatEnabled !== false ? `VAT: <strong>BWP ${vat?.toFixed(2) || '0.00'}</strong><br>` : ''}
         <h3>Grand Total: BWP ${total.toFixed(2)}</h3>
         Paid: BWP ${cashPaid.toFixed(2)}<br>
         Change: BWP ${change.toFixed(2)}<br><br>

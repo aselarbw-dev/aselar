@@ -90,6 +90,11 @@ const ReceiptSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
+    // NEW: false for clients not VAT-registered (vat is stored as 0)
+  vatEnabled: {
+    type: Boolean,
+    default: true
+  },
   total: {
     type: Number,
     required: true,

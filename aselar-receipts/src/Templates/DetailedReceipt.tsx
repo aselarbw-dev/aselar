@@ -39,6 +39,7 @@ interface ReceiptData {
   subtotal: number;
   discount: number;
   vat: number;
+  vatEnabled?: boolean; // NEW: false when the client is not VAT-registered
   total: number;
   cashPaid: number;
   change: number;
@@ -254,6 +255,7 @@ useEffect(() => {
         subtotal: receipt?.subtotal,
         discount: receipt?.discount,
         vat: receipt?.vat,
+        vatEnabled: receipt?.vatEnabled !== false, // NEW
         total: receipt?.total,
         cashPaid: receipt?.cashPaid,
         change: receipt?.change,
@@ -451,10 +453,12 @@ useEffect(() => {
             </div>
           )}
 
-          <div className={styles.total}>
-            <h4 className={styles.totalHeader}>VAT (14%)</h4>
-            <div className={styles.totalAmount}>{formatDecimalCurrency(receipt.vat, currency)}</div>
-          </div>
+          {receipt.vatEnabled !== false && (
+            <div className={styles.total}>
+              <h4 className={styles.totalHeader}>VAT (14%)</h4>
+              <div className={styles.totalAmount}>{formatDecimalCurrency(receipt.vat, currency)}</div>
+            </div>
+          )}
 
           <div className={styles.total}>
             <h4 className={styles.totalHeader}>Total</h4>
@@ -526,6 +530,7 @@ useEffect(() => {
           subtotal: receipt?.subtotal,
           discount: receipt?.discount,
           vat: receipt?.vat,
+          vatEnabled: receipt?.vatEnabled !== false, // NEW
           total: receipt?.total,
           cashPaid: receipt?.cashPaid,
           change: receipt?.change,
@@ -585,6 +590,7 @@ useEffect(() => {
           subtotal: receipt?.subtotal,
           discount: receipt?.discount,
           vat: receipt?.vat,
+          vatEnabled: receipt?.vatEnabled !== false, // NEW
           total: receipt?.total,
           cashPaid: receipt?.cashPaid,
           countryCode: countryCode || 'BW', // Default to 'BW' if not provided
@@ -631,6 +637,7 @@ useEffect(() => {
           subtotal: receipt?.subtotal,
           discount: receipt?.discount,
           vat: receipt?.vat,
+          vatEnabled: receipt?.vatEnabled !== false, // NEW
           total: receipt?.total,
           cashPaid: receipt?.cashPaid,
           change: receipt?.change,
@@ -722,10 +729,12 @@ useEffect(() => {
             </div>
           )}
 
-          <div className={styles.total}>
-            <h4 className={styles.totalHeader}>VAT (14%)</h4>
-            <div className={styles.totalAmount}>{formatDecimalCurrency(receipt.vat, currency)}</div>
-          </div>
+          {receipt.vatEnabled !== false && (
+            <div className={styles.total}>
+              <h4 className={styles.totalHeader}>VAT (14%)</h4>
+              <div className={styles.totalAmount}>{formatDecimalCurrency(receipt.vat, currency)}</div>
+            </div>
+          )}
 
           <div className={styles.total}>
             <h4 className={styles.totalHeader}>Total</h4>

@@ -327,7 +327,9 @@ class PDFServiceJsPDF {
 
     // ---------- TOTALS CARD ----------
     const showDiscount = Number(receiptsData.discount) > 0;
-    const summaryRows = 2 + (showDiscount ? 1 : 0); // subtotal, (discount), VAT
+    const showVat = receiptsData.vatEnabled !== false; // NEW
+    const summaryRows = 1 + (showDiscount ? 1 : 0) + (showVat ? 1 : 0); // CHANGED: subtotal, (discount), (VAT)
+    
     const totalsH = summaryRows * 7 + 12 + 7 + 14 + 4;
 
     if (y + totalsH > bottomLimit) {
@@ -352,7 +354,9 @@ class PDFServiceJsPDF {
     if (showDiscount) {
       summaryRow('Discount', `-${money(receiptsData.discount)}`, { valueColor: C.green });
     }
-    summaryRow('VAT', money(receiptsData.vat));
+    if (showVat) {
+      summaryRow('VAT', money(receiptsData.vat));
+    }
 
     y += 1;
     fill(C.navy);
@@ -363,7 +367,9 @@ class PDFServiceJsPDF {
     font('bold', 12);
     pdf.text(money(receiptsData.total), boxX + boxW - 4, y + 8, { align: 'right' });
     y += 12 + 3;
-
+    if (showVat) { // CHANGED
+      summaryRow('VAT', money(receiptsData.vat));
+    }
     summaryRow('Cash Paid', money(receiptsData.cashPaid));
     summaryRow('Change', money(receiptsData.change), { bold: true });
 

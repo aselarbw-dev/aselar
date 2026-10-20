@@ -44,7 +44,7 @@ interface SearchResult {
 const VAT_RATE = 0.14; // 14% VAT in Botswana
 
 // Custom hook for receipt management
-const useReceiptManager = () => {
+const useReceiptManager = (vatEnabled: boolean = true) => {
   const [receiptItems, setReceiptItems] = useState<ReceiptItem[]>([]);
   const [subtotal, setSubtotal] = useState<number>(0);
   const [discountAmount, setDiscountAmount] = useState<number>(0);
@@ -53,7 +53,8 @@ const useReceiptManager = () => {
 
 
   // Calculate derived values
-  const vat = (subtotal - discountAmount) * VAT_RATE;
+   // Calculate derived values
+  const vat = vatEnabled ? (subtotal - discountAmount) * VAT_RATE : 0; // CHANGED
   const total = subtotal - discountAmount + vat;
   const change = cashPaid - total;
 
@@ -160,9 +161,19 @@ const useReceiptManager = () => {
   };
 };
 import { useSellerContext } from '../Sellers/SellerNameProvider'
+
+
 import { useAuth } from '../context/AuthContext';
 import PaymentMethodModal from '../Payment/PaymentMethodModal'; // Import the PaymentMethodModal component
 const POSContainer: React.FC = () => {
+  // NEW: VAT toggle for clients not VAT-registered (remembered on this device)
+const [vatEnabled, setVatEnabled] = useState<boolean>(
+  () => localStorage.getItem('vatEnabled') !== 'false'
+);
+const handleVatToggle = (checked: boolean) => {
+  setVatEnabled(checked);
+  localStorage.setItem('vatEnabled', String(checked));
+};
   const { user } = useAuth();
 const scanOnlyMode = user?.scanOnlyMode ?? false;
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
@@ -206,7 +217,7 @@ const { sellerName } = useSellerContext();
     applyGlobalDiscount,
     updateCashPaid,
     clearReceipt
-  } = useReceiptManager();
+  } = useReceiptManager(vatEnabled);
 
   // Fetch items when a category is selected
   useEffect(() => {
@@ -511,7 +522,8 @@ const handlePaymentMethodSelect = (method: string, details?: { dueDate?: string 
         cashPaid,
         change,
         paymentMethod, // NEW
-        saleType, // NEW
+        saleType,
+        vatEnabled, // NEW // NEW
         dueDate: laybuyDueDate, // NEW
       };
       
@@ -558,6 +570,14 @@ const handlePaymentMethodSelect = (method: string, details?: { dueDate?: string 
     <div className={styles.posContainer}>
       <div className={styles.receiptSection}>
          {status && <p className={styles.statusPrinter}>Status: {status}</p>}
+          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', margin: '6px 0' }}>
+          <input
+            type="checkbox"
+            checked={vatEnabled}
+            onChange={(e) => handleVatToggle(e.target.checked)}
+          />
+          Charge VAT (14%)
+        </label>
         <Receipt
           items={receiptItems}
           subtotal={subtotal}
@@ -572,6 +592,7 @@ const handlePaymentMethodSelect = (method: string, details?: { dueDate?: string 
           onApplyGlobalDiscount={handleGlobalDiscount}
           saleType={saleType}
           dueDate={laybuyDueDate}
+            vatEnabled={vatEnabled}   
         />
         
         {/* Add the compose button and related controls */}

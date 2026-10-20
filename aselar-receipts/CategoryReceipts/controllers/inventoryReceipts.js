@@ -2,7 +2,7 @@ const {mongoose,connectDB} = require('../../Shared/config');
 
 const submitReceipt = async (req, res) => {
   try {
-    const { items, subtotal, vat, discount, discountedBy, total, cashPaid, change, paymentMethod, saleType, dueDate } = req.body;
+    const { items, subtotal, vat, discount,vatEnabled, discountedBy, total, cashPaid, change, paymentMethod, saleType, dueDate } = req.body;
 
     // Validate the request
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -13,7 +13,9 @@ const submitReceipt = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Subtotal must be a non-negative number' });
     }
 
-    if (typeof vat !== 'number' || vat < 0) {
+       // NEW: VAT is only validated when it applies
+    const vatApplied = vatEnabled !== false;
+    if (vatApplied && (typeof vat !== 'number' || vat < 0)) {
       return res.status(400).json({ success: false, message: 'VAT must be a non-negative number' });
     }
 
@@ -94,7 +96,8 @@ const submitReceipt = async (req, res) => {
     const receiptPayload = {
       items: processedItems,
       subtotal,
-      vat,
+     vat: vatApplied ? vat : 0,   // CHANGED
+      vatEnabled: vatApplied,      // NEW
       discount,
       discountedBy: cleanDiscountedBy, // NEW
       total,

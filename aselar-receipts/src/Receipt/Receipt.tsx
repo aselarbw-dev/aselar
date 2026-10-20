@@ -13,6 +13,7 @@ interface ReceiptItem {
 interface ReceiptProps {
   items: ReceiptItem[];
   subtotal: number;
+  vatEnabled?: boolean;
   vat: number; // For 14% VAT
   discount: number; // Total discount amount
   total: number;
@@ -43,7 +44,8 @@ const Receipt: React.FC<ReceiptProps> = ({
   onApplyGlobalDiscount,
   saleType = 'full',
   dueDate = null,
-  discountEnabled
+  discountEnabled,
+  vatEnabled = true
 }) => {
   // CHANGED: discount input is kept as text so the box can be truly empty (no leading "0")
   const [discountText, setDiscountText] = useState<string>('');
@@ -213,10 +215,12 @@ const Receipt: React.FC<ReceiptProps> = ({
           </div>
         )}
         
-        <div className={styles.totalRow}>
-          <span>VAT (14%):</span>
-          <span>Bwp {vat.toFixed(2)}</span>
-        </div>
+                {vatEnabled && (
+          <div className={styles.totalRow}>
+            <span>VAT (14%):</span>
+            <span>Bwp {vat.toFixed(2)}</span>
+          </div>
+        )} 
         
         <div className={`${styles.totalRow} ${styles.grandTotal}`}>
           <span>Total:</span>

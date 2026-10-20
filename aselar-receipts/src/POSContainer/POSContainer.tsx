@@ -481,7 +481,13 @@ const handlePaymentMethodSelect = (method: string, details?: { dueDate?: string 
       toast.warning('Cannot submit an empty receipt');
       return;
     }
-
+    // NEW: a payment method must be chosen before the receipt can go through.
+    // Reminds the cashier and opens the Payment modal for them.
+    if (!paymentMethod) {
+      toast.warning('Tap Payment and choose how the customer paid before composing the receipt.');
+      setShowPaymentModal(true);
+      return;
+    }
     // NEW: lay-buy specific guardrails, mirrors backend validation
     if (saleType === 'laybuy') {
       if (!laybuyDueDate) {
@@ -611,12 +617,13 @@ const handlePaymentMethodSelect = (method: string, details?: { dueDate?: string 
              <Link to="/laybuy-receipts">
              <button className={styles.laybuy} >Laybuys</button>
              </Link>
-        <button className={styles.drawer} onClick={() => {
-  console.log('Payment button clicked');
-  setShowPaymentModal(true);
-}}>
-  Payment
-</button>
+            <button
+          className={styles.drawer}
+          style={!paymentMethod && receiptItems.length > 0 ? { outline: '2px solid #dc2626' } : undefined}
+          onClick={() => setShowPaymentModal(true)}
+        >
+          {paymentMethod ? `Payment: ${paymentMethod}` : 'Payment'}
+        </button>
             
          
         </div>

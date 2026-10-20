@@ -57,6 +57,7 @@ interface ReceiptData {
   seller?: string;
   saleType?: 'full' | 'laybuy';
   laybuy?: LaybuyDetails;
+  paymentMethod?: string;
 }
 
 interface BusinessData {
@@ -86,7 +87,7 @@ interface DeleteModalProps {
 
 type SaleTypeFilter = 'all' | 'full' | 'laybuy';
 
-// NEW: one row of a bar chart — the bar is split into normal and lay-buy portions
+// one row of a bar chart — the bar is split into normal and lay-buy portions
 interface BarRow {
   label: string;
   normal: number;
@@ -103,8 +104,22 @@ const DISMISSED_LAYBUYS_KEY = 'aselar_dismissed_laybuy_reminders';
 const FETCH_ALL_LIMIT = 10000;
 const PAGE_SIZE_OPTIONS = [6, 12, 24, 48];
 const ITEM_BREAKDOWN_PREVIEW = 8;
-// NEW: how many rows each bar chart shows
+// how many rows each bar chart shows
 const CHART_TOP_N = 10;
+// NEW: how many days the daily payment-method table shows per page (one month)
+const DAILY_PAGE_SIZE = 31;
+
+// payment methods tracked in the daily breakdown (lay-buy is handled separately)
+const PAYMENT_METHOD_COLUMNS = ['Cash', 'Swiped', 'Orange Money', 'MyZaka', 'Other'] as const;
+const UNSPECIFIED_METHOD = 'Unspecified';
+
+// maps whatever is stored on the receipt to one of the known columns
+const normalizeMethod = (m?: string): string => {
+  const clean = (m || '').trim();
+  if (!clean) return UNSPECIFIED_METHOD;
+  const found = PAYMENT_METHOD_COLUMNS.find((c) => c.toLowerCase() === clean.toLowerCase());
+  return found || 'Other';
+};
 
 // yyyy-mm-dd key used by the daily-seller endpoint (same format as Receipt.tsx)
 const sellerDateKey = (date?: string) =>
@@ -120,7 +135,7 @@ const localDateKey = (date?: string) => {
   return `${d.getFullYear()}-${m}-${day}`;
 };
 
-// NEW: simple horizontal bar chart (pure CSS, blue). Dark blue = normal, light blue = lay-buy.
+// simple horizontal bar chart (pure CSS, blue). Dark blue = normal, light blue = lay-buy.
 const BarChart: React.FC<{
   title: string;
   rows: BarRow[];
@@ -260,6 +275,8 @@ const AllCategoryReceipts: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(12);
   const [showAllItems, setShowAllItems] = useState<boolean>(false);
+  // NEW: page of the daily payment-method table (separate from the receipt cards)
+  const [dailyPage, setDailyPage] = useState<number>(1);
 
   // load dismissed reminder ids once on mount
   useEffect(() => {
@@ -482,7 +499,7 @@ useEffect(() => {
     let itemsSold = 0;
     let laybuyCount = 0;
     let normalCount = 0;
-    // CHANGED: item and seller maps now also track the normal / lay-buy split for the charts
+    // item and seller maps also track the normal / lay-buy split for the charts
     const itemMap = new Map<
       string,
       {
@@ -554,7 +571,7 @@ useEffect(() => {
     const items = Array.from(itemMap.values()).sort((a, b) => b.revenue - a.revenue);
     const sellers = Array.from(sellerMap.values()).sort((a, b) => b.total - a.total);
 
-    // NEW: chart data — top N rows, split into normal / lay-buy
+    // chart data — top N rows, split into normal / lay-buy
     const qtyChart: BarRow[] = [...items]
       .sort((a, b) => b.quantity - a.quantity)
       .slice(0, CHART_TOP_N)
@@ -582,6 +599,76 @@ useEffect(() => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredReceipts, dailySellers, profileData]);
+
+  // payment-method totals for the filtered set, overall and per day. Lay-buys are left out.
+  const paymentSummary = useMemo(() => {
+    const columns: string[] = [...PAYMENT_METHOD_COLUMNS, UNSPECIFIED_METHOD];
+    const totals: Record<string, number> = {};
+    const counts: Record<string, number> = {};
+    columns.forEach((c) => {
+      totals[c] = 0;
+      counts[c] = 0;
+    });
+    const daily = new Map<string, Record<string, number>>();
+
+    filteredReceipts.forEach((r) => {
+      if (r.saleType === 'laybuy') return;
+      if (r.status && r.status !== 'completed') return;
+
+      const method = normalizeMethod(r.paymentMethod);
+      const day = localDateKey(r.createdAt) || 'Unknown';
+
+      totals[method] += r.total;
+      counts[method] += 1;
+
+      let row = daily.get(day);
+      if (!row) {
+        const fresh: Record<string, number> = {};
+        columns.forEach((c) => {
+          fresh[c] = 0;
+        });
+        row = fresh;
+        daily.set(day, row);
+      }
+      row[method] += r.total;
+    });
+
+    // hide the Unspecified column unless there's something in it
+    const visibleColumns = columns.filter((c) => c !== UNSPECIFIED_METHOD || totals[c] > 0);
+    const days = Array.from(daily.entries())
+      .sort((a, b) => b[0].localeCompare(a[0]))
+      .map(([day, row]) => ({
+        day,
+        row,
+        dayTotal: visibleColumns.reduce((sum, c) => sum + row[c], 0),
+      }));
+
+    return { columns: visibleColumns, totals, counts, days };
+  }, [filteredReceipts]);
+
+  // friendly label for a yyyy-mm-dd key
+  const formatDayKey = (key: string) =>
+    key === 'Unknown'
+      ? key
+      : new Date(`${key}T00:00:00`).toLocaleDateString('en-US', {
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        });
+
+  // NEW: the daily table has its own pagination, separate from the receipt cards
+  const dailyTotalPages = Math.max(1, Math.ceil(paymentSummary.days.length / DAILY_PAGE_SIZE));
+  const safeDailyPage = Math.min(dailyPage, dailyTotalPages);
+  const pagedDays = paymentSummary.days.slice(
+    (safeDailyPage - 1) * DAILY_PAGE_SIZE,
+    safeDailyPage * DAILY_PAGE_SIZE
+  );
+
+  // NEW: go back to the newest month whenever the filters change
+  useEffect(() => {
+    setDailyPage(1);
+  }, [searchTerm, dateFrom, dateTo, sellerFilter, saleTypeFilter]);
 
   // back to page 1 whenever the filters or page size change
   useEffect(() => {
@@ -1020,6 +1107,88 @@ useEffect(() => {
               </div>
             </div>
 
+            {/* payment method totals (lay-buy excluded) */}
+            <div className={styles.summaryCards}>
+              {paymentSummary.columns.map((method) => (
+                <div key={method} className={styles.summaryCard}>
+                  <span className={styles.summaryValue}>{money(paymentSummary.totals[method])}</span>
+                  <span className={styles.summaryLabel}>
+                    {method} ({paymentSummary.counts[method]})
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* daily totals per payment method, 31 days per page */}
+            {paymentSummary.days.length > 0 && (
+              <div className={styles.tableWrap}>
+                <h4 className={styles.summaryTableTitle}>Daily totals by payment method</h4>
+                <table className={styles.summaryTable}>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      {paymentSummary.columns.map((c) => (
+                        <th key={c}>{c}</th>
+                      ))}
+                      <th>Day total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pagedDays.map(({ day, row, dayTotal }) => (
+                      <tr key={day}>
+                        <td>{formatDayKey(day)}</td>
+                        {paymentSummary.columns.map((c) => (
+                          <td key={c}>{money(row[c])}</td>
+                        ))}
+                        <td><strong>{money(dayTotal)}</strong></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {/* only appears once there are more than 31 days */}
+                {paymentSummary.days.length > DAILY_PAGE_SIZE && (
+                  <div className={styles.pageControls}>
+                    <button
+                      className={styles.pageButton}
+                      onClick={() => setDailyPage(1)}
+                      disabled={safeDailyPage === 1}
+                    >
+                      «
+                    </button>
+                    <button
+                      className={styles.pageButton}
+                      onClick={() => setDailyPage(safeDailyPage - 1)}
+                      disabled={safeDailyPage === 1}
+                    >
+                      Prev
+                    </button>
+                    <span className={styles.pageInfo}>
+                      Page {safeDailyPage} of {dailyTotalPages}
+                      <span className={styles.pageRange}>
+                        {' '}(days {(safeDailyPage - 1) * DAILY_PAGE_SIZE + 1}–
+                        {Math.min(safeDailyPage * DAILY_PAGE_SIZE, paymentSummary.days.length)} of {paymentSummary.days.length})
+                      </span>
+                    </span>
+                    <button
+                      className={styles.pageButton}
+                      onClick={() => setDailyPage(safeDailyPage + 1)}
+                      disabled={safeDailyPage === dailyTotalPages}
+                    >
+                      Next
+                    </button>
+                    <button
+                      className={styles.pageButton}
+                      onClick={() => setDailyPage(dailyTotalPages)}
+                      disabled={safeDailyPage === dailyTotalPages}
+                    >
+                      »
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
             {summary.items.length > 0 && (
               <div className={styles.summaryTables}>
                 <div className={styles.tableWrap}>
@@ -1082,7 +1251,7 @@ useEffect(() => {
               </div>
             )}
 
-            {/* NEW: blue bar charts below the numbers — dark blue = normal, light blue = lay-buy */}
+            {/* blue bar charts below the numbers — dark blue = normal, light blue = lay-buy */}
             {summary.items.length > 0 && (
               <div className={styles.chartsGrid}>
                 <BarChart
@@ -1148,6 +1317,10 @@ useEffect(() => {
                       <h4>Receipt ID: {receipt.receiptsNumber || receipt._id.slice(-6)}</h4>
                       {/* seller line, mirrors the fallback used in the PDF export */}
                       <h4 className={styles.sellerLine}>Seller: {getSellerName(receipt)}</h4>
+                      {/* how the customer paid (lay-buys show their own details below) */}
+                      {!isLaybuy && (
+                        <h4>Payment: {normalizeMethod(receipt.paymentMethod)}</h4>
+                      )}
                     </div>
             
                     <div className={styles.items}>

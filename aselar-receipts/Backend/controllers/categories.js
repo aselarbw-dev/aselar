@@ -80,15 +80,26 @@ const items = async (req, res) => {
       image: imageUrl
     };
 
-    // Update the category by pushing the new item
-    const updatedCategory = await Category.findByIdAndUpdate(
-      categoryId,
+    // Update the category by pushing the new item.
+    // UPDATED: the filter now also checks the category belongs to this user,
+    // so one account can't push items into another account's category.
+    const updatedCategory = await Category.findOneAndUpdate(
+      { _id: categoryId, user: req.user._id.toString() },
       { $push: { items: newItem } },
       { new: true }
     );
 
     if (!updatedCategory) {
       return res.status(404).json({ message: 'Category not found' });
+    }
+
+    // NEW: first image sticks. Only sets the category image if it has none yet
+    // (empty or missing), in one atomic update, so a later image never replaces it.
+    if (imageUrl) {
+      await Category.updateOne(
+        { _id: categoryId, image: { $in: ['', null] } },
+        { $set: { image: imageUrl } }
+      );
     }
 
     res.status(200).json(newItem);
@@ -102,7 +113,7 @@ const items = async (req, res) => {
 const editItem = async (req, res) => {
   try {
     const { categoryId, itemId } = req.params;
-    const updates = req.body;
+    const updates = { ...req.body };
 
     // Ensure the user owns the category
     const category = await Category.findOne({
@@ -120,8 +131,29 @@ const editItem = async (req, res) => {
       return res.status(404).json({ message: 'Item not found' });
     }
 
+    // NEW: a freshly picked image arrives as a base64 data URL. Upload it with the
+    // same Cloudinary helper the add-item route uses and store only the URL, instead
+    // of saving the whole base64 string inside the category document.
+    // An unchanged image (already a URL) is left alone.
+    if (typeof updates.image === 'string' && updates.image.startsWith('data:')) {
+      try {
+        const uploadResponse = await uploadToCloudinary(updates.image);
+        updates.image = uploadResponse.secure_url;
+      } catch (uploadError) {
+        console.error('Cloudinary upload error (edit item):', uploadError);
+        return res.status(500).json({ message: 'Failed to upload image' });
+      }
+    }
+
     // Update the item fields
     Object.assign(item, updates);
+
+    // NEW: first image sticks. If the category has no image yet and this item now
+    // has a real image URL, the category adopts it. Never overwrites an existing one.
+    if (!category.image && typeof item.image === 'string' && item.image.startsWith('http')) {
+      category.image = item.image;
+    }
+
     await category.save();
 
     res.json({ message: 'Item updated successfully', item });

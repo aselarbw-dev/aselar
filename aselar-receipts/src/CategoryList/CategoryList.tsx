@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../Store/store';
 import { FaEdit } from 'react-icons/fa';
-import { FaSearch, FaTimes } from 'react-icons/fa'; // NEW
+import { FaSearch, FaTimes } from 'react-icons/fa';
 
 import { removeCategory, getCategories, Item, Category } from '../Store/store';
 import styles from './CategoryList.module.css';
@@ -20,7 +20,7 @@ interface ExpiringItem extends Item {
 
 const CATEGORIES_PER_PAGE = 6;
 
-// NEW: reporting helpers -----------------------------------------------
+// Reporting helpers -----------------------------------------------
 
 // Fixed palette so a given slice position always gets the same color
 // across renders/categories (easier to scan visually than random colors).
@@ -81,7 +81,21 @@ const getCategorySummary = (category: Category): CategorySummary => {
 const formatPula = (value: number) =>
   `${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Pula`;
 
-// NEW: small inline SVG donut chart — no chart library dependency needed.
+// NEW: the image a category card shows.
+// 1. The category's own saved image always wins (the backend now saves the first
+//    item image onto the category, so "first one sticks").
+// 2. Fallback for categories that were created before that existed (e.g. bulk imports
+//    that already have item photos): the first item in the list that has an image.
+// Only real URLs are used as the fallback so old base64 blobs never become the cover.
+const getCategoryImage = (category: Category): string => {
+  if (category.image) return category.image;
+  const firstWithImage = category.items?.find(
+    (item: Item) => item.image && !item.image.startsWith('data:')
+  );
+  return firstWithImage?.image || '';
+};
+
+// Small inline SVG donut chart — no chart library dependency needed.
 // Renders each slice as a stroked circle segment via stroke-dasharray/offset.
 const DonutChart: React.FC<{ slices: { name: string; value: number; color: string }[] }> = ({ slices }) => {
   const size = 120;
@@ -159,7 +173,6 @@ const CategoryList: React.FC = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
 
-  // NEW: search state
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleToggleItemForm = (categoryId: string) => {
@@ -187,6 +200,8 @@ const CategoryList: React.FC = () => {
     console.log("Editing Item Data:", data);
   };
   
+  // Runs after an item is added OR edited (ItemForm calls it for both now).
+  // Re-fetching is what brings the category's newly saved image into the card.
   const handleEditComplete = useCallback(() => {
     setEditMode({
       isOpen: false,
@@ -242,7 +257,7 @@ const CategoryList: React.FC = () => {
     }
   }, [categories]);
 
-  // NEW: filter categories by search term — matches category name OR any item name inside it
+  // Filter categories by search term — matches category name OR any item name inside it
   const filteredCategories = useMemo(() => {
     if (!searchTerm.trim()) return categories;
 
@@ -257,7 +272,7 @@ const CategoryList: React.FC = () => {
     });
   }, [categories, searchTerm]);
 
-  // NEW: reset to page 1 whenever the search term changes, so you don't
+  // Reset to page 1 whenever the search term changes, so you don't
   // land on an empty page from a previous, larger result set
   useEffect(() => {
     setCurrentPage(1);
@@ -271,16 +286,20 @@ const CategoryList: React.FC = () => {
     }
   }, [filteredCategories.length, currentPage]);
 
+  // UPDATED: bad or unreadable dates (e.g. from a messy import) show "No expiry"
+  // instead of "Invalid Date"
   const formatDate = (dateStr: string) => {
     if (!dateStr) return 'No expiry';
-    return new Date(dateStr).toLocaleDateString('en-US', { 
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return 'No expiry';
+    return date.toLocaleDateString('en-US', { 
       year: 'numeric', 
       month: 'short', 
       day: 'numeric' 
     });
   };
 
-  // Pagination now operates on filteredCategories instead of categories
+  // Pagination operates on filteredCategories
   const totalPages = Math.max(1, Math.ceil(filteredCategories.length / CATEGORIES_PER_PAGE));
   const startIndex = (currentPage - 1) * CATEGORIES_PER_PAGE;
   const paginatedCategories = filteredCategories.slice(startIndex, startIndex + CATEGORIES_PER_PAGE);
@@ -291,7 +310,7 @@ const CategoryList: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      {/* NEW: Search bar */}
+      {/* Search bar */}
       <div className={styles.searchBar}>
         <div className={styles.searchInputWrapper}>
           <FaSearch className={styles.searchIcon} />
@@ -321,8 +340,10 @@ const CategoryList: React.FC = () => {
           <p className={styles.noResults}>No categories or items match "{searchTerm}"</p>
         ) : (
           paginatedCategories.map((category, catIndex) => {
-            // NEW: per-category reporting summary + pie data
+            // Per-category reporting summary + pie data
             const summary = getCategorySummary(category);
+            // NEW: category's own image, or the first item image as a fallback
+            const displayImage = getCategoryImage(category);
 
             return (
             <div key={category._id || catIndex} className={styles.card}>
@@ -336,9 +357,9 @@ const CategoryList: React.FC = () => {
               </div>
               
               <div className={styles.imageContainer}>
-                {category.image ? (
+                {displayImage ? (
                   <img 
-                    src={category.image} 
+                    src={displayImage} 
                     alt={category.name} 
                     className={styles.categoryImage}
                     onError={(e) => { e.currentTarget.style.display = 'none'; }}
@@ -355,7 +376,7 @@ const CategoryList: React.FC = () => {
                 <p>{category.description}</p>
               </div>
 
-              {/* NEW: reporting summary — stock value, revenue, units sold, low-stock count */}
+              {/* Reporting summary — stock value, revenue, units sold, low-stock count */}
               <div className={styles.categorySummary}>
                 <div className={styles.summaryGrid}>
                   <div className={`${styles.summaryStat} ${styles.statStock}`}>
@@ -382,7 +403,7 @@ const CategoryList: React.FC = () => {
                   )}
                 </div>
 
-                {/* NEW: what's selling fast in this category */}
+                {/* What's selling fast in this category */}
                 <div className={styles.chartSection}>
                   <span className={styles.chartTitle}>Top Sellers</span>
                   <DonutChart slices={summary.pieSlices} />
@@ -422,7 +443,7 @@ const CategoryList: React.FC = () => {
                        
                         {item.unit && <p>Unit: {item.unit}</p>}
                         {item.expiryDate && <p>Expiry Date: {formatDate(item.expiryDate)}</p>}
-                        {/* NEW: per-item sold/revenue, only shown once something has sold */}
+                        {/* Per-item sold/revenue, only shown once something has sold */}
                         {(Number(item.soldQuantity) || 0) > 0 && (
                           <p className={styles.itemSalesLine}>
                             Sold: {item.soldQuantity} ({formatPula(Number(item.revenue) || 0)})

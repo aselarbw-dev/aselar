@@ -20,3 +20,55 @@
     outline:none;
     border: none;
 }
+/* Append this to the END of ItemForm.module.css */
+
+.progressWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.progressTrack {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  width: 0;
+  background: #0b5577;
+  border-radius: 999px;
+  transition: width 0.2s ease;
+}
+
+/* Used until the upload reports a real percentage */
+.progressIndeterminate {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 40%;
+  animation: progressSlide 1.1s ease-in-out infinite;
+}
+
+@keyframes progressSlide {
+  0% { left: -40%; }
+  100% { left: 100%; }
+}
+
+.progressLabel {
+  color: #0b5577;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressIndeterminate {
+    animation: none;
+    width: 100%;
+    opacity: 0.5;
+  }
+}

@@ -5,12 +5,12 @@ import { submitItem, editItem } from '../Store/store';
 import { Item } from '../Store/store';
 import styles from "./ItemForm.module.css";
 
-// NEW: image resize settings — tweak these if you want sharper or smaller images
+// Image resize settings — tweak these if you want sharper or smaller images
 const MAX_IMAGE_DIMENSION = 1000;   // longest side in pixels
 const IMAGE_QUALITY = 0.8;          // JPEG quality, 0 to 1
 const MAX_RAW_FILE_MB = 15;         // reject absurdly large originals before even trying
 
-// NEW: shrink an image file in the browser and return it as a base64 JPEG data URL
+// Shrink an image file in the browser and return it as a base64 JPEG data URL
 const resizeImage = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
     const objectUrl = URL.createObjectURL(file);
@@ -67,6 +67,7 @@ interface ItemFormProps {
     unit?: string;
     image?: string;
   } | null;
+  // Called after an item is added OR updated, so the list can refresh
   onEditComplete?: () => void;
 }
 
@@ -77,10 +78,15 @@ const ItemForm: React.FC<ItemFormProps> = ({ categoryId, editingItem, onEditComp
   const [sellingPrice, setSellingPrice] = useState('');
   const [quantity, setQuantity] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
-  const [unit, setUnit] = useState('');  // NEW: Unit state (e.g., 'kg', 'pcs'—optional)
-  const [image, setImage] = useState('');  // NEW: Image state if needed (base64 or URL)
-  const [processingImage, setProcessingImage] = useState(false); // NEW: true while resizing
+  const [unit, setUnit] = useState('');
+  const [image, setImage] = useState('');
+  const [processingImage, setProcessingImage] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // NEW: upload progress. uploadPercent stays null until the upload reports a real
+  // number; while null the bar shows a moving "working" state instead of a percentage.
+  const [submitting, setSubmitting] = useState(false);
+  const [uploadPercent, setUploadPercent] = useState<number | null>(null);
 
   useEffect(() => {
     if (editingItem) {
@@ -110,24 +116,29 @@ const ItemForm: React.FC<ItemFormProps> = ({ categoryId, editingItem, onEditComp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSubmitting(true);
+    setUploadPercent(null);
+
+    // NEW: handed to the store thunks so they can report real upload progress
+    const onUploadProgress = (percent: number) => {
+      setUploadPercent(Math.min(100, Math.max(0, Math.round(percent))));
+    };
 
     try {
-      // FIXED: Construct item without categoryId (it's in payload wrapper)
       const itemData: Omit<Item, '_id'> = {
         name,
         costPrice: parseFloat(costPrice),
         sellingPrice: parseFloat(sellingPrice),
         quantity: parseInt(quantity, 10),
         user: editingItem?.user || "",
-        categoryId,  // Item has categoryId
-        lowStock: parseInt(quantity, 10) <= 10 ? 'low' : 'ok',  // FIXED: Set as string based on qty (adjust logic if needed)
-        unit: unit || '',  // FIXED: Include unit (empty default)
-        expiryDate: expiryDate || '',  // FIXED: Include expiryDate
-        image: image || ''  // FIXED: Include image (empty default)
+        categoryId,
+        lowStock: parseInt(quantity, 10) <= 10 ? 'low' : 'ok',
+        unit: unit || '',
+        expiryDate: expiryDate || '',
+        image: image || ''
       };
 
       if (editingItem) {
-        // For edit, send updates (partial, but include all for safety)
         const updates = {
           name: itemData.name,
           costPrice: itemData.costPrice,
@@ -138,12 +149,15 @@ const ItemForm: React.FC<ItemFormProps> = ({ categoryId, editingItem, onEditComp
           expiryDate: itemData.expiryDate,
           image: itemData.image
         };
+        // `as any` only because the thunk's argument type doesn't list onUploadProgress yet;
+        // thunks that ignore it keep working exactly as before
         const result = await dispatch(
           editItem({
             categoryId,
             itemId: editingItem._id,
-            updates
-          })
+            updates,
+            onUploadProgress
+          } as any)
         ).unwrap();
       
         console.log("Item updated successfully:", result);
@@ -152,16 +166,26 @@ const ItemForm: React.FC<ItemFormProps> = ({ categoryId, editingItem, onEditComp
           onEditComplete();
         }
       } else {
-        await dispatch(submitItem({ categoryId, item: itemData })).unwrap();
+        await dispatch(
+          submitItem({ categoryId, item: itemData, onUploadProgress } as any)
+        ).unwrap();
         resetForm();
+        // NEW: refresh the list after an add too, so the category picks up the
+        // image the server just saved on it
+        if (onEditComplete) {
+          onEditComplete();
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error("Error submitting item:", err);
+    } finally {
+      setSubmitting(false);
+      setUploadPercent(null);
     }
   };
 
-  // UPDATED: resizes the picked image in the browser before storing it as base64
+  // Resizes the picked image in the browser before storing it as base64
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -192,7 +216,17 @@ const ItemForm: React.FC<ItemFormProps> = ({ categoryId, editingItem, onEditComp
     }
   };
 
-  // NEW: Unit input (optional field—add if units matter)
+  // NEW: the bar only appears when a newly picked image (base64) is being sent.
+  // An unchanged image is already a URL, so there's nothing to upload.
+  const showUploadProgress = submitting && image.startsWith('data:');
+
+  const progressLabel =
+    uploadPercent === null
+      ? 'Uploading image...'
+      : uploadPercent >= 100
+        ? 'Finishing up...'
+        : `Uploading image... ${uploadPercent}%`;
+
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <h4>{editingItem ? "EDIT ITEM" : "ADD ITEM"}</h4>
@@ -230,7 +264,6 @@ const ItemForm: React.FC<ItemFormProps> = ({ categoryId, editingItem, onEditComp
         required 
       />
 
-      {/* NEW: Expiry Date Field */}
       <input 
         type="date" 
         placeholder="Expiry Date (Optional)" 
@@ -239,7 +272,6 @@ const ItemForm: React.FC<ItemFormProps> = ({ categoryId, editingItem, onEditComp
         min={new Date().toISOString().split('T')[0]}
       />
 
-      {/* NEW: Unit Field (Optional) */}
       <input 
         type="text" 
         placeholder="Unit (e.g., kg, pcs—Optional)" 
@@ -247,17 +279,37 @@ const ItemForm: React.FC<ItemFormProps> = ({ categoryId, editingItem, onEditComp
         onChange={(e) => setUnit(e.target.value)} 
       />
 
-      {/* NEW: Image Upload (Optional) */}
       <input 
         type="file" 
         accept="image/*" 
         onChange={handleImageUpload} 
+        disabled={submitting}
       />
       {processingImage && <small>Processing image...</small>}
-      {!processingImage && image && <small>Image selected</small>}
+      {!processingImage && !submitting && image && <small>Image selected</small>}
 
-      <button type="submit" disabled={processingImage}>
-        {editingItem ? "Update Item" : "Add Item"}
+      {/* NEW: upload progress bar */}
+      {showUploadProgress && (
+        <div
+          className={styles.progressWrap}
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={uploadPercent ?? undefined}
+          aria-label="Image upload progress"
+        >
+          <div className={styles.progressTrack}>
+            <div
+              className={`${styles.progressFill} ${uploadPercent === null ? styles.progressIndeterminate : ''}`}
+              style={uploadPercent === null ? undefined : { width: `${uploadPercent}%` }}
+            />
+          </div>
+          <small className={styles.progressLabel}>{progressLabel}</small>
+        </div>
+      )}
+
+      <button type="submit" disabled={processingImage || submitting}>
+        {submitting ? "Saving..." : editingItem ? "Update Item" : "Add Item"}
       </button>
     </form>
   );

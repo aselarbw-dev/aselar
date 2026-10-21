@@ -574,9 +574,10 @@ const handlePaymentMethodSelect = (method: string, details?: { dueDate?: string 
 
   return (
     <div className={styles.posContainer}>
+      {/*style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', margin: '6px 0' }}*/}
       <div className={styles.receiptSection}>
          {status && <p className={styles.statusPrinter}>Status: {status}</p>}
-          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', margin: '6px 0' }}>
+          <label  className={styles.vatLabel} >
           <input
             type="checkbox"
             checked={vatEnabled}

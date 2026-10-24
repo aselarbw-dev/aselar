@@ -31,11 +31,19 @@ interface Company {
   location: string;
 }
 
+// one logged lay-buy payment (deposit or installment) with how it was paid
+interface LaybuyPayment {
+  amount: number;
+  method: string;
+  paidAt: string;
+}
+
 // mirrors the laybuy subdocument on the backend
 interface LaybuyDetails {
   dueDate: string;
   balanceRemaining: number;
   status: 'active' | 'completed' | 'overdue' | 'cancelled';
+  payments?: LaybuyPayment[]; // missing/empty on lay-buys made before the ledger existed
   reminderSentAt?: string | null;
   overdueNoticeSentAt?: string | null;
 }
@@ -106,10 +114,13 @@ const PAGE_SIZE_OPTIONS = [6, 12, 24, 48];
 const ITEM_BREAKDOWN_PREVIEW = 8;
 // how many rows each bar chart shows
 const CHART_TOP_N = 10;
-// NEW: how many days the daily payment-method table shows per page (one month)
+// how many days the daily payment-method table shows per page (one month)
 const DAILY_PAGE_SIZE = 31;
+// NEW: customer search starts at this many characters (the server enforces it too)
+const CUSTOMER_SEARCH_MIN_CHARS = 3;
+const EMPTY_IDS = new Set<string>();
 
-// payment methods tracked in the daily breakdown (lay-buy is handled separately)
+// payment methods tracked in the daily breakdown
 const PAYMENT_METHOD_COLUMNS = ['Cash', 'Swiped', 'Orange Money', 'MyZaka', 'Other'] as const;
 const UNSPECIFIED_METHOD = 'Unspecified';
 
@@ -261,6 +272,8 @@ const AllCategoryReceipts: React.FC = () => {
   // per-card installment payment state
   const [paymentAmounts, setPaymentAmounts] = useState<Record<string, string>>({});
   const [submittingPaymentId, setSubmittingPaymentId] = useState<string | null>(null);
+  // the payment waiting for the cashier to pick a method
+  const [pendingPayment, setPendingPayment] = useState<{ receiptId: string; amount: number } | null>(null);
 
   // daily seller names keyed by yyyy-mm-dd, plus a record of dates already requested
   const [dailySellers, setDailySellers] = useState<Record<string, string>>({});
@@ -275,8 +288,16 @@ const AllCategoryReceipts: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(12);
   const [showAllItems, setShowAllItems] = useState<boolean>(false);
-  // NEW: page of the daily payment-method table (separate from the receipt cards)
+  // page of the daily payment-method table (separate from the receipt cards)
   const [dailyPage, setDailyPage] = useState<number>(1);
+
+  // NEW: which lay-buys the server says belong to the customer being searched.
+  // Only receipt ids are kept here — the customer details themselves never reach the browser.
+  const [customerMatches, setCustomerMatches] = useState<{ term: string; ids: Set<string> }>({
+    term: '',
+    ids: EMPTY_IDS,
+  });
+  const [searchingCustomer, setSearchingCustomer] = useState<boolean>(false);
 
   // load dismissed reminder ids once on mount
   useEffect(() => {
@@ -323,6 +344,48 @@ useEffect(() => {
     fetchReceipts();
     fetchActiveLaybuys();
   }, []);
+
+  // NEW: customer search. Once the search box has enough characters, ask the server which lay-buys
+  // belong to a matching name / ID-passport / phone. We keep only the matching receipt ids.
+  useEffect(() => {
+    const term = searchTerm.trim();
+
+    if (term.length < CUSTOMER_SEARCH_MIN_CHARS) {
+      setCustomerMatches({ term: '', ids: EMPTY_IDS });
+      setSearchingCustomer(false);
+      return;
+    }
+
+    let cancelled = false;
+    setSearchingCustomer(true);
+
+    const timer = setTimeout(async () => {
+      try {
+        const response = await axios.get(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/laybuys`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+          params: { customer: term, _t: Date.now() },
+          withCredentials: true,
+        });
+        if (cancelled) return;
+        const ids: string[] = (response.data.data || []).map((r: ReceiptData) => r._id);
+        setCustomerMatches({ term, ids: new Set(ids) });
+      } catch (error) {
+        if (cancelled) return;
+        console.error('Customer search failed:', error);
+        setCustomerMatches({ term: '', ids: EMPTY_IDS });
+        toast.warning('Customer search is unavailable right now. Receipt numbers still work.', {
+          toastId: 'customer-search-failed',
+        });
+      } finally {
+        if (!cancelled) setSearchingCustomer(false);
+      }
+    }, 350);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [searchTerm]);
 
  const fetchReceipts = async () => {
   try {
@@ -419,7 +482,12 @@ useEffect(() => {
   // Daily seller fetch — one request per unique receipt date, same endpoint as Receipt.tsx
   useEffect(() => {
     const dates = Array.from(
-      new Set(receipts.map((r) => sellerDateKey(r.createdAt)).filter(Boolean))
+      new Set(
+        receipts
+          .filter((r) => !r.seller) // receipts that store their seller don't need the daily lookup
+          .map((r) => sellerDateKey(r.createdAt))
+          .filter(Boolean)
+      )
     ).filter((d) => !fetchedSellerDates.current.has(d));
 
     if (dates.length === 0) return;
@@ -459,16 +527,21 @@ useEffect(() => {
   );
 
   const filteredReceipts = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
+    const rawTerm = searchTerm.trim();
+    const term = rawTerm.toLowerCase();
+    // NEW: only trust customer matches that belong to the term currently in the box
+    const customerIds = customerMatches.term === rawTerm ? customerMatches.ids : EMPTY_IDS;
+
     return receipts.filter((r) => {
       // sale type — "normal" means anything that isn't a lay-buy (covers older receipts with no saleType)
       if (saleTypeFilter === 'laybuy' && r.saleType !== 'laybuy') return false;
       if (saleTypeFilter === 'full' && r.saleType === 'laybuy') return false;
 
-      // receipt number (also matches the short id shown when there's no receiptsNumber)
+      // receipt number (also matches the short id shown when there's no receiptsNumber),
+      // or a lay-buy whose customer matches (name / ID-passport / phone, matched on the server)
       if (term) {
         const number = (r.receiptsNumber || r._id.slice(-6)).toLowerCase();
-        if (!number.includes(term)) return false;
+        if (!number.includes(term) && !customerIds.has(r._id)) return false;
       }
 
       // date range (inclusive, local time)
@@ -485,7 +558,7 @@ useEffect(() => {
       return true;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [receipts, searchTerm, dateFrom, dateTo, sellerFilter, saleTypeFilter, dailySellers, profileData]);
+  }, [receipts, searchTerm, dateFrom, dateTo, sellerFilter, saleTypeFilter, dailySellers, profileData, customerMatches]);
 
   // summary over the WHOLE filtered set (all pages). Cancelled/refunded receipts are excluded.
   const summary = useMemo(() => {
@@ -600,7 +673,13 @@ useEffect(() => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredReceipts, dailySellers, profileData]);
 
-  // payment-method totals for the filtered set, overall and per day. Lay-buys are left out.
+  // payment-method totals, overall and per day.
+  // - Normal sales count their total on the day the receipt was made.
+  // - Lay-buys count every ledger payment (deposit + installments) under the method used,
+  //   on the day that payment was made. Because of that, the date filter is applied to each
+  //   payment's date for lay-buys, not to the receipt's creation date.
+  // - Lay-buys made before the ledger existed: whatever was paid but isn't in the ledger
+  //   shows under "Unspecified", dated by the receipt's creation date.
   const paymentSummary = useMemo(() => {
     const columns: string[] = [...PAYMENT_METHOD_COLUMNS, UNSPECIFIED_METHOD];
     const totals: Record<string, number> = {};
@@ -611,14 +690,21 @@ useEffect(() => {
     });
     const daily = new Map<string, Record<string, number>>();
 
-    filteredReceipts.forEach((r) => {
-      if (r.saleType === 'laybuy') return;
-      if (r.status && r.status !== 'completed') return;
+    const rawTerm = searchTerm.trim();
+    const term = rawTerm.toLowerCase();
+    // NEW: same customer matches as the receipt cards, so the tables follow the search
+    const customerIds = customerMatches.term === rawTerm ? customerMatches.ids : EMPTY_IDS;
 
-      const method = normalizeMethod(r.paymentMethod);
-      const day = localDateKey(r.createdAt) || 'Unknown';
+    // same inclusive local-date range as the receipt filter
+    const inRange = (key: string) => {
+      if (!key) return !(dateFrom || dateTo);
+      if (dateFrom && key < dateFrom) return false;
+      if (dateTo && key > dateTo) return false;
+      return true;
+    };
 
-      totals[method] += r.total;
+    const addAmount = (method: string, amount: number, day: string) => {
+      totals[method] += amount;
       counts[method] += 1;
 
       let row = daily.get(day);
@@ -630,7 +716,46 @@ useEffect(() => {
         row = fresh;
         daily.set(day, row);
       }
-      row[method] += r.total;
+      row[method] += amount;
+    };
+
+    receipts.forEach((r) => {
+      const isLay = r.saleType === 'laybuy';
+
+      // every filter except the date range (the date is checked per payment below)
+      if (saleTypeFilter === 'laybuy' && !isLay) return;
+      if (saleTypeFilter === 'full' && isLay) return;
+      if (term) {
+        const number = (r.receiptsNumber || r._id.slice(-6)).toLowerCase();
+        if (!number.includes(term) && !customerIds.has(r._id)) return;
+      }
+      if (sellerFilter !== 'all' && getSellerName(r) !== sellerFilter) return;
+      if (r.status && r.status !== 'completed') return;
+
+      if (isLay) {
+        if (r.laybuy?.status === 'cancelled') return;
+
+        const payments = r.laybuy?.payments || [];
+        let ledgerTotal = 0;
+        payments.forEach((p) => {
+          ledgerTotal += p.amount;
+          const day = localDateKey(p.paidAt);
+          if (inRange(day)) addAmount(normalizeMethod(p.method), p.amount, day || 'Unknown');
+        });
+
+        // money collected before payment methods were logged
+        const unlogged = r.cashPaid - ledgerTotal;
+        if (unlogged > 0.005) {
+          const day = localDateKey(r.createdAt);
+          if (inRange(day)) addAmount(UNSPECIFIED_METHOD, unlogged, day || 'Unknown');
+        }
+        return;
+      }
+
+      // normal sale
+      const day = localDateKey(r.createdAt);
+      if (!inRange(day)) return;
+      addAmount(normalizeMethod(r.paymentMethod), r.total, day || 'Unknown');
     });
 
     // hide the Unspecified column unless there's something in it
@@ -644,7 +769,8 @@ useEffect(() => {
       }));
 
     return { columns: visibleColumns, totals, counts, days };
-  }, [filteredReceipts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [receipts, searchTerm, dateFrom, dateTo, sellerFilter, saleTypeFilter, dailySellers, profileData, customerMatches]);
 
   // friendly label for a yyyy-mm-dd key
   const formatDayKey = (key: string) =>
@@ -657,7 +783,7 @@ useEffect(() => {
           day: 'numeric',
         });
 
-  // NEW: the daily table has its own pagination, separate from the receipt cards
+  // the daily table has its own pagination, separate from the receipt cards
   const dailyTotalPages = Math.max(1, Math.ceil(paymentSummary.days.length / DAILY_PAGE_SIZE));
   const safeDailyPage = Math.min(dailyPage, dailyTotalPages);
   const pagedDays = paymentSummary.days.slice(
@@ -665,7 +791,7 @@ useEffect(() => {
     safeDailyPage * DAILY_PAGE_SIZE
   );
 
-  // NEW: go back to the newest month whenever the filters change
+  // go back to the newest month whenever the filters change
   useEffect(() => {
     setDailyPage(1);
   }, [searchTerm, dateFrom, dateTo, sellerFilter, saleTypeFilter]);
@@ -699,7 +825,9 @@ useEffect(() => {
     setPaymentAmounts((prev) => ({ ...prev, [id]: value }));
   };
 
-  const handleAddPayment = async (receiptId: string) => {
+  // "Add" only validates and opens the method popup.
+  // The request is sent from confirmPayment once a method is chosen.
+  const handleAddPayment = (receiptId: string) => {
     const amount = Number(paymentAmounts[receiptId]);
 
     if (!amount || amount <= 0) {
@@ -707,12 +835,29 @@ useEffect(() => {
       return;
     }
 
+    // mirror the backend overpayment check (in cents to avoid float surprises)
+    const receipt = receipts.find((r) => r._id === receiptId);
+    const balance = receipt?.laybuy?.balanceRemaining ?? 0;
+    if (Math.round(amount * 100) > Math.round(balance * 100)) {
+      toast.warning(`Payment exceeds the remaining balance of BWP ${balance.toFixed(2)}`);
+      return;
+    }
+
+    setPendingPayment({ receiptId, amount });
+  };
+
+  // sends the payment together with the chosen method
+  const confirmPayment = async (method: string) => {
+    if (!pendingPayment) return;
+    const { receiptId, amount } = pendingPayment;
+
+    setPendingPayment(null);
     setSubmittingPaymentId(receiptId);
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
         `${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/laybuys/${receiptId}/pay`,
-        { amount },
+        { amount, method },
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
@@ -733,7 +878,7 @@ useEffect(() => {
         toast.success(
           updatedReceipt.laybuy?.status === 'completed'
             ? 'Lay-buy fully paid off!'
-            : 'Payment recorded'
+            : `Payment recorded (${method})`
         );
 
         // Refresh the outstanding total / reminders so they stay accurate
@@ -837,6 +982,22 @@ useEffect(() => {
       yPosition += 7;
       doc.text(`Status: ${receipt.laybuy.status.toUpperCase()}`, 100, yPosition, { align: 'right' });
       yPosition += 7;
+
+      // each payment with the method used
+      const logged = receipt.laybuy.payments || [];
+      if (logged.length > 0) {
+        yPosition += 5;
+        doc.setFontSize(12);
+        doc.text('Payments', 14, yPosition);
+        yPosition += 7;
+        doc.setFontSize(10);
+        logged.forEach((p) => {
+          doc.text(`${new Date(p.paidAt).toLocaleDateString()}  ${p.method}`, 14, yPosition);
+          doc.text(`BWP ${p.amount.toFixed(2)}`, 100, yPosition, { align: 'right' });
+          yPosition += 6;
+        });
+        doc.setFontSize(12);
+      }
     } else {
       doc.text(`Cash Paid: BWP ${receipt.cashPaid.toFixed(2)}`, 100, yPosition, { align: 'right' });
       yPosition += 7;
@@ -930,6 +1091,8 @@ useEffect(() => {
     );
   }
 
+  const trimmedSearch = searchTerm.trim();
+
   return (
     <div className={styles.cover}>
       <div className={styles.topTitles}>
@@ -1006,13 +1169,14 @@ useEffect(() => {
           {/* filter bar */}
           <div className={styles.filterBar}>
             <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>Receipt number</label>
+              <label className={styles.filterLabel}>Receipt no. or customer</label>
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="e.g. RC-1A2B"
+                placeholder="Receipt no., name, ID or phone"
                 className={styles.filterInput}
+                autoComplete="off"
               />
             </div>
             <div className={styles.filterGroup}>
@@ -1074,6 +1238,14 @@ useEffect(() => {
             )}
           </div>
 
+          {/* NEW: small hints under the search box */}
+          {trimmedSearch && trimmedSearch.length < CUSTOMER_SEARCH_MIN_CHARS && (
+            <p className={styles.searchHint}>
+              Type at least {CUSTOMER_SEARCH_MIN_CHARS} characters to search lay-buys by customer name, ID/passport or phone.
+            </p>
+          )}
+          {searchingCustomer && <p className={styles.searchHint}>Searching…</p>}
+
           {/* summary for everything matching the current filters (all pages) */}
           <div className={styles.summaryPanel}>
             <div className={styles.summaryCards}>
@@ -1107,7 +1279,7 @@ useEffect(() => {
               </div>
             </div>
 
-            {/* payment method totals (lay-buy excluded) */}
+            {/* payment method totals — include lay-buy deposits and installments */}
             <div className={styles.summaryCards}>
               {paymentSummary.columns.map((method) => (
                 <div key={method} className={styles.summaryCard}>
@@ -1118,6 +1290,9 @@ useEffect(() => {
                 </div>
               ))}
             </div>
+            <p className={styles.paymentNote}>
+              Includes lay-buy deposits and installments, counted on the day each payment was made.
+            </p>
 
             {/* daily totals per payment method, 31 days per page */}
             {paymentSummary.days.length > 0 && (
@@ -1278,8 +1453,8 @@ useEffect(() => {
           {filteredReceipts.length === 0 ? (
             <div className={styles.noDataContainer}>
               <div className={styles.noDataIcon}>🔍</div>
-              <h3>No receipts match your filters</h3>
-              <p>Try a different receipt number, date range, seller or sale type.</p>
+              <h3>{searchingCustomer ? 'Searching…' : 'No receipts match your filters'}</h3>
+              <p>Try a different receipt number, customer, date range, seller or sale type.</p>
               <button className={styles.createButton} onClick={clearFilters}>Clear filters</button>
             </div>
           ) : (
@@ -1287,6 +1462,7 @@ useEffect(() => {
             {pagedReceipts.map((receipt) => {
               const isLaybuy = receipt.saleType === 'laybuy';
               const isOpenLaybuy = isLaybuy && receipt.laybuy && receipt.laybuy.status !== 'completed' && receipt.laybuy.status !== 'cancelled';
+              const laybuyPayments = receipt.laybuy?.payments || [];
               return (
               <div key={receipt._id} className={styles.receiptCard}>
                 <div className={styles.cardPreview}>
@@ -1393,6 +1569,19 @@ useEffect(() => {
                         </>
                       )}
                     </div>
+
+                    {/* payment history for lay-buys (deposit + installments, each with its method) */}
+                    {isLaybuy && laybuyPayments.length > 0 && (
+                      <div className={styles.paymentHistory}>
+                        <span className={styles.paymentHistoryTitle}>Payments</span>
+                        {laybuyPayments.map((p, i) => (
+                          <div key={i} className={styles.paymentHistoryRow}>
+                            <span>{new Date(p.paidAt).toLocaleDateString()} · {p.method}</span>
+                            <span>BWP {p.amount.toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     {/* per-card installment payment, only for open lay-buys */}
                     {isOpenLaybuy && (
@@ -1528,6 +1717,29 @@ useEffect(() => {
         onCancel={closeDeleteModal}
         isDeleting={!!deletingId}
       />
+
+      {/* "How did the customer pay?" popup for installments recorded from this page */}
+      {pendingPayment && (
+        <div className={styles.methodOverlay} onClick={() => setPendingPayment(null)}>
+          <div className={styles.methodModal} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.methodTitle}>How did the customer pay?</h3>
+            <p className={styles.methodSubtitle}>BWP {pendingPayment.amount.toFixed(2)}</p>
+            {PAYMENT_METHOD_COLUMNS.map((method) => (
+              <button
+                key={method}
+                type="button"
+                className={styles.methodOption}
+                onClick={() => confirmPayment(method)}
+              >
+                {method}
+              </button>
+            ))}
+            <button type="button" className={styles.methodCancel} onClick={() => setPendingPayment(null)}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

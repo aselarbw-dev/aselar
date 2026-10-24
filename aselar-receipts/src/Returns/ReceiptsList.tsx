@@ -29,29 +29,22 @@ const ReceiptsList: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-// Add to state
-const [summary, setSummary] = useState<{ grossTotal: number; totalRefunded: number; netTotal: number } | null>(null);
+  const [summary, setSummary] = useState<{ grossTotal: number; totalRefunded: number; netTotal: number } | null>(null);
 
-// Add a fetch function
-const fetchSummary = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    const response = await fetch(
-      `${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/receipts-summary`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    const data = await response.json();
-    if (data.success) setSummary(data);
-  } catch (err) {
-    console.error('Fetch summary error:', err);
-  }
-};
+  const fetchSummary = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(
+        `${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/receipts-summary`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const data = await response.json();
+      if (data.success) setSummary(data);
+    } catch (err) {
+      console.error('Fetch summary error:', err);
+    }
+  };
 
-// Call it alongside fetchReceipts on mount
-useEffect(() => {
-  fetchReceipts(1);
-  fetchSummary();
-}, []);
   const fetchReceipts = async (page: number) => {
     setIsLoading(true);
     setError(null);
@@ -86,8 +79,10 @@ useEffect(() => {
     }
   };
 
+  // Single mount effect: load the first page and the summary together
   useEffect(() => {
     fetchReceipts(1);
+    fetchSummary();
   }, []);
 
   const formatTimestamp = (dateStr: string) => {
@@ -120,13 +115,13 @@ useEffect(() => {
       <p className={styles.subtitle}>Click Edit to process a return on a past receipt</p>
 
       <div className={styles.tableScroll}>
-      {summary && (
-  <div className={styles.summaryBar}>
-    <span>Gross Sales: BWP {summary.grossTotal.toFixed(2)}</span>
-    <span className={styles.refundedText}>Refunded: -BWP {summary.totalRefunded.toFixed(2)}</span>
-    <span className={styles.netTotal}>Net Sales: BWP {summary.netTotal.toFixed(2)}</span>
-  </div>
-)}
+        {summary && (
+          <div className={styles.summaryBar}>
+            <span>Gross Sales: BWP {summary.grossTotal.toFixed(2)}</span>
+            <span className={styles.refundedText}>Refunded: -BWP {summary.totalRefunded.toFixed(2)}</span>
+            <span className={styles.netTotal}>Net Sales: BWP {summary.netTotal.toFixed(2)}</span>
+          </div>
+        )}
         <table className={styles.table}>
           <thead>
             <tr>

@@ -39,6 +39,56 @@ const ReceiptItemSchema = new mongoose.Schema({
   _id: false // Optional: Prevent Mongoose from adding _id to subdocs if not needed
 });
 
+// NEW: one installment paid against a lay-buy, with how the customer paid
+const LaybuyPaymentSchema = new mongoose.Schema({
+  amount: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  method: {
+    type: String,
+    default: 'Cash',
+    trim: true
+  },
+  paidAt: {
+    type: Date,
+    default: Date.now
+  },
+  recordedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }
+}, {
+  _id: false
+});
+// NEW: who the lay-buy is for. At least one field is filled (enforced in the controller).
+const LaybuyCustomerSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  idNumber: {   // national ID (Omang) or passport number
+    type: String,
+    default: '',
+    trim: true
+  },
+  phone: {
+    type: String,
+    default: '',
+    trim: true
+  }
+}, {
+  _id: false,
+  // NEW: customer details are for searching only, they are never included in any API response
+  toJSON: {
+    transform: (doc, ret) => {
+      delete ret.customer;
+      return ret;
+    }
+  }
+});
 // NEW: Lay-buy details, only populated when saleType === 'laybuy'
 const LaybuySchema = new mongoose.Schema({
   dueDate: {
@@ -54,6 +104,17 @@ const LaybuySchema = new mongoose.Schema({
     type: String,
     enum: ['active', 'completed', 'overdue', 'cancelled'],
     default: 'active'
+  },
+  // NEW: every installment paid after the deposit, each with its payment method.
+  // Older lay-buys simply load with an empty array.
+  payments: {
+    type: [LaybuyPaymentSchema],
+    default: []
+  },
+    // NEW: customer details; missing on lay-buys made before this feature
+  customer: {
+    type: LaybuyCustomerSchema,
+    default: undefined
   },
   reminderSentAt: {
     type: Date,
@@ -123,6 +184,11 @@ const ReceiptSchema = new mongoose.Schema({
   paymentMethod: {
     type: String,
     default: 'Cash'
+  },
+   seller: {
+    type: String,
+    default: '',
+    trim: true
   },
   user: { 
     type: mongoose.Schema.Types.ObjectId, 

@@ -54,7 +54,40 @@ exports.getAuthorizedSellers = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+// GET /range (optional ?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD)
+// Returns { "2026-10-24": "Peter Baker", ... } — the most recent seller per day for THIS account.
+// Used for history/reporting, so unlike getMostRecentForDay it does NOT check whether the
+// seller is still authorized (a removed seller's past sales still belong to them).
+exports.getSellersByDateRange = async (req, res) => {
+  try {
+    const query = { user: req.user._id };
+    const { startDate, endDate } = req.query;
 
+    if (startDate && endDate) {
+      query.date = { $gte: startDate, $lte: endDate };
+    } else if (startDate) {
+      query.date = { $gte: startDate };
+    } else if (endDate) {
+      query.date = { $lte: endDate };
+    }
+
+    const rows = await DailySeller.find(query)
+      .sort({ timestamp: 1 })
+      .select('date name')
+      .lean();
+
+    // oldest first, so the latest login of each day overwrites earlier ones
+    const byDate = {};
+    rows.forEach((row) => {
+      byDate[row.date] = row.name;
+    });
+
+    res.status(200).json(byDate);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
 // PUT /authorized-sellers/:id  (rename and/or activate/deactivate)
 exports.updateAuthorizedSeller = async (req, res) => {
   try {
@@ -239,14 +272,18 @@ exports.getMostRecentForDay = async (req, res) => {
 };
 
 // GET /all - All sellers (optional ?userId=..., ?startDate=..., ?endDate=...)
+// GET /all - All daily sellers for THIS account (optional ?startDate=..., ?endDate=...)
+// Always scoped to the logged-in user. A ?userId= query param is ignored on purpose,
+// so one business can never read another business's sellers.
 exports.getAllDailySellers = async (req, res) => {
   try {
-    const { userId, startDate, endDate } = req.query;
-    let query = {};
-
-    if (userId) {
-      query.user = userId;
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ error: 'Not authenticated' });
     }
+
+    const { startDate, endDate } = req.query;
+    const query = { user: req.user._id };
+
     if (startDate && endDate) {
       query.date = { $gte: startDate, $lte: endDate };
     } else if (startDate) {
@@ -261,6 +298,7 @@ exports.getAllDailySellers = async (req, res) => {
 
     res.status(200).json(sellers);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Server error' });
   }
 };

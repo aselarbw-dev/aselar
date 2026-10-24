@@ -40,8 +40,18 @@ interface SearchResult {
   matchType: 'code' | 'category_code' | 'text';
 }
 
+// NEW: who a lay-buy is for. Used only to find the lay-buy later; never displayed.
+interface LaybuyCustomer {
+  name: string;
+  idNumber: string;
+  phone: string;
+}
+
 // Constants
 const VAT_RATE = 0.14; // 14% VAT in Botswana
+
+// NEW: ways a lay-buy deposit can be paid (same list as the payment modal, minus Lay-buy)
+const DEPOSIT_METHODS = ['Cash', 'Swiped', 'Orange Money', 'MyZaka', 'Other'] as const;
 
 // Custom hook for receipt management
 const useReceiptManager = (vatEnabled: boolean = true) => {
@@ -195,6 +205,11 @@ const [paymentMethod, setPaymentMethod] = useState<string>('');
 // NEW: lay-buy sale type + due date, driven by the payment modal
 const [saleType, setSaleType] = useState<'full' | 'laybuy'>('full');
 const [laybuyDueDate, setLaybuyDueDate] = useState<string | null>(null);
+// NEW: who the lay-buy is for (search only, never displayed). Kept in memory until submit.
+const [laybuyCustomer, setLaybuyCustomer] = useState<LaybuyCustomer | null>(null);
+// NEW: how the lay-buy deposit was paid, picked in its own popup
+const [depositMethod, setDepositMethod] = useState<string>('');
+const [showDepositModal, setShowDepositModal] = useState<boolean>(false);
 // NEW: search / filter state (name, category, barcode or custom code)
 const [searchTerm, setSearchTerm] = useState<string>('');
 const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -460,20 +475,37 @@ const handleBarcodeScan = async (code: string) => {
       throw error; // Re-throw for handling in submit
     }
   };
-// UPDATED: now accepts optional lay-buy details from the modal
-const handlePaymentMethodSelect = (method: string, details?: { dueDate?: string }) => {
+// UPDATED: choosing Lay-buy now also receives the customer details from the modal,
+// then opens the deposit-method popup straight after the due date
+const handlePaymentMethodSelect = (
+  method: string,
+  details?: { dueDate?: string; customer?: LaybuyCustomer }
+) => {
   setPaymentMethod(method);
+  setDepositMethod(''); // any change of payment method starts the deposit choice fresh
 
   if (method === 'Lay-buy' && details?.dueDate) {
     setSaleType('laybuy');
     setLaybuyDueDate(details.dueDate);
-  } else {
-    setSaleType('full');
-    setLaybuyDueDate(null);
+    setLaybuyCustomer(details.customer ?? null); // NEW
+    setShowPaymentModal(false);
+    setShowDepositModal(true);
+    toast.info('Lay-buy: now choose how the deposit is paid');
+    return;
   }
 
+  setSaleType('full');
+  setLaybuyDueDate(null);
+  setLaybuyCustomer(null); // NEW
   setShowPaymentModal(false);
   toast.info(`Payment method: ${method}`);
+};
+
+// NEW: deposit method picked
+const handleDepositMethodSelect = (method: string) => {
+  setDepositMethod(method);
+  setShowDepositModal(false);
+  toast.info(`Deposit paid by: ${method}`);
 };
   // Handler for submitting the receipt
   const handleSubmitReceipt = async () => {
@@ -500,6 +532,18 @@ const handlePaymentMethodSelect = (method: string, details?: { dueDate?: string 
       }
       if (cashPaid >= total) {
         toast.warning('Deposit covers the full total — choose a normal payment method instead');
+        return;
+      }
+      // NEW: the deposit must say how it was paid
+      if (!depositMethod) {
+        toast.warning('Choose how the deposit was paid');
+        setShowDepositModal(true);
+        return;
+      }
+      // NEW: the customer details come from the Lay-buy step of the payment popup
+      if (!laybuyCustomer) {
+        toast.warning('Customer details are missing. Tap Payment and choose Lay-buy again.');
+        setShowPaymentModal(true);
         return;
       }
     }
@@ -531,6 +575,9 @@ const handlePaymentMethodSelect = (method: string, details?: { dueDate?: string 
         saleType,
         vatEnabled, // NEW // NEW
         dueDate: laybuyDueDate, // NEW
+        depositMethod: saleType === 'laybuy' ? depositMethod : undefined, // NEW
+        seller: sellerName, // NEW
+        customer: saleType === 'laybuy' ? laybuyCustomer : undefined, // NEW
       };
       
       // Send to backend
@@ -554,6 +601,8 @@ const handlePaymentMethodSelect = (method: string, details?: { dueDate?: string 
       // NEW: reset lay-buy state alongside the rest of the receipt
       setSaleType('full');
       setLaybuyDueDate(null);
+      setLaybuyCustomer(null); // NEW
+      setDepositMethod(''); // NEW
       setPaymentMethod('');
       toast.success('Receipt submitted successfully!');
       navigate("/current-receipt")
@@ -623,7 +672,9 @@ const handlePaymentMethodSelect = (method: string, details?: { dueDate?: string 
           style={!paymentMethod && receiptItems.length > 0 ? { outline: '2px solid #dc2626' } : undefined}
           onClick={() => setShowPaymentModal(true)}
         >
-          {paymentMethod ? `Payment: ${paymentMethod}` : 'Payment'}
+          {paymentMethod
+            ? `Payment: ${paymentMethod}${saleType === 'laybuy' && depositMethod ? ` (${depositMethod})` : ''}`
+            : 'Payment'}
         </button>
             
          
@@ -743,6 +794,31 @@ const handlePaymentMethodSelect = (method: string, details?: { dueDate?: string 
     onClose={() => setShowPaymentModal(false)}
   />
 )}
+      {/* NEW: how was the lay-buy deposit paid? */}
+      {showDepositModal && (
+        <div className={styles.depositOverlay} onClick={() => setShowDepositModal(false)}>
+          <div className={styles.depositModal} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.depositTitle}>How was the deposit paid?</h3>
+            {DEPOSIT_METHODS.map((method) => (
+              <button
+                key={method}
+                type="button"
+                className={styles.depositOption}
+                onClick={() => handleDepositMethodSelect(method)}
+              >
+                {method}
+              </button>
+            ))}
+            <button
+              type="button"
+              className={styles.depositCancel}
+              onClick={() => setShowDepositModal(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
       {/* Add NumberPad for discounts */}
       {showDiscountPad && (
         <NumberPad

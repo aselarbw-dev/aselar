@@ -88,3 +88,16 @@
   font-size: 13px;
   margin: 0;
 }
+/* ───── lay-buy customer details (search only, never displayed) ───── */
+.customerFields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.fieldHint {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+}

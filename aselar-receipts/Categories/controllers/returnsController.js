@@ -8,7 +8,7 @@ const NewReceipt = require('../../CategoryReceipts/models/inventoryReceipts.js')
  * POST /api/returns/process
  * Body: {
  *   originalReceiptId,
- *   returnedItems: [{ name, quantity, price }],  // no ids — resolved below by name
+ *   returnedItems: [{ name, quantity, price }],  // price is IGNORED; the saved receipt price is used
  *   sellerName,
  *   reason
  * }
@@ -18,6 +18,11 @@ const NewReceipt = require('../../CategoryReceipts/models/inventoryReceipts.js')
  * within this business's own categories. If an item was renamed or
  * deleted since the original sale, that item is skipped and flagged —
  * the return still processes for everything that DID match.
+ *
+ * Security notes:
+ * - originalReceiptId must be a plain ObjectId string (blocks query-operator injection).
+ * - Quantities are capped at what the original receipt sold, and prices come
+ *   from the saved receipt, never from the browser.
  */
 const processReturn = async (req, res) => {
   try {
@@ -27,9 +32,32 @@ const processReturn = async (req, res) => {
 
     const { originalReceiptId, returnedItems, sellerName, reason } = req.body;
 
-    if (!originalReceiptId || !returnedItems || !Array.isArray(returnedItems) || returnedItems.length === 0) {
+    // Gap 2 fix: the id must be a string that is a valid ObjectId, so an object
+    // such as { "$ne": null } can never reach a Mongoose query.
+    if (typeof originalReceiptId !== 'string' || !mongoose.isValidObjectId(originalReceiptId)) {
+      return res.status(400).json({ message: 'Invalid receipt id' });
+    }
+
+    if (!Array.isArray(returnedItems) || returnedItems.length === 0 || returnedItems.length > 200) {
       return res.status(400).json({ message: 'Missing return details' });
     }
+
+    // Each entry needs a real name and a positive numeric quantity
+    for (const entry of returnedItems) {
+      if (
+        !entry ||
+        typeof entry.name !== 'string' ||
+        entry.name.trim() === '' ||
+        typeof entry.quantity !== 'number' ||
+        !Number.isFinite(entry.quantity) ||
+        entry.quantity <= 0
+      ) {
+        return res.status(400).json({ message: 'Invalid returned item details' });
+      }
+    }
+
+    const safeSellerName = typeof sellerName === 'string' ? sellerName.trim().slice(0, 100) : '';
+    const safeReason = typeof reason === 'string' ? reason.trim().slice(0, 500) : '';
 
     await connectDB();
 
@@ -42,6 +70,44 @@ const processReturn = async (req, res) => {
       return res.status(404).json({ message: 'Original receipt not found' });
     }
 
+    // Block double returns — a receipt can only be returned once.
+    // Must run BEFORE any restocking so inventory is never adjusted twice.
+    const existingReturn = await ReturnRecord.findOne({ originalReceiptId });
+    if (existingReturn) {
+      return res.status(409).json({
+        message: 'A return has already been processed for this receipt.',
+      });
+    }
+
+    // Gap 1 fix: validate every returned item against what the receipt actually sold.
+    // A receipt can contain the same product on several lines (e.g. "Marq x3" and
+    // "Marq x2"), so quantity is tracked per receipt line and allocated in order.
+    // Prices come from the receipt line, not from the request.
+    const remainingPerLine = originalReceipt.items.map(line => line.quantity);
+    const validatedItems = []; // { name, quantity, price } with trusted values
+
+    for (const entry of returnedItems) {
+      const name = entry.name;
+      let needed = entry.quantity;
+
+      for (let idx = 0; idx < originalReceipt.items.length && needed > 1e-9; idx++) {
+        const line = originalReceipt.items[idx];
+        if (line.name !== name || remainingPerLine[idx] <= 0) continue;
+
+        const take = Math.min(needed, remainingPerLine[idx]);
+        remainingPerLine[idx] -= take;
+        needed -= take;
+        validatedItems.push({ name, quantity: take, price: line.price });
+      }
+
+      if (needed > 1e-9) {
+        // Runs before any restocking, so nothing has been changed yet
+        return res.status(400).json({
+          message: `Cannot return ${entry.quantity} x ${name}: that is more than was sold on this receipt.`,
+        });
+      }
+    }
+
     // Load all this business's categories once — matching happens in memory
     const categories = await Category.find({ user: req.user._id.toString() });
 
@@ -49,7 +115,7 @@ const processReturn = async (req, res) => {
     const restockResults = [];
     const matchedReturnedItems = []; // what actually gets saved on the ReturnRecord
 
-    for (const returned of returnedItems) {
+    for (const returned of validatedItems) {
       const { name, quantity, price } = returned;
 
       // Find the item by exact name across all this business's categories
@@ -71,7 +137,7 @@ const processReturn = async (req, res) => {
           status: 'failed',
           message: 'No matching item found in current inventory — may have been renamed or deleted. Inventory NOT adjusted for this item.',
         });
-        continue; // still counts toward refund? No — see note below
+        continue;
       }
 
       // Restock — add the returned quantity back
@@ -98,14 +164,16 @@ const processReturn = async (req, res) => {
       });
     }
 
+    refundAmount = Math.round(refundAmount * 100) / 100;
+
     // Create the permanent return record — the original receipt is NEVER modified
     const returnRecord = await ReturnRecord.create({
       user: req.user._id,
       originalReceiptId,
       returnedItems: matchedReturnedItems,
       refundAmount,
-      processedBy: sellerName || 'Unknown',
-      reason: reason || '',
+      processedBy: safeSellerName || 'Unknown',
+      reason: safeReason,
     });
 
     res.status(200).json({

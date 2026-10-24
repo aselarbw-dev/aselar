@@ -25,6 +25,7 @@ const AllQuotes = lazy(() => import("../Documents/AllQuotes"));
 const AllInvoices = lazy(() => import("../Documents/AllInvoices"));
 const AllExpenses = lazy(() => import("../Documents/AllExpenses"));
 const LaybuyReceipts = lazy(() => import("../Documents/LaybuyReceipts"));
+const SellersPerformance = lazy(() => import("../Sellers/SellersPerformance"));
 const ScanHistory = lazy(() => import("../Scans/ScanHistory"));
 const AllCategoryReceipts = lazy(() => import("../Documents/AllCategoryReceipts"));
 const InvoiceTemplate = lazy(() => import("../Invoice/InvoiceTemplate"));
@@ -78,6 +79,7 @@ const Screens = () => {
         <Route path="/laybuy-receipts" element={<LaybuyReceipts />} />
         <Route path="/scan-history" element={<ScanHistory />} />
         <Route path="/all-quotes" element={<AllQuotes/>} />
+        <Route path="/sellers-performance" element={<SellersPerformance/>} />
         <Route path="/all-invoices" element={<AllInvoices/>} />
         <Route path="/returns-list" element={<ReceiptsList />} />
         <Route path="/total-expenses" element={<AllExpenses/>} />

@@ -1,8 +1,20 @@
 const {mongoose,connectDB} = require('../../Shared/config');
 
+// NEW: payment methods accepted for lay-buy deposits and installments
+// (matches the POS payment modal, minus 'Lay-buy' itself)
+const LAYBUY_PAYMENT_METHODS = ['Cash', 'Swiped', 'Orange Money', 'MyZaka', 'Other'];
+const normalizeLaybuyMethod = (m) => {
+  const clean = typeof m === 'string' ? m.trim().toLowerCase() : '';
+  return LAYBUY_PAYMENT_METHODS.find((x) => x.toLowerCase() === clean) || null;
+};
+// NEW: tidy a customer detail (trim, collapse spaces, cap the length)
+const cleanText = (value, max) =>
+  typeof value === 'string' ? value.trim().replace(/\s+/g, ' ').slice(0, max) : '';
+// NEW: escape user text before using it inside a regex search
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const submitReceipt = async (req, res) => {
   try {
-    const { items, subtotal, vat, discount,vatEnabled, discountedBy, total, cashPaid, change, paymentMethod, saleType, dueDate } = req.body;
+    const { items, subtotal, vat, discount,vatEnabled, discountedBy, total, cashPaid, change,customer, paymentMethod, saleType, dueDate, depositMethod,seller } = req.body;
 
     // Validate the request
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -33,7 +45,7 @@ const submitReceipt = async (req, res) => {
 
     // NEW: Lay-buy specific validation
     const isLaybuy = saleType === 'laybuy';
-
+        let cleanCustomer = null; // NEW
     if (isLaybuy) {
       if (!dueDate || isNaN(new Date(dueDate).getTime())) {
         return res.status(400).json({ success: false, message: 'A valid due date is required for lay-buy sales' });
@@ -51,6 +63,33 @@ const submitReceipt = async (req, res) => {
       if (cashPaid >= total) {
         return res.status(400).json({ success: false, message: 'Deposit cannot cover the full total — use a normal sale instead' });
       }
+            // NEW: the deposit must say how it was paid
+      if (!normalizeLaybuyMethod(depositMethod)) {
+        return res.status(400).json({ success: false, message: 'Choose how the deposit was paid (Cash, Swiped, Orange Money, MyZaka or Other)' });
+      }
+            // NEW: the customer must be identifiable by at least one of name, ID/passport or phone.
+      // Stored in a search-friendly form: ID/passport upper-case without spaces or dashes,
+      // phone as digits only. These details are never returned by any endpoint.
+      const customerName = cleanText(customer?.name, 100);
+      const customerId = cleanText(customer?.idNumber, 40).toUpperCase().replace(/[\s-]/g, '');
+      const customerPhone = cleanText(customer?.phone, 30).replace(/\D/g, '');
+
+      if (!customerName && !customerId && !customerPhone) {
+        return res.status(400).json({
+          success: false,
+          message: "Enter the customer's name, ID/passport number or phone number for this lay-buy"
+        });
+      }
+      if (customerPhone && customerPhone.length < 7) {
+        return res.status(400).json({ success: false, message: 'The phone number looks too short' });
+      }
+
+      cleanCustomer = { name: customerName, idNumber: customerId, phone: customerPhone };
+      if (customerPhone && customerPhone.replace(/\D/g, '').length < 7) {
+        return res.status(400).json({ success: false, message: 'The phone number looks too short' });
+      }
+
+      cleanCustomer = { name: customerName, idNumber: customerId, phone: customerPhone };
     }
     // NEW: server-side discount lock — the UI toggle alone isn't enough
     const hasDiscount =
@@ -104,6 +143,7 @@ const submitReceipt = async (req, res) => {
       cashPaid,
       change,
       paymentMethod: paymentMethod || 'Cash',
+      seller: typeof seller === 'string' ? seller.trim().slice(0, 100) : '', // NEW
       createdBy: req.user._id,
       user: req.user._id.toString() // Assuming user is authenticated and available in req.user
     };
@@ -111,10 +151,18 @@ const submitReceipt = async (req, res) => {
     // NEW: Attach lay-buy details only when applicable — normal sales are untouched
     if (isLaybuy) {
       receiptPayload.saleType = 'laybuy';
-      receiptPayload.laybuy = {
+           receiptPayload.laybuy = {
         dueDate: new Date(dueDate),
         balanceRemaining: total - cashPaid, // recomputed again in the model's pre-save hook
-        status: 'active'
+        status: 'active',
+        // NEW: the deposit is the first entry in the payment ledger
+        payments: [{
+          amount: cashPaid,
+          method: normalizeLaybuyMethod(depositMethod),
+          paidAt: new Date(),
+          recordedBy: req.user._id
+        }],
+                customer: cleanCustomer // NEW
       };
     }
 
@@ -231,6 +279,14 @@ const getReceipts = async (req, res) => {
     }
     await connectDB();
     const NewReceipt = require('../models/inventoryReceipts');
+
+    // Hide receipts that already have a return processed against them.
+    // Use the same ReturnRecord import line you used in getReceiptsSummary.
+    const returnedReceiptIds = await ReturnRecord.distinct('originalReceiptId');
+    if (returnedReceiptIds.length > 0) {
+      filterOptions._id = { $nin: returnedReceiptIds };
+    }
+
     const receipts = await NewReceipt.find(filterOptions)
       .sort({ createdAt: -1 })
       .skip(startIndex)
@@ -254,7 +310,6 @@ const getReceipts = async (req, res) => {
     });
   }
 };
-
 
 
 const openCashDrawer = async (req, res) => {
@@ -434,6 +489,7 @@ const deleteReceipt = async (req, res) => {
 };
 
 // NEW: List open lay-buys, soonest due date first — powers a "Lay-buys" view on the dashboard
+// Optional ?customer=<text> finds lay-buys by customer name, ID/passport number or phone.
 const getLaybuys = async (req, res) => {
   try {
     await connectDB();
@@ -447,7 +503,35 @@ const getLaybuys = async (req, res) => {
       filterOptions['laybuy.status'] = req.query.status; // e.g. ?status=active
     }
 
+    // NEW: find lay-buys by who they belong to. The details are matched here on the
+    // server and are never sent back to the browser.
+    if (typeof req.query.customer === 'string' && req.query.customer.trim()) {
+      const term = req.query.customer.trim().replace(/\s+/g, ' ');
+
+      // too short to be a meaningful search
+      if (term.length < 3) {
+        return res.status(200).json({ success: true, count: 0, totalOutstanding: 0, data: [] });
+      }
+
+      // personal data: only ever search within this account's own lay-buys, even for role admin
+      filterOptions.createdBy = req.user._id;
+
+      const idTerm = term.toUpperCase().replace(/[\s-]/g, '');
+      const digits = term.replace(/\D/g, '');
+      const phoneTerm = digits.length > 8 ? digits.slice(-8) : digits; // ignores a country code typed in front
+
+      const matchers = [
+        { 'laybuy.customer.name': { $regex: escapeRegex(term), $options: 'i' } },
+        { 'laybuy.customer.idNumber': { $regex: escapeRegex(idTerm) } },
+      ];
+      if (phoneTerm.length >= 4) {
+        matchers.push({ 'laybuy.customer.phone': { $regex: escapeRegex(phoneTerm) } });
+      }
+      filterOptions.$or = matchers;
+    }
+
     const laybuys = await NewReceipt.find(filterOptions)
+      .select('-laybuy.customer')
       .sort({ 'laybuy.dueDate': 1 })
       .populate('createdBy', 'name');
 
@@ -467,12 +551,12 @@ const getLaybuys = async (req, res) => {
     });
   }
 };
-
 // NEW: Record an additional payment against an open lay-buy
+// NEW: Record an additional payment against an open lay-buy (now with payment method)
 const addLaybuyPayment = async (req, res) => {
   try {
     const { id } = req.params;
-    const { amount } = req.body;
+    const { amount, method } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ success: false, message: 'Invalid receipt ID' });
@@ -480,6 +564,15 @@ const addLaybuyPayment = async (req, res) => {
 
     if (typeof amount !== 'number' || amount <= 0) {
       return res.status(400).json({ success: false, message: 'Payment amount must be a positive number' });
+    }
+
+    // NEW: every installment must say how it was paid
+    const cleanMethod = normalizeLaybuyMethod(method);
+    if (!cleanMethod) {
+      return res.status(400).json({
+        success: false,
+        message: 'Choose how the customer paid (Cash, Swiped, Orange Money, MyZaka or Other)'
+      });
     }
 
     await connectDB();
@@ -494,9 +587,26 @@ const addLaybuyPayment = async (req, res) => {
     if (receipt.laybuy.status === 'completed' || receipt.laybuy.status === 'cancelled') {
       return res.status(400).json({ success: false, message: `This lay-buy is already ${receipt.laybuy.status}` });
     }
-
+    // NEW: reject overpayments so a method's totals can never be inflated.
+    // Work in cents to avoid floating-point surprises (e.g. 0.1 + 0.2).
+    const balanceCents = Math.round(receipt.laybuy.balanceRemaining * 100);
+    const amountCents = Math.round(amount * 100);
+    if (amountCents > balanceCents) {
+      return res.status(400).json({
+        success: false,
+        message: `Payment exceeds the remaining balance of BWP ${receipt.laybuy.balanceRemaining.toFixed(2)}`
+      });
+    }
     receipt.cashPaid += amount;
     receipt.laybuy.balanceRemaining = Math.max(receipt.total - receipt.cashPaid, 0);
+
+    // NEW: log this installment with its payment method
+    receipt.laybuy.payments.push({
+      amount,
+      method: cleanMethod,
+      paidAt: new Date(),
+      recordedBy: req.user._id
+    });
 
     if (receipt.laybuy.balanceRemaining === 0) {
       receipt.laybuy.status = 'completed';

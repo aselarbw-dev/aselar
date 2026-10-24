@@ -324,3 +324,90 @@
   gap: 10px;
   color: #666;
 }
+/* ───── payment history on each card ───── */
+.paymentHistory {
+  margin: 10px 0;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.paymentHistoryTitle {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #374151;
+}
+
+.paymentHistoryRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px 0;
+  color: #4b5563;
+}
+
+/* ───── payment method popup ───── */
+.methodOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.methodModal {
+  background: #fff;
+  width: 340px;
+  max-width: 90vw;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.methodTitle {
+  margin: 0;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.methodSubtitle {
+  margin: 0 0 6px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.methodOption {
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.methodOption:hover {
+  background: #eff6ff;
+  border-color: #3b82f6;
+}
+
+.methodCancel {
+  margin-top: 4px;
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 8px;
+}
+.viewPerformanceLink {
+  color: #2980b9;
+  text-decoration: underline;
+  padding:0.5rem;
+}

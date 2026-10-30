@@ -89,9 +89,10 @@ const InvoiceTemplate: React.FC = () => {
   useEffect(() => {
     async function fetchLatestInvoice() {
       try {
+            const token= localStorage.getItem('token');
         setLoading(true);
         const [invoiceResponse, businessResponse, profileResponse, receiversResponse, bankResponse] = await Promise.all([
-          fetch('http://localhost:5004/api/recent-invoice', { credentials: "include" }),
+          fetch('http://localhost:5004/api/recent-invoice', { credentials: "include", headers: { 'Authorization': `Bearer ${token}` } }),
           fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/get-business`, { headers: { 'Content-Type': 'application/json' }, credentials: "include" }),
           fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/api/profile`, { headers: { 'Content-Type': 'application/json' }, credentials: "include" }),
           fetch('http://localhost:5004/api/get-receiver', { headers: { 'Content-Type': 'application/json' }, credentials: "include" }),

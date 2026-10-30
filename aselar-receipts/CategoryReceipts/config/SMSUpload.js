@@ -499,7 +499,6 @@ const EmailUpload = async (req, res) => {
 
     await sendEmail({
       to: email,                                // ← customer's email (required)
-      cc: companyInfo?.emailBusiness || null,   // ← business gets a copy
       subject: `Receipt #${receiptsNumber} - ${companyInfo?.nameOfBusiness || 'Your Business'}`,
       html: emailBody,
       attachments: [{

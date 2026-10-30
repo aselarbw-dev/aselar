@@ -51,6 +51,8 @@ interface ReceiptData {
   // NEW
   saleType?: 'full' | 'laybuy';
   laybuy?: LaybuyDetails;
+  // NEW (seller): name stamped on the receipt at the moment of sale — this is the source of truth
+  seller?: string;
 }
 
 interface ApiResponse {
@@ -163,9 +165,12 @@ useEffect(() => {
     fetchReceipt();
   }, []);
 
-  // Daily Seller Fetch — same endpoint/logic as Receipt.tsx, keyed by the receipt's date
+  // Daily Seller Fetch — same endpoint/logic as Receipt.tsx, keyed by the receipt's date.
+  // NEW (seller): only a FALLBACK for older receipts that have no stamped seller.
+  // When the receipt carries its own seller name we skip the lookup entirely.
   useEffect(() => {
     if (!receipt) return;
+    if (receipt.seller) return; // NEW (seller): stamped name wins, no lookup needed
 
     const fetchDailySeller = async () => {
       try {
@@ -187,7 +192,7 @@ useEffect(() => {
     };
 
     fetchDailySeller();
-  }, [receipt?.createdAt]);
+  }, [receipt?.createdAt, receipt?.seller]);
 
   const startQRScanner = async () => {
     try {
@@ -240,9 +245,11 @@ useEffect(() => {
     }
   };
 
-  // NEW: seller-name fallback, mirrors the backend priority
-  // (explicit seller name → business name → 'Unknown Seller')
-  const getSellerName = () => seller?.name || businessProfile?.nameOfBusiness || 'Unknown Seller';
+  // NEW (seller): seller-name priority:
+  // 1) name stamped on the receipt at sale time  2) daily-seller lookup (older receipts only)
+  // 3) business name  4) 'Unknown Seller'
+  const getSellerName = () =>
+    receipt?.seller || seller?.name || businessProfile?.nameOfBusiness || 'Unknown Seller';
 
   const handleQRCode = async () => {
     try {

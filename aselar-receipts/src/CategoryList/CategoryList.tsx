@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { toast } from 'react-toastify'; // NEW
 import { RootState } from '../Store/store';
 import { FaEdit } from 'react-icons/fa';
 import { FaSearch, FaTimes } from 'react-icons/fa';
@@ -81,7 +82,7 @@ const getCategorySummary = (category: Category): CategorySummary => {
 const formatPula = (value: number) =>
   `${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Pula`;
 
-// NEW: the image a category card shows.
+// The image a category card shows.
 // 1. The category's own saved image always wins (the backend now saves the first
 //    item image onto the category, so "first one sticks").
 // 2. Fallback for categories that were created before that existed (e.g. bulk imports
@@ -168,6 +169,10 @@ const CategoryList: React.FC = () => {
     categoryId: ''
   });
 
+  // NEW: "delete all categories" confirmation + progress
+  const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false);
+  const [deletingAll, setDeletingAll] = useState(false);
+
   const [showExpiryModal, setShowExpiryModal] = useState(false);
   const [expiringItems, setExpiringItems] = useState<ExpiringItem[]>([]);
 
@@ -229,6 +234,37 @@ const CategoryList: React.FC = () => {
     setDeleteDialog({ isOpen: false, itemId: '', itemType: '', categoryId: '' });
   };
 
+  // NEW: deletes every category (and its items) for this account, then reloads the list
+  const handleDeleteAllConfirm = async () => {
+    setDeleteAllDialogOpen(false);
+    setDeletingAll(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/delete-all-categories`,
+        {
+          method: 'DELETE',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      toast.success('All categories deleted');
+      setSelectedCategory(null);
+      dispatch(getCategories()); // refresh the list from the server
+    } catch (error) {
+      console.error('Delete all categories failed:', error);
+      toast.error('Failed to delete all categories. Please try again.');
+    } finally {
+      setDeletingAll(false);
+    }
+  };
+
   useEffect(() => {
     if (categories.length > 0) {
       const now = new Date();
@@ -286,7 +322,7 @@ const CategoryList: React.FC = () => {
     }
   }, [filteredCategories.length, currentPage]);
 
-  // UPDATED: bad or unreadable dates (e.g. from a messy import) show "No expiry"
+  // Bad or unreadable dates (e.g. from a messy import) show "No expiry"
   // instead of "Invalid Date"
   const formatDate = (dateStr: string) => {
     if (!dateStr) return 'No expiry';
@@ -342,7 +378,7 @@ const CategoryList: React.FC = () => {
           paginatedCategories.map((category, catIndex) => {
             // Per-category reporting summary + pie data
             const summary = getCategorySummary(category);
-            // NEW: category's own image, or the first item image as a fallback
+            // Category's own image, or the first item image as a fallback
             const displayImage = getCategoryImage(category);
 
             return (
@@ -468,6 +504,17 @@ const CategoryList: React.FC = () => {
                   {selectedCategory === category._id ? 'Close' : 'Add Item'}
                 </button>
               </div>
+
+              {/* NEW: delete every category (shows on card hover) */}
+              <button
+                type="button"
+                className={styles.deleteAllButton}
+                onClick={() => setDeleteAllDialogOpen(true)}
+                disabled={deletingAll}
+              >
+                {deletingAll ? 'Deleting…' : 'Delete All Categories'}
+              </button>
+
               {selectedCategory === category._id && (
                 <div className={styles.itemForm}>
                   <ItemForm 
@@ -543,6 +590,15 @@ const CategoryList: React.FC = () => {
         onConfirm={handleDeleteConfirm}
         title="Delete Confirmation"
         message={`Are you sure you want to delete this ${deleteDialog.itemType}? This action cannot be undone.`}
+      />
+
+      {/* NEW: confirmation for deleting every category */}
+      <ConfirmDialog
+        isOpen={deleteAllDialogOpen}
+        onClose={() => setDeleteAllDialogOpen(false)}
+        onConfirm={handleDeleteAllConfirm}
+        title="Delete ALL Categories"
+        message={`This will permanently delete all ${categories.length} categories and every item inside them. This action cannot be undone.`}
       />
     </div>
   );

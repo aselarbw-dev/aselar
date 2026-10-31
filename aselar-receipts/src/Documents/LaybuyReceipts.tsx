@@ -24,11 +24,19 @@ interface LaybuyPayment {
   paidAt: string;
 }
 
+// NEW: who the lay-buy is for (missing on lay-buys made before customer details existed)
+interface LaybuyCustomer {
+  name?: string;
+  idNumber?: string;
+  phone?: string;
+}
+
 interface LaybuyDetails {
   dueDate: string;
   balanceRemaining: number;
   status: 'active' | 'completed' | 'overdue' | 'cancelled';
   payments?: LaybuyPayment[]; // empty/missing on older lay-buys
+  customer?: LaybuyCustomer; // NEW
   reminderSentAt?: string | null;
   overdueNoticeSentAt?: string | null;
 }
@@ -72,7 +80,7 @@ const REMINDER_WINDOW_DAYS = 3;
 const DISMISSED_LAYBUYS_KEY = 'aselar_dismissed_laybuy_reminders';
 // same methods as the POS payment modal (Lay-buy itself isn't a way to pay an installment)
 const PAYMENT_METHOD_OPTIONS = ['Cash', 'Swiped', 'Orange Money', 'MyZaka', 'Other'] as const;
-// NEW: customer search starts at this many characters (the server enforces it too)
+// customer search starts at this many characters (the server enforces it too)
 const CUSTOMER_SEARCH_MIN_CHARS = 3;
 const EMPTY_IDS = new Set<string>();
 
@@ -88,8 +96,8 @@ const LaybuyReceipts: React.FC = () => {
   const [fromDate, setFromDate] = useState<string>('');
   const [toDate, setToDate] = useState<string>('');
 
-  // NEW: which lay-buys the server says belong to the customer being searched.
-  // Only receipt ids are kept here — the customer details themselves never reach the browser.
+  // which lay-buys the server says belong to the customer being searched.
+  // Only receipt ids are kept here; the details shown on cards come from the main list.
   const [customerMatches, setCustomerMatches] = useState<{ term: string; ids: Set<string> }>({
     term: '',
     ids: EMPTY_IDS,
@@ -145,7 +153,7 @@ const LaybuyReceipts: React.FC = () => {
     fetchLaybuys();
   }, []);
 
-  // NEW: customer search. Once the box has enough characters, ask the server which lay-buys
+  // Customer search. Once the box has enough characters, ask the server which lay-buys
   // belong to a matching name / ID-passport / phone. We keep only the matching receipt ids.
   useEffect(() => {
     const term = searchTerm.trim();
@@ -363,6 +371,7 @@ const LaybuyReceipts: React.FC = () => {
     const companyName = profileData?.nameOfBusiness || 'TeX-Technology Extreme';
     const address1 = businessData?.place || 'Plot 1234';
     const email = profileData?.emailBusiness || 'tex@robotics.bw';
+    const customer = receipt.laybuy?.customer;
 
     doc.setFontSize(16);
     doc.text(companyName, 14, 20);
@@ -376,9 +385,21 @@ const LaybuyReceipts: React.FC = () => {
       doc.setFontSize(12);
       doc.text(`Date: ${new Date(receipt.createdAt).toLocaleDateString()}`, 105, 58, { align: 'center' });
     }
+    doc.setFontSize(12);
     doc.text(`Receipt #: ${receipt.receiptsNumber || receipt._id.slice(-6)}`, 105, 65, { align: 'center' });
 
-    let y = 80;
+    // NEW: customer name / ID on the PDF (only lines that exist)
+    let headerY = 72;
+    if (customer?.name) {
+      doc.text(`Customer: ${customer.name}`, 105, headerY, { align: 'center' });
+      headerY += 7;
+    }
+    if (customer?.idNumber) {
+      doc.text(`ID / Passport: ${customer.idNumber}`, 105, headerY, { align: 'center' });
+      headerY += 7;
+    }
+
+    let y = Math.max(80, headerY + 8);
     doc.setFontSize(12);
     receipt.items?.forEach((item) => {
       doc.setFontSize(10);
@@ -462,7 +483,7 @@ const LaybuyReceipts: React.FC = () => {
         )}
       </div>
 
-      {/* NEW: small hint under the search box */}
+      {/* small hint under the search box */}
       {trimmedSearch && trimmedSearch.length < CUSTOMER_SEARCH_MIN_CHARS && (
         <p className={styles.searchHint}>
           Type at least {CUSTOMER_SEARCH_MIN_CHARS} characters to search by customer name, ID/passport or phone.
@@ -510,6 +531,8 @@ const LaybuyReceipts: React.FC = () => {
           {filteredLaybuys.map((receipt) => {
             const isOpenLaybuy = receipt.laybuy && receipt.laybuy.status !== 'completed' && receipt.laybuy.status !== 'cancelled';
             const payments = receipt.laybuy?.payments || [];
+            const customer = receipt.laybuy?.customer;
+            const hasCustomer = !!(customer && (customer.name || customer.idNumber || customer.phone));
             return (
               <div key={receipt._id} className={styles.receiptCard}>
                 <div className={styles.cardHeader}>
@@ -518,6 +541,39 @@ const LaybuyReceipts: React.FC = () => {
                     <span className={laybuyBadgeClass(receipt)}>{laybuyBadgeLabel(receipt)}</span>
                   </div>
                   {receipt.createdAt && <span className={styles.cardDate}>{new Date(receipt.createdAt).toLocaleDateString()}</span>}
+                </div>
+
+                {/* NEW: customer details */}
+                <div className={styles.customerBox}>
+                  <span className={styles.customerBoxTitle}>Customer</span>
+                  {hasCustomer ? (
+                    <>
+                      <div className={styles.customerRow}>
+                        <span>Receipt No.</span>
+                        <span>{receipt.receiptsNumber || receipt._id.slice(-6)}</span>
+                      </div>
+                      {customer?.name && (
+                        <div className={styles.customerRow}>
+                          <span>Name</span>
+                          <span>{customer.name}</span>
+                        </div>
+                      )}
+                      {customer?.idNumber && (
+                        <div className={styles.customerRow}>
+                          <span>ID / Passport</span>
+                          <span>{customer.idNumber}</span>
+                        </div>
+                      )}
+                      {customer?.phone && (
+                        <div className={styles.customerRow}>
+                          <span>Phone</span>
+                          <span>{customer.phone}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <span className={styles.customerMissing}>No customer details recorded</span>
+                  )}
                 </div>
 
                 {receipt.items && receipt.items.length > 0 && (

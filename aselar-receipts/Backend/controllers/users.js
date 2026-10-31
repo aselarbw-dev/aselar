@@ -12,9 +12,7 @@ const fs = require("fs");
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 };
-console.log('JWT Secret:', process.env.JWT_SECRET);
-const token = jwt.sign({ _id: "testId" }, "temporarySecret", { expiresIn: "1d" });
-console.log('Hardcoded Token:', token);
+
 // Rate limiting for auth endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -339,85 +337,83 @@ const BlacklistedToken = require('../models/blacklistedTokenModel'); // Import t
 
 const logoutBusiness = asyncHandler(async (req, res) => {
   try {
-    const token = req.cookies.token;
-      const { reason, timestamp, userId } = req.body;
-    // Add token to database blacklist
-    if (token) {
-      await BlacklistedToken.create({ token });
+    let token;
+    if (req.headers.authorization?.startsWith('Bearer')) {
+      token = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies?.token) {
+      token = req.cookies.token;
     }
- if (token) {
+ 
+    const { reason, timestamp, userId } = req.body || {};
+ 
+    if (token && token !== 'null' && token !== 'undefined') {
+      // Add token to the database blacklist
       try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        // Remove session
-        activeSessions.delete(decoded.sessionId);
-        
-        console.log(`User logout: ${userId || decoded.userId}, Session: ${decoded.sessionId}, Reason: ${reason}, Time: ${timestamp}`);
-      } catch (error) {
-        // Token might be expired, but still clear cookie
-        console.log(`Logout with invalid token: ${userId}, Reason: ${reason}, Time: ${timestamp}`);
+        await BlacklistedToken.create({ token });
+      } catch (err) {
+        // 11000 = duplicate: this token was already blacklisted, which is fine
+        if (err.code !== 11000) {
+          console.error('Blacklist error:', err.message);
+        }
       }
+ 
+      // Remove the in-memory session if this token carries one (decode only, no verify:
+      // the token may already be expired and we still want to log out cleanly)
+      const decoded = jwt.decode(token);
+      if (decoded && decoded.sessionId) {
+        activeSessions.delete(decoded.sessionId);
+      }
+ 
+      console.log(`User logout: ${userId || (decoded && (decoded.id || decoded.userId))}, Reason: ${reason}, Time: ${timestamp}`);
     }
-    // Clear the cookie
+ 
+    // Clear the cookie (same attributes the login cookie was set with)
     res.cookie("token", "", {
       path: "/",
       httpOnly: true,
       expires: new Date(0),
       sameSite: "none",
-      secure: process.env.NODE_ENV === "production"
+      secure: true
     });
-
+ 
     return res.status(200).json({ message: "Successfully Logged Out" });
   } catch (error) {
     console.error('Logout error:', error);
     return res.status(500).json({ message: "Logout failed" });
   }
 });
-
 // validate session
 // Session validation endpoint
-const validateSession=(async(req, res) => {
-  // If we reach here, the session is valid (middleware passed)
+// The expiry comes from req.tokenExp (set by protect).
+const validateSession = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: 'Session is valid',
-    expiresAt: new Date(req.user.exp * 1000).toISOString()
+    expiresAt: req.tokenExp ? new Date(req.tokenExp * 1000).toISOString() : null
   });
 });
-
+ 
 // extend session
-const extendSession=(async (req, res) => {
-  try {
-    // Update last activity (already done in middleware)
-    // Optionally refresh the cookie with new expiration
-    const user = { _id: req.user.userId };
-    createSession(res, user);
-
-    res.json({
-      success: true,
-      message: 'Session extended'
-    });
-
-  } catch (error) {
-    console.error('Session extension error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to extend session'
-    });
-  }
+// CHANGED: the old version rebuilt the cookie from `req.user.userId`, which `protect` doesn't set,
+// and would have replaced the good cookie with one `protect` can't read. Tokens are not refreshed
+// here, so this now only confirms the session is still valid.
+const extendSession = asyncHandler(async (req, res) => {
+  res.json({
+    success: true,
+    message: 'Session is still valid'
+  });
 });
+ 
 // Login success tracking
-const successLogin=( async(req, res) => {
-  try {
-    const { timestamp, userAgent } = req.body;
-    
-    console.log(`Login success: User ${req.user.userId}, Session: ${req.user.sessionId}, Time: ${timestamp}, UA: ${userAgent}`);
-    
-    res.json({ success: true });
-  } catch (error) {
-    console.error('Login success tracking error:', error);
-    res.status(500).json({ success: false });
-  }
+// CHANGED: reads the user from `protect` (req.user is the user document, so use _id)
+const successLogin = asyncHandler(async (req, res) => {
+  const { timestamp, userAgent } = req.body || {};
+ 
+  console.log(`Login success: User ${req.user._id}, Time: ${timestamp}, UA: ${userAgent}`);
+ 
+  res.json({ success: true });
 });
+ 
 // Session cleanup job
 const cleanupExpiredSessions = () => {
   const now = new Date();

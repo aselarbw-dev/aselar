@@ -531,9 +531,8 @@ const getLaybuys = async (req, res) => {
     }
 
     const laybuys = await NewReceipt.find(filterOptions)
-      .select('-laybuy.customer')
-      .sort({ 'laybuy.dueDate': 1 })
-      .populate('createdBy', 'name');
+     .sort({ 'laybuy.dueDate': 1 })
+  .populate('createdBy', 'name');
 
     const totalOutstanding = laybuys.reduce((sum, r) => sum + (r.laybuy?.balanceRemaining || 0), 0);
 

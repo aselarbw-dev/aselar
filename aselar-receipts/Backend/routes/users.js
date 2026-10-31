@@ -26,13 +26,17 @@ const router = express.Router();
 router.post("/business-signup",upload.single('profilePicture'),registerBusiness)
 router.post("/business-login",authLimiter,loginBusiness)
 router.get("/logout",logoutBusiness)
+// NEW: the app sends POST /api/logout (with a JSON body), so the route has to accept POST too
+router.post("/logout",logoutBusiness)
 router.get("/login-status",loginStatus)
 router.get("/profile",protect,getUserProfile)
 // sessions
 router.put("/profile", protect, upload.single("profilePicture"), updateUserProfile);
-router.post('/validate-session', requireAuth, validateSession);
-router.post('/extend-session', requireAuth, extendSession);
-router.post('/login-success',requireAuth, successLogin);
+// CHANGED: these three used requireAuth (cookie + in-memory sessionId), which rejects every
+// normal login token. They now use protect, like every other route in the app.
+router.post('/validate-session', protect, validateSession);
+router.post('/extend-session', protect, extendSession);
+router.post('/login-success', protect, successLogin);
 router.get('/me', protect, getMe);
 router.get('/public-businesses', publicBusinesses);
 // routes

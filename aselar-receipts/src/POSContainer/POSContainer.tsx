@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import CategoryLists from '../CategoryLists/CategoryLists';
 import ItemsList from '../ItemsList/ItemsList';
 import NumberPad from '../NumberPad/NumberPad';
 import Receipt from '../Receipt/Receipt';
 import styles from './POSContainer.module.css';
 import {useNavigate,Link} from 'react-router-dom';
+import { setSaleInProgress } from '../Hooks/useAutoLogout';
 import { toast } from 'react-toastify';
 import BarcodeScanner from '../Scans/BarcodeScanner'; // Import the BarcodeScanner component
 // Define types
@@ -210,6 +211,7 @@ const [laybuyCustomer, setLaybuyCustomer] = useState<LaybuyCustomer | null>(null
 // NEW: how the lay-buy deposit was paid, picked in its own popup
 const [depositMethod, setDepositMethod] = useState<string>('');
 const [showDepositModal, setShowDepositModal] = useState<boolean>(false);
+ const stockDeductedForRef = useRef<string>('');
 // NEW: search / filter state (name, category, barcode or custom code)
 const [searchTerm, setSearchTerm] = useState<string>('');
 const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -233,7 +235,11 @@ const { sellerName } = useSellerContext();
     updateCashPaid,
     clearReceipt
   } = useReceiptManager(vatEnabled);
-
+  // NEW: tell the idle auto-logout whether a sale is in progress (items on the receipt)
+  useEffect(() => {
+    setSaleInProgress(receiptItems.length > 0);
+    return () => setSaleInProgress(false); // leaving this screen: nothing is being sold any more
+  }, [receiptItems.length]);
   // Fetch items when a category is selected
   useEffect(() => {
     if (selectedCategoryId) {
@@ -507,6 +513,10 @@ const handleDepositMethodSelect = (method: string) => {
   setShowDepositModal(false);
   toast.info(`Deposit paid by: ${method}`);
 };
+ 
+ 
+// EDIT 3 — replace the whole handleSubmitReceipt function with this one:
+ 
   // Handler for submitting the receipt
   const handleSubmitReceipt = async () => {
     if (receiptItems.length === 0 || receiptItems.every(item => item.quantity === 0)) {
@@ -557,10 +567,28 @@ const handleDepositMethodSelect = (method: string) => {
         itemId: rItem.itemId,
         soldQuantity: rItem.quantity
       }));
-
-      // Process sale to deduct inventory (backend handles stock check)
-      await processSaleDirect(soldItems, paymentMethod);
-
+ 
+      // NEW: a fingerprint of exactly what is being sold, so a retry can tell it is the same sale
+      const saleSignature = JSON.stringify(soldItems);
+ 
+      // The items were changed after a failed attempt: stock for the earlier attempt is already gone
+      if (stockDeductedForRef.current && stockDeductedForRef.current !== saleSignature) {
+        toast.warning(
+          'Stock was already updated for an earlier attempt of this sale, before the items were changed. Please tell the owner so the stock can be corrected.',
+          { autoClose: 15000 }
+        );
+        stockDeductedForRef.current = '';
+      }
+ 
+      if (stockDeductedForRef.current === saleSignature) {
+        // Same sale as the failed attempt: stock was already deducted, so do NOT deduct again
+        toast.info('Stock was already updated for this sale. Saving the receipt again.');
+      } else {
+        // Process sale to deduct inventory (backend handles stock check)
+        await processSaleDirect(soldItems, paymentMethod);
+        stockDeductedForRef.current = saleSignature; // stock is now deducted for exactly this sale
+      }
+ 
       // Prepare receipt data (keep your existing sales logging)
       const receiptData = {
         items: receiptItems, // each item now carries discountBy
@@ -585,8 +613,8 @@ const handleDepositMethodSelect = (method: string) => {
         method: 'POST',
          headers: { 'Content-Type': 'application/json',
           'authorization': `Bearer ${localStorage.getItem("token")}`
-
-
+ 
+ 
          },
         credentials: 'include',
         body: JSON.stringify(receiptData),
@@ -595,6 +623,9 @@ const handleDepositMethodSelect = (method: string) => {
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
+ 
+      // NEW: the receipt is saved, so nothing is pending any more
+      stockDeductedForRef.current = '';
       
       // Clear receipt after successful submission
       clearReceipt();
@@ -611,6 +642,12 @@ const handleDepositMethodSelect = (method: string) => {
       // Handle e.g., insufficient stock from backend
       if (error.message?.includes('Insufficient stock')) {
         toast.error(error.message);
+      } else if (stockDeductedForRef.current) {
+        // NEW: stock WAS deducted but the receipt did not save. Tell the cashier exactly what to do.
+        toast.error(
+          'Stock was updated but the receipt did not save. Keep the items as they are and tap Compose Receipt again.',
+          { autoClose: 10000 }
+        );
       } else {
         toast.error('Failed to submit receipt. Please try again.');
       }

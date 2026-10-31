@@ -21,6 +21,7 @@
   width: 90%;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   animation: modalAppear 0.3s ease-out;
+  padding:1rem;
 }
 
 @keyframes modalAppear {
@@ -59,4 +60,29 @@
   min-width: 45px;
   text-align: center;
   animation: pulse 1s infinite;
+}
+.logoutButton{
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+.extendButton{
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+.actions{
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
 }

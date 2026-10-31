@@ -525,7 +525,25 @@ const getSalesReport = async (req, res) => {
     res.status(500).json({ message: 'Failed to generate sales report', error: error.message });
   }
 };
+// NEW: Delete ALL of this account's categories (and their embedded items)
+const removeAllCategories = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
 
+    await connectDB();
+    const result = await Category.deleteMany({ user: req.user._id.toString() });
+
+    res.status(200).json({
+      message: 'All categories removed successfully',
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    console.error('❌ Remove all categories error:', error);
+    res.status(500).json({ message: 'Failed to remove all categories', error: error.message });
+  }
+};
 module.exports = {
   createCategory,
   items,
@@ -535,5 +553,6 @@ module.exports = {
   getItemsByCategory,  // Fixed: Now exported
   removeCategory,      // NEW: For category delete
   processSale,
-  getSalesReport        // NEW: daily sales report
+  getSalesReport,
+  removeAllCategories       // NEW: daily sales report
 };

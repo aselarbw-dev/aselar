@@ -4,6 +4,8 @@ const dailySellerController = require('../controllers/dailySellerController');
 const { protect } = require('../middlewares/protect');
 // Protect these as needed (e.g., POST requires auth, GETs maybe public for reports?)
 router.post('/seller', protect,dailySellerController.createDailySeller); // Add: protect,
+// NEW: read-only check "is this name still an active seller?" — does NOT write to DailySeller
+router.post('/seller/verify', protect, dailySellerController.verifySeller);
 router.get('/range', protect, dailySellerController.getSellersByDateRange);
 router.get('/daily-seller/:date',protect, dailySellerController.getMostRecentForDay);
 router.get('/all', protect,dailySellerController.getAllDailySellers);

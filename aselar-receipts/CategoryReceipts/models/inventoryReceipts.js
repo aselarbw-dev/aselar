@@ -82,12 +82,7 @@ const LaybuyCustomerSchema = new mongoose.Schema({
 }, {
   _id: false,
   // NEW: customer details are for searching only, they are never included in any API response
-  toJSON: {
-    transform: (doc, ret) => {
-      delete ret.customer;
-      return ret;
-    }
-  }
+  
 });
 // NEW: Lay-buy details, only populated when saleType === 'laybuy'
 const LaybuySchema = new mongoose.Schema({

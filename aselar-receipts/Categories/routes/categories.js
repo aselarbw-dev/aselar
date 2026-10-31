@@ -10,13 +10,15 @@ createCategory,
   getItemsByCategory,  // Fixed: Now exported
   removeCategory,      // NEW: For category delete
   processSale,
-  getSalesReport       // NEW: daily sales report
+  getSalesReport,
+  removeAllCategories   // NEW: daily sales report
  
 } = require('../controllers/categories');
 
 router.post('/add-category', protect, createCategory);
 router.post('/process-sale', protect, processSale);
 router.get('/get-categories', protect, getAllCategories);
+router.delete('/delete-all-categories', protect, removeAllCategories);
 //router.get('/:categoryId', protect, getCategoryById);
 router.post('/add-item/:categoryId', protect, items);
 router.put('/items/:categoryId/:itemId', protect, editItem);

@@ -148,7 +148,7 @@ const SignUp: React.FC = () => {
       });
       
       const data = await response.json();
-console.log("Signup response data:", data); // add this
+//console.log("Signup response data:", data); // add this
       
      if (!response.ok) {
   toast.error(data.message || "Registration failed. Please try again.", { toastId: 'signup-failed' });
@@ -163,7 +163,7 @@ navigate("/receipt-policy");
       setUserProfile(initialSignup);
       
     } catch (error) {
-      console.error('Registration error:', error);
+     // console.error('Registration error:', error);
       toast.error("An error occurred. Please try again.", { toastId: 'signup-error' });
     } finally {
       setLoading(false);

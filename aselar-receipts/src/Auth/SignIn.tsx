@@ -86,9 +86,7 @@ if (formData.emailBusiness !== formData.emailBusiness) {
 
       const data = await response.json();
 
-      console.log("Response status:", response.status);
-      console.log("Response ok:", response.ok);
-      console.log("Full response data:", data);
+      
 
       if (response.ok && (data.success === true || data.success === "true" || response.status === 200)) {
         toast.success(`Welcome back, ${data.nameOfBusiness || formData.emailBusiness}.`);
@@ -124,7 +122,7 @@ if (formData.emailBusiness !== formData.emailBusiness) {
             }
           }
         } else {
-          console.log("Login failed - response data:", data);
+          //console.log("Login failed - response data:", data);
           let errorMsg = data.message || "Login failed. Please try again.";
 
           const lowerMsg = errorMsg.toLowerCase();
@@ -151,7 +149,7 @@ if (formData.emailBusiness !== formData.emailBusiness) {
         }
       }
     } catch (error) {
-      console.error("Catch block - Login error:", error);
+      //console.error("Catch block - Login error:", error);
       toast.error("Please try again. The email or password you entered is incorrect.");
       setLoginAttempts(prev => prev + 1);
     } finally {

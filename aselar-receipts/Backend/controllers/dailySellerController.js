@@ -302,3 +302,35 @@ exports.getAllDailySellers = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+// ─────────────────────────────────────────────────────────────────────────────
+// ADD this function to controllers/dailySellerController.js (anywhere below the helpers
+// at the top, for example right above `exports.getMostRecentForDay`).
+// It uses normalizeName and findAuthorized, which already exist at the top of that file.
+// Nothing else in the controller changes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// POST /seller/verify   body: { name }
+// Read-only check: is this name still an ACTIVE seller on this account?
+// Unlike createDailySeller it never writes to the DailySeller log, so the background
+// re-check every device makes every few minutes can't overwrite anything.
+exports.verifySeller = async (req, res) => {
+  try {
+    const name = normalizeName(req.body && req.body.name);
+    if (!name) {
+      return res.status(400).json({ error: 'Seller name is required' });
+    }
+
+    const authorized = await findAuthorized(req.user._id, name);
+    if (!authorized) {
+      return res.status(403).json({
+        error: 'Seller name not recognised or no longer active.',
+        code: 'SELLER_NOT_AUTHORIZED',
+      });
+    }
+
+    res.status(200).json({ name: authorized.name, isOwner: authorized.isOwner });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};

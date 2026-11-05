@@ -384,7 +384,30 @@
   color: #64748b;
   white-space: nowrap;
 }
+.headerActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
 
+.deleteButton {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #dc2626;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.deleteButton:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.deleteButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 @media (max-width: 480px) {
   .overviewGrid {
     grid-template-columns: 1fr;

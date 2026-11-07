@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import styles from "./Inventory.module.css";
 
 import { useSelector, useDispatch } from 'react-redux';
-
+import DeleteAllCategories from '../Delete/DeleteAllCategories';
 import Forms from '../Forms/Forms';
 import ServiceForm from '../Forms/ServiceForm';
 import ExpenseSheet from '../Expenses/ExpenseSheet';
@@ -237,6 +237,7 @@ const Inventory: React.FC = () => {
             Expense Sheet
           </button>
 
+          <DeleteAllCategories />
         </div>
 
       </div>

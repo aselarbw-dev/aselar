@@ -122,6 +122,9 @@ const SalesReport: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [currentPage, setCurrentPage] = useState<number>(1);
 
+  // NEW: tracks the delete-all request
+  const [deleting, setDeleting] = useState<boolean>(false);
+
   const fetchReport = useCallback(async (dateToFetch: string) => {
     setLoading(true);
     setError(null);
@@ -151,6 +154,41 @@ const SalesReport: React.FC = () => {
       setLoading(false);
     }
   }, []);
+
+  // NEW: permanently delete ALL sales report data for this account
+  const handleDeleteReport = async () => {
+    const confirmed = window.confirm(
+      'This will permanently delete ALL sales report data. This cannot be undone. Continue?'
+    );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(
+        `${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/sales-report`,
+        {
+          method: 'DELETE',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      await fetchReport(selectedDate); // reload, now empty
+    } catch (err) {
+      console.error('Failed to delete sales report:', err);
+      alert('Failed to delete sales report data. Please try again.');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   useEffect(() => {
     fetchReport(selectedDate);
@@ -204,7 +242,13 @@ const SalesReport: React.FC = () => {
           <h1 className={styles.title}>Daily Sales Report</h1>
           <p className={styles.generatedAt}>Generated {new Date(generatedAt).toLocaleString('en-US')}</p>
         </div>
-        <button className={styles.refreshButton} onClick={() => fetchReport(selectedDate)}>Refresh</button>
+        {/* NEW: Refresh + Delete Report buttons */}
+        <div className={styles.headerActions}>
+          <button className={styles.refreshButton} onClick={() => fetchReport(selectedDate)}>Refresh</button>
+          <button className={styles.deleteButton} onClick={handleDeleteReport} disabled={deleting}>
+            {deleting ? 'Deleting...' : 'Delete Report'}
+          </button>
+        </div>
       </div>
 
       {/* NEW: date picker to browse any past day's report */}

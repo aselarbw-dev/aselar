@@ -544,6 +544,25 @@ const removeAllCategories = async (req, res) => {
     res.status(500).json({ message: 'Failed to remove all categories', error: error.message });
   }
 };
+// NEW: Delete ALL sales report data (every SalesLog entry) for this account
+const deleteSalesReport = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    await connectDB();
+    const result = await SalesLog.deleteMany({ user: req.user._id });
+
+    res.status(200).json({
+      message: 'Sales report data deleted successfully',
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    console.error('Delete sales report error:', error);
+    res.status(500).json({ message: 'Failed to delete sales report data', error: error.message });
+  }
+};
 module.exports = {
   createCategory,
   items,
@@ -554,5 +573,6 @@ module.exports = {
   removeCategory,      // NEW: For category delete
   processSale,
   getSalesReport,
-  removeAllCategories       // NEW: daily sales report
+  removeAllCategories,
+  deleteSalesReport        // NEW: daily sales report
 };

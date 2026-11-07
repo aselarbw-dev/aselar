@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { toast } from 'react-toastify'; // NEW
 import { RootState } from '../Store/store';
 import { FaEdit } from 'react-icons/fa';
 import { FaSearch, FaTimes } from 'react-icons/fa';
@@ -169,10 +168,6 @@ const CategoryList: React.FC = () => {
     categoryId: ''
   });
 
-  // NEW: "delete all categories" confirmation + progress
-  const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false);
-  const [deletingAll, setDeletingAll] = useState(false);
-
   const [showExpiryModal, setShowExpiryModal] = useState(false);
   const [expiringItems, setExpiringItems] = useState<ExpiringItem[]>([]);
 
@@ -232,37 +227,6 @@ const CategoryList: React.FC = () => {
       dispatch(removeCategory(deleteDialog.itemId));
     }
     setDeleteDialog({ isOpen: false, itemId: '', itemType: '', categoryId: '' });
-  };
-
-  // NEW: deletes every category (and its items) for this account, then reloads the list
-  const handleDeleteAllConfirm = async () => {
-    setDeleteAllDialogOpen(false);
-    setDeletingAll(true);
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/delete-all-categories`,
-        {
-          method: 'DELETE',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-            authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      toast.success('All categories deleted');
-      setSelectedCategory(null);
-      dispatch(getCategories()); // refresh the list from the server
-    } catch (error) {
-      console.error('Delete all categories failed:', error);
-      toast.error('Failed to delete all categories. Please try again.');
-    } finally {
-      setDeletingAll(false);
-    }
   };
 
   useEffect(() => {
@@ -505,16 +469,6 @@ const CategoryList: React.FC = () => {
                 </button>
               </div>
 
-              {/* NEW: delete every category (shows on card hover) */}
-              <button
-                type="button"
-                className={styles.deleteAllButton}
-                onClick={() => setDeleteAllDialogOpen(true)}
-                disabled={deletingAll}
-              >
-                {deletingAll ? 'Deleting…' : 'Delete All Categories'}
-              </button>
-
               {selectedCategory === category._id && (
                 <div className={styles.itemForm}>
                   <ItemForm 
@@ -590,15 +544,6 @@ const CategoryList: React.FC = () => {
         onConfirm={handleDeleteConfirm}
         title="Delete Confirmation"
         message={`Are you sure you want to delete this ${deleteDialog.itemType}? This action cannot be undone.`}
-      />
-
-      {/* NEW: confirmation for deleting every category */}
-      <ConfirmDialog
-        isOpen={deleteAllDialogOpen}
-        onClose={() => setDeleteAllDialogOpen(false)}
-        onConfirm={handleDeleteAllConfirm}
-        title="Delete ALL Categories"
-        message={`This will permanently delete all ${categories.length} categories and every item inside them. This action cannot be undone.`}
       />
     </div>
   );

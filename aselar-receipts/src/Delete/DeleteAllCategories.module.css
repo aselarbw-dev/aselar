@@ -1,0 +1,23 @@
+.deleteAllButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: 2px solid #dc2626;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #dc2626;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.deleteAllButton:hover:not(:disabled) {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.deleteAllButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

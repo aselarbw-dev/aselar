@@ -4,6 +4,7 @@
 
 const { VatProfile, VatPeriod } = require("../models/vatModels");
 const service = require("../services/periodService");
+const reconcile = require("../services/reconcileService");
 
 // Turn a ServiceError into a clean JSON response; anything else goes to the error handler.
 const fail = (err, res, next) => {
@@ -65,4 +66,18 @@ const changePeriodStatus = async (req, res, next) => {
   }
 };
 
-module.exports = { listPeriods, getPeriod, changePeriodStatus };
+// GET /api/vat/periods/:id/reconciliation: output VAT against input VAT for the period, the
+// credit carried in and out, and the figures rounded to the nearest pula.
+const getReconciliation = async (req, res, next) => {
+  try {
+    const result = await reconcile.reconcilePeriod({
+      business: req.user._id,
+      periodId: req.params.id,
+    });
+    res.json(result);
+  } catch (err) {
+    fail(err, res, next);
+  }
+};
+
+module.exports = { listPeriods, getPeriod, changePeriodStatus, getReconciliation };

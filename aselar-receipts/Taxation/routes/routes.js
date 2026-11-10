@@ -7,7 +7,26 @@ const express = require("express");
 const { protect } = require("../../Shared/protect");
 
 const { ping, getProfile, updateProfile } = require("../controllers/Vatcontroller");
-const { listPeriods, getPeriod, changePeriodStatus } = require("../controllers/periodController");
+const {
+  listPeriods,
+  getPeriod,
+  changePeriodStatus,
+  getReconciliation,
+} = require("../controllers/periodController");
+const {
+  createLine,
+  listLines,
+  verifyPeriod,
+  updateLine,
+  reviewLine,
+  resolveFlag,
+} = require("../controllers/lineController");
+const {
+  createExport,
+  listExports,
+  downloadSchedule,
+  downloadReport,
+} = require("../controllers/exportController");
 
 const router = express.Router();
 
@@ -22,5 +41,22 @@ router.put("/profile", protect, updateProfile);
 router.get("/periods", protect, listPeriods);
 router.get("/periods/:id", protect, getPeriod);
 router.post("/periods/:id/transition", protect, changePeriodStatus);
+router.get("/periods/:id/reconciliation", protect, getReconciliation);
+
+// Lines (sales and purchases) inside a period.
+router.get("/periods/:id/lines", protect, listLines);
+router.post("/periods/:id/lines", protect, createLine);
+router.post("/periods/:id/verify", protect, verifyPeriod);
+
+// Working on one line: edit it, confirm/reject/reopen it, resolve one of its flags.
+router.put("/lines/:lineId", protect, updateLine);
+router.post("/lines/:lineId/review", protect, reviewLine);
+router.post("/lines/:lineId/flags/:flagId/resolve", protect, resolveFlag);
+
+// Exports: freeze a ready period, then download its files.
+router.post("/periods/:id/export", protect, createExport);
+router.get("/periods/:id/exports", protect, listExports);
+router.get("/exports/:exportId/schedule", protect, downloadSchedule);
+router.get("/exports/:exportId/report", protect, downloadReport);
 
 module.exports = router;

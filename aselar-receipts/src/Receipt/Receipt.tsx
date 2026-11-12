@@ -228,7 +228,8 @@ const Receipt: React.FC<ReceiptProps> = ({
         </div>
         
         <div className={styles.totalRow}>
-          <label>{isLaybuy ? 'Deposit Paid:' : 'Cash Paid:'}</label>
+          {/* CHANGED: "Amount Paid" because the first payment may be a card or mobile money, not cash */}
+          <label>{isLaybuy ? 'Deposit Paid:' : 'Amount Paid:'}</label>
           <input
             type="number"
             value={cashText}
@@ -252,6 +253,13 @@ const Receipt: React.FC<ReceiptProps> = ({
               </div>
             )}
           </>
+        ) : change < -0.005 ? (
+          // NEW: not paid in full yet — show what is still owing instead of a negative change.
+          // Tapping Compose Receipt will ask how the balance is paid.
+          <div className={`${styles.totalRow} ${styles.laybuyBalance}`}>
+            <span>Balance Due:</span>
+            <span>Bwp {Math.abs(change).toFixed(2)}</span>
+          </div>
         ) : (
           <div className={`${styles.totalRow} ${styles.change}`}>
             <span>Change:</span>

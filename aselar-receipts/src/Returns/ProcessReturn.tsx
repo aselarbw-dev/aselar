@@ -1,5 +1,5 @@
 // ProcessReturn.tsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Receipt from '../Receipt/Receipt';
@@ -13,6 +13,12 @@ interface OriginalReceiptItem {
   totalPrice: number;
 }
 
+// NEW: what earlier returns on this receipt already sent back
+interface ReturnedSoFar {
+  name: string;
+  quantity: number;
+}
+
 interface OriginalReceipt {
   _id: string;
   items: OriginalReceiptItem[];
@@ -21,6 +27,7 @@ interface OriginalReceipt {
   discount: number;
   total: number;
   createdAt: string;
+  returned?: ReturnedSoFar[]; // NEW: missing on older server versions, treated as "nothing returned yet"
 }
 
 // Working cart item — mirrors what Receipt.tsx expects, plus the ids
@@ -83,6 +90,37 @@ const ProcessReturn: React.FC = () => {
     if (receiptId) fetchReceipt();
   }, [receiptId]);
 
+  // NEW: the lines that can still be returned. Whatever earlier returns already sent back is
+  // taken off the receipt lines in order (the same way the server does it), and lines that are
+  // completely returned are left out. Each line keeps its own id, so two lines of the same
+  // product are never mixed up.
+  const returnableLines = useMemo(() => {
+    if (!originalReceipt) return [];
+
+    const toConsume = new Map<string, number>();
+    (originalReceipt.returned || []).forEach((r) => {
+      toConsume.set(r.name, (toConsume.get(r.name) || 0) + r.quantity);
+    });
+
+    return originalReceipt.items
+      .map((item, index) => {
+        let remaining = item.quantity;
+        const pending = toConsume.get(item.name) || 0;
+        if (pending > 0) {
+          const take = Math.min(pending, remaining);
+          remaining -= take;
+          toConsume.set(item.name, pending - take);
+        }
+        return {
+          id: `${index}-${item.name}`,
+          name: item.name,
+          quantity: remaining,
+          price: item.price,
+        };
+      })
+      .filter((line) => line.quantity > 1e-9);
+  }, [originalReceipt]);
+
   // NOTE: the stored receipt items (from submitReceipt) don't carry
   // categoryId/itemId — only name/quantity/price/totalPrice. Matching
   // them back to real inventory items needs to happen server-side by
@@ -90,18 +128,18 @@ const ProcessReturn: React.FC = () => {
   // See the matching step inside handleSubmitReturn below.
   useEffect(() => {
     if (originalReceipt) {
-      const items: ReturnCartItem[] = originalReceipt.items.map((item, index) => ({
-        id: `${index}-${item.name}`,
+      const items: ReturnCartItem[] = returnableLines.map((line) => ({
+        id: line.id,
         itemId: '', // resolved server-side at submit time, see note above
         categoryId: '', // same
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price,
+        name: line.name,
+        quantity: line.quantity,
+        price: line.price,
         discount: 0,
       }));
       setCartItems(items);
     }
-  }, [originalReceipt]);
+  }, [originalReceipt, returnableLines]);
 
   const handleRemoveItem = (itemId: string) => {
     // "Removing" here means marking this item as being returned —
@@ -110,18 +148,19 @@ const ProcessReturn: React.FC = () => {
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.quantity * item.price, 0);
-  const originalTotal = originalReceipt?.total || 0;
-  const newTotal = subtotal + (originalReceipt ? originalReceipt.vat * (subtotal / (originalReceipt.subtotal || 1)) : 0);
-  const refundAmount = originalTotal - newTotal;
+  const originalSubtotal = originalReceipt?.subtotal || 1;
+  const newTotal = subtotal + (originalReceipt ? originalReceipt.vat * (subtotal / originalSubtotal) : 0);
 
-  const returnedItems = originalReceipt
-    ? originalReceipt.items.filter(
-        origItem => !cartItems.some(cartItem => cartItem.name === origItem.name)
-      )
-    : [];
+  // CHANGED: the lines being returned are the ones taken out of the cart, found by id (not by name)
+  const returnedLines = returnableLines.filter(
+    (line) => !cartItems.some((cartItem) => cartItem.id === line.id)
+  );
+  const returnedSubtotal = returnedLines.reduce((sum, line) => sum + line.quantity * line.price, 0);
+  const refundAmount =
+    returnedSubtotal + (originalReceipt ? originalReceipt.vat * (returnedSubtotal / originalSubtotal) : 0);
 
   const handleSubmitReturn = async () => {
-    if (returnedItems.length === 0) {
+    if (returnedLines.length === 0) {
       toast.warning('No items removed — nothing to return.');
       return;
     }
@@ -140,10 +179,10 @@ const ProcessReturn: React.FC = () => {
           },
           body: JSON.stringify({
             originalReceiptId: receiptId,
-            returnedItems: returnedItems.map(item => ({
-              name: item.name,
-              quantity: item.quantity,
-              price: item.price,
+            returnedItems: returnedLines.map(line => ({
+              name: line.name,
+              quantity: line.quantity,
+              price: line.price,
               // categoryId/itemId are resolved server-side by name match
               // against this business's current inventory
             })),
@@ -178,11 +217,27 @@ const ProcessReturn: React.FC = () => {
     return <p className={styles.errorText}>{error || 'Receipt not found.'}</p>;
   }
 
+  // NEW: nothing left to return on this receipt
+  if (returnableLines.length === 0) {
+    return (
+      <div className={styles.container}>
+        <h2 className={styles.title}>Process Return</h2>
+        <p className={styles.subtitle}>Every item on this receipt has already been returned.</p>
+        <div className={styles.actions}>
+          <button className={styles.cancelButton} onClick={() => navigate('/generative-scanner')}>
+            Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       <h2 className={styles.title}>Process Return</h2>
       <p className={styles.subtitle}>
         Remove any items being returned, then confirm. Inventory will be restocked automatically.
+        {(originalReceipt.returned?.length ?? 0) > 0 && ' Items already returned earlier are not shown.'}
       </p>
 
       <Receipt
@@ -197,9 +252,9 @@ const ProcessReturn: React.FC = () => {
         onRemoveItem={handleRemoveItem}
       />
 
-      {returnedItems.length > 0 && (
+      {returnedLines.length > 0 && (
         <div className={styles.refundSummary}>
-          <p><strong>Items being returned:</strong> {returnedItems.map(i => `${i.name} x${i.quantity}`).join(', ')}</p>
+          <p><strong>Items being returned:</strong> {returnedLines.map(i => `${i.name} x${i.quantity}`).join(', ')}</p>
           <p className={styles.refundAmount}>Refund due: BWP {refundAmount.toFixed(2)}</p>
         </div>
       )}
@@ -222,7 +277,7 @@ const ProcessReturn: React.FC = () => {
         <button
           className={styles.submitButton}
           onClick={handleSubmitReturn}
-          disabled={isSubmitting || returnedItems.length === 0}
+          disabled={isSubmitting || returnedLines.length === 0}
         >
           {isSubmitting ? 'Processing...' : 'Confirm Return'}
         </button>

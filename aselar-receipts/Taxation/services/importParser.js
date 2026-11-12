@@ -159,18 +159,23 @@ function classifyHeader(header) {
     return "invoiceNumber";
   }
   if (n.includes("date")) return "date";
-  if (n.endsWith("tin") || /^(tinno|tinnumber|taxid|taxidnumber|taxnumber|vatno|vatnumber|vatregno|vatregistrationnumber)$/.test(n)) {
+  if (/(tin|tinno|tinnumber|taxid|taxidnumber|taxnumber|vatno|vatnumber|vatregno|vatregistrationnumber)$/.test(n)) {
     return "tin";
   }
-  if (/^(taxamount|vatamount|vat|tax|taxvalue|vatvalue|inputtax|outputtax)$/.test(n) || n.includes("vat") || (n.includes("tax") && n.includes("amount"))) {
-    return "vat";
-  }
+  // Tax amount first (exact names), then the amount before VAT (exact names).
+  if (/^(taxamount|vatamount|vat|tax|taxvalue|vatvalue|inputtax|outputtax)$/.test(n)) return "vat";
   if (
-    /^(invoiceamount|amount|amountexclvat|amountexcludingvat|netamount|net|subtotal|valueexclvat|totalexclvat|taxableamount|taxablevalue|value)$/.test(n) ||
-    n.includes("amount")
+    /^(invoiceamount|amount|amountexclvat|amountexcludingvat|netamount|net|subtotal|valueexclvat|totalexclvat|taxableamount|taxablevalue|value)$/.test(n)
   ) {
     return "amount";
   }
+  // An amount that INCLUDES VAT is not what this import reads. Better to find no amount column
+  // (and say so) than to quietly read a VAT-inclusive figure as if it excluded VAT.
+  if (n.includes("incl")) return null;
+  // Other names: take out phrases like "excl VAT" so they are not mistaken for the VAT column.
+  const rest = n.replace(/(excl|excluding|exclusive|before|without)(of)?(vat|tax)/g, "");
+  if (/vat|tax/.test(rest)) return "vat";
+  if (rest.includes("amount")) return "amount";
   if (/^(nameofsupplier|nameofcustomer|suppliername|customername|supplier|customer|name|counterparty|vendor|client|buyer|seller)$/.test(n)) {
     return "name";
   }

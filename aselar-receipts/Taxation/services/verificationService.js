@@ -55,6 +55,24 @@ async function flagsForNewLine({ business, line, profile, period }) {
   );
 }
 
+// Flags for SEVERAL new lines at once (an import). One database query finds the duplicates that
+// already exist; duplicates inside the batch itself are counted too, so both copies of an
+// invoice that appears twice in the file are flagged. Returns one flag list per line, in order.
+async function flagsForNewLines({ business, lines, profile, period }) {
+  const index = await loadDuplicateIndex(business, lines);
+
+  const inBatch = new Map();
+  for (const line of lines) {
+    if (hasNumber(line)) inBatch.set(keyOf(line), (inBatch.get(keyOf(line)) || 0) + 1);
+  }
+
+  return lines.map((line) => {
+    const others = hasNumber(line) ? (inBatch.get(keyOf(line)) || 1) - 1 : 0;
+    const duplicateCount = duplicatesOf(index, line) + others;
+    return checkLine({ ...line, reviewStatus: "pending" }, { profile, period, duplicateCount });
+  });
+}
+
 // Flags for a line that is already saved (it is being edited, confirmed or reopened). Differs
 // from a new line in two ways: the line's own record is not counted as its own duplicate, and
 // the result is merged with the flags it already has, so earlier resolutions and ids survive.
@@ -135,4 +153,4 @@ async function verifyPeriod({ business, periodId }) {
   };
 }
 
-module.exports = { flagsForNewLine, flagsForExistingLine, verifyPeriod };
+module.exports = { flagsForNewLine, flagsForNewLines, flagsForExistingLine, verifyPeriod };

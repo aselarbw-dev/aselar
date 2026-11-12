@@ -27,6 +27,7 @@ const {
   downloadSchedule,
   downloadReport,
 } = require("../controllers/exportController");
+const { importLines } = require("../controllers/importController");
 
 const router = express.Router();
 
@@ -47,6 +48,15 @@ router.get("/periods/:id/reconciliation", protect, getReconciliation);
 router.get("/periods/:id/lines", protect, listLines);
 router.post("/periods/:id/lines", protect, createLine);
 router.post("/periods/:id/verify", protect, verifyPeriod);
+
+// Import lines from an Excel/CSV file. The file is the raw request body (up to 10 MB), and the
+// options travel in the query string. Without dryRun=false it only previews.
+router.post(
+  "/periods/:id/import",
+  protect,
+  express.raw({ type: () => true, limit: "10mb" }),
+  importLines
+);
 
 // Working on one line: edit it, confirm/reject/reopen it, resolve one of its flags.
 router.put("/lines/:lineId", protect, updateLine);

@@ -195,7 +195,7 @@ if (password.length < 8 || !hasSpecialChar) {
             process.env.JWT_SECRET,
             { expiresIn: "1d" }
         );
-        console.log(token)
+       
 
         res.cookie("token", token, {
             path: "/",
@@ -239,14 +239,7 @@ const loginBusiness = asyncHandler(async(req, res) => {
         res.status(400)  
         throw new Error("Please register, email or password is not correct.")
     }
-    if (password!==password){
-      res.status(401)
-      throw new Error("Invalid email or password.")
-    }
-     if (emailBusiness!==emailBusiness){
-      res.status(401)
-      throw new Error("Invalid email or password.")
-    }
+    
     // Use the enhanced authentication method with built-in rate limiting
     const authResult = await User.getAuthenticated(emailBusiness, password);
     
@@ -258,7 +251,7 @@ const loginBusiness = asyncHandler(async(req, res) => {
     // Login successful
     const user = authResult.user;
     const token = generateToken(user._id);
-    console.log(token);
+    
    
    const { sessionId } = createSession(res, user);
 
@@ -364,7 +357,7 @@ const logoutBusiness = asyncHandler(async (req, res) => {
         activeSessions.delete(decoded.sessionId);
       }
  
-      console.log(`User logout: ${userId || (decoded && (decoded.id || decoded.userId))}, Reason: ${reason}, Time: ${timestamp}`);
+      //console.log(`User logout: ${userId || (decoded && (decoded.id || decoded.userId))}, Reason: ${reason}, Time: ${timestamp}`);
     }
  
     // Clear the cookie (same attributes the login cookie was set with)
@@ -409,7 +402,7 @@ const extendSession = asyncHandler(async (req, res) => {
 const successLogin = asyncHandler(async (req, res) => {
   const { timestamp, userAgent } = req.body || {};
  
-  console.log(`Login success: User ${req.user._id}, Time: ${timestamp}, UA: ${userAgent}`);
+  //console.log(`Login success: User ${req.user._id}, Time: ${timestamp}, UA: ${userAgent}`);
  
   res.json({ success: true });
 });

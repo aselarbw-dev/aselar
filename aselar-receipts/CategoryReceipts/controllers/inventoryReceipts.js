@@ -1,12 +1,14 @@
 const {mongoose,connectDB} = require('../../Shared/config');
 
-// NEW: payment methods accepted for lay-buy deposits and installments
-// (matches the POS payment modal, minus 'Lay-buy' itself)
-const LAYBUY_PAYMENT_METHODS = ['Cash', 'Swiped', 'Orange Money', 'MyZaka', 'Other'];
+// NEW: payment methods accepted for sales, lay-buy deposits and installments
+// (matches the POS payment modal, minus 'Lay-buy' itself). Pay2Cell and Ewallet added.
+const LAYBUY_PAYMENT_METHODS = ['Cash', 'Swiped', 'Orange Money', 'MyZaka', 'Pay2Cell', 'Ewallet', 'Other'];
 const normalizeLaybuyMethod = (m) => {
   const clean = typeof m === 'string' ? m.trim().toLowerCase() : '';
   return LAYBUY_PAYMENT_METHODS.find((x) => x.toLowerCase() === clean) || null;
 };
+// NEW: a normal sale can be split across at most this many payments
+const MAX_PAYMENT_LINES = 5;
 // NEW: tidy a customer detail (trim, collapse spaces, cap the length)
 const cleanText = (value, max) =>
   typeof value === 'string' ? value.trim().replace(/\s+/g, ' ').slice(0, max) : '';
@@ -14,7 +16,7 @@ const cleanText = (value, max) =>
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const submitReceipt = async (req, res) => {
   try {
-    const { items, subtotal, vat, discount,vatEnabled, discountedBy, total, cashPaid, change,customer, paymentMethod, saleType, dueDate, depositMethod,seller } = req.body;
+    const { items, subtotal, vat, discount,vatEnabled, discountedBy, total, cashPaid, change,customer, paymentMethod, payments, saleType, dueDate, depositMethod,seller } = req.body;
 
     // Validate the request
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -65,7 +67,7 @@ const submitReceipt = async (req, res) => {
       }
             // NEW: the deposit must say how it was paid
       if (!normalizeLaybuyMethod(depositMethod)) {
-        return res.status(400).json({ success: false, message: 'Choose how the deposit was paid (Cash, Swiped, Orange Money, MyZaka or Other)' });
+        return res.status(400).json({ success: false, message: 'Choose how the deposit was paid (Cash, Swiped, Orange Money, MyZaka, Pay2Cell, Ewallet or Other)' });
       }
             // NEW: the customer must be identifiable by at least one of name, ID/passport or phone.
       // Stored in a search-friendly form: ID/passport upper-case without spaces or dashes,
@@ -91,6 +93,62 @@ const submitReceipt = async (req, res) => {
 
       cleanCustomer = { name: customerName, idNumber: customerId, phone: customerPhone };
     }
+
+    // NEW: normal sales must be paid in full. The payment can be split across methods
+    // (e.g. card for part, cash for the balance). Everything is compared in cents so
+    // floating-point noise never rejects a correct payment.
+    //   payments  = what each method was APPLIED to the sale (must add up to the total)
+    //   cashPaid  = everything the customer handed over (can exceed the total only when cash gives change)
+    let cleanPayments = [];
+    if (!isLaybuy) {
+      const totalCents = Math.round(total * 100);
+      const tenderedCents = Math.round(cashPaid * 100);
+
+      if (tenderedCents < totalCents) {
+        return res.status(400).json({
+          success: false,
+          message: `Payment is short by BWP ${((totalCents - tenderedCents) / 100).toFixed(2)}. Collect the balance before composing the receipt.`
+        });
+      }
+
+      if (Array.isArray(payments) && payments.length > 0) {
+        if (payments.length > MAX_PAYMENT_LINES) {
+          return res.status(400).json({ success: false, message: `A sale can be split across at most ${MAX_PAYMENT_LINES} payments` });
+        }
+
+        let appliedCents = 0;
+        for (const p of payments) {
+          const method = normalizeLaybuyMethod(p?.method);
+          const amountCents = Math.round(Number(p?.amount) * 100);
+          if (!method) {
+            return res.status(400).json({ success: false, message: 'Each payment must use a valid payment method' });
+          }
+          if (!Number.isFinite(amountCents) || amountCents <= 0) {
+            return res.status(400).json({ success: false, message: 'Each payment amount must be greater than zero' });
+          }
+          appliedCents += amountCents;
+          cleanPayments.push({ method, amount: amountCents / 100 });
+        }
+
+        if (appliedCents !== totalCents) {
+          return res.status(400).json({ success: false, message: 'The payments must add up to the receipt total' });
+        }
+      } else {
+        // Older clients (or a single-method sale): one method covers the whole total
+        const method = normalizeLaybuyMethod(paymentMethod) || (paymentMethod ? 'Other' : 'Cash');
+        cleanPayments = [{ method, amount: totalCents / 100 }];
+      }
+
+      // Only cash can give change: a card / mobile-money payment can't hand money back
+      const hasCash = cleanPayments.some((p) => p.method === 'Cash');
+      if (tenderedCents > totalCents && !hasCash) {
+        return res.status(400).json({
+          success: false,
+          message: 'Only cash can give change. For card or mobile money, the amount paid must equal the total.'
+        });
+      }
+    }
+
     // NEW: server-side discount lock — the UI toggle alone isn't enough
     const hasDiscount =
       discount > 0 ||
@@ -142,7 +200,9 @@ const submitReceipt = async (req, res) => {
       total,
       cashPaid,
       change,
-      paymentMethod: paymentMethod || 'Cash',
+      // CHANGED: for a normal sale this is the first payment's method (older code reads this field)
+      paymentMethod: cleanPayments.length > 0 ? cleanPayments[0].method : (paymentMethod || 'Cash'),
+      payments: cleanPayments, // NEW: empty for lay-buys, which keep their own ledger
       seller: typeof seller === 'string' ? seller.trim().slice(0, 100) : '', // NEW
       createdBy: req.user._id,
       user: req.user._id.toString() // Assuming user is authenticated and available in req.user
@@ -177,6 +237,7 @@ const submitReceipt = async (req, res) => {
       //  receiptNumber: receipt.receiptNumber,
         total: receipt.total,
         change: receipt.change,
+        payments: receipt.payments, // NEW
         saleType: receipt.saleType,
         laybuy: receipt.laybuy || null
       },
@@ -570,7 +631,7 @@ const addLaybuyPayment = async (req, res) => {
     if (!cleanMethod) {
       return res.status(400).json({
         success: false,
-        message: 'Choose how the customer paid (Cash, Swiped, Orange Money, MyZaka or Other)'
+        message: 'Choose how the customer paid (Cash, Swiped, Orange Money, MyZaka, Pay2Cell, Ewallet or Other)'
       });
     }
 

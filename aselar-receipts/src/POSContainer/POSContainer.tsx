@@ -48,11 +48,35 @@ interface LaybuyCustomer {
   phone: string;
 }
 
+// NEW: one payment as sent to the backend. "amount" is what was applied to the sale,
+// so the amounts on one receipt add up to the total.
+interface PaymentLine {
+  method: string;
+  amount: number;
+}
+
+// NEW: one payment collected in the split-payment popup.
+// applied = what counts towards the total, tendered = what the customer handed over
+// (they differ only for cash that gives change).
+interface SplitLine {
+  method: string;
+  applied: number;
+  tendered: number;
+}
+
 // Constants
 const VAT_RATE = 0.14; // 14% VAT in Botswana
 
-// NEW: ways a lay-buy deposit can be paid (same list as the payment modal, minus Lay-buy)
-const DEPOSIT_METHODS = ['Cash', 'Swiped', 'Orange Money', 'MyZaka', 'Other'] as const;
+// NEW: ways a lay-buy deposit (or the balance of a split payment) can be paid.
+// Same list as the payment modal, minus Lay-buy. Pay2Cell and Ewallet added.
+const DEPOSIT_METHODS = ['Cash', 'Swiped', 'Orange Money', 'MyZaka', 'Pay2Cell', 'Ewallet', 'Other'] as const;
+
+// NEW: a sale can be split across at most this many payments (the server enforces it too)
+const MAX_PAYMENT_LINES = 5;
+
+// NEW: money is compared in cents so floating-point noise never blocks a correct payment
+const toCents = (n: number) => Math.round(n * 100);
+const fromCents = (c: number) => c / 100;
 
 // Custom hook for receipt management
 const useReceiptManager = (vatEnabled: boolean = true) => {
@@ -211,6 +235,12 @@ const [laybuyCustomer, setLaybuyCustomer] = useState<LaybuyCustomer | null>(null
 // NEW: how the lay-buy deposit was paid, picked in its own popup
 const [depositMethod, setDepositMethod] = useState<string>('');
 const [showDepositModal, setShowDepositModal] = useState<boolean>(false);
+// NEW: split payment popup — shown when the amount paid is less than the total
+const [showSplitModal, setShowSplitModal] = useState<boolean>(false);
+const [splitLines, setSplitLines] = useState<SplitLine[]>([]); // payments collected so far (the first is the one typed on the receipt)
+const [splitMethod, setSplitMethod] = useState<string | null>(null); // method picked for the next payment
+const [splitAmountText, setSplitAmountText] = useState<string>('');
+const [splitError, setSplitError] = useState<string | null>(null);
  const stockDeductedForRef = useRef<string>('');
 // NEW: search / filter state (name, category, barcode or custom code)
 const [searchTerm, setSearchTerm] = useState<string>('');
@@ -513,150 +543,275 @@ const handleDepositMethodSelect = (method: string) => {
   setShowDepositModal(false);
   toast.info(`Deposit paid by: ${method}`);
 };
- 
- 
-// EDIT 3 — replace the whole handleSubmitReceipt function with this one:
- 
-  // Handler for submitting the receipt
-  const handleSubmitReceipt = async () => {
-    if (receiptItems.length === 0 || receiptItems.every(item => item.quantity === 0)) {
-      toast.warning('Cannot submit an empty receipt');
+
+// ───────────── split payment (NEW) ─────────────
+
+// what is still owing while the split popup is open (in cents)
+const splitAppliedCents = splitLines.reduce((sum, l) => sum + toCents(l.applied), 0);
+const splitRemainingCents = Math.max(toCents(total) - splitAppliedCents, 0);
+
+const resetSplitState = () => {
+  setShowSplitModal(false);
+  setSplitLines([]);
+  setSplitMethod(null);
+  setSplitAmountText('');
+  setSplitError(null);
+};
+
+// cashier picked the method for the next payment; the amount box starts at the full balance
+const handleSplitMethodPick = (method: string) => {
+  setSplitMethod(method);
+  setSplitAmountText((splitRemainingCents / 100).toFixed(2));
+  setSplitError(null);
+};
+
+// cashier confirmed the amount received for the chosen method
+const handleSplitConfirmAmount = () => {
+  if (!splitMethod) return;
+
+  const amount = Number(splitAmountText);
+  const amountCents = toCents(amount);
+
+  if (!Number.isFinite(amount) || amountCents <= 0) {
+    setSplitError('Enter the amount received');
+    return;
+  }
+
+  const isCash = splitMethod === 'Cash';
+
+  // only cash can give change
+  if (!isCash && amountCents > splitRemainingCents) {
+    setSplitError(`Only cash can give change. Enter up to BWP ${(splitRemainingCents / 100).toFixed(2)} for ${splitMethod}.`);
+    return;
+  }
+
+  const appliedCents = Math.min(amountCents, splitRemainingCents);
+  const remainingAfter = splitRemainingCents - appliedCents;
+  const nextLines: SplitLine[] = [
+    ...splitLines,
+    { method: splitMethod, applied: fromCents(appliedCents), tendered: fromCents(amountCents) },
+  ];
+
+  if (remainingAfter > 0) {
+    if (nextLines.length >= MAX_PAYMENT_LINES) {
+      setSplitError(`A sale can be split across at most ${MAX_PAYMENT_LINES} payments.`);
       return;
     }
-    // NEW: a payment method must be chosen before the receipt can go through.
-    // Reminds the cashier and opens the Payment modal for them.
-    if (!paymentMethod) {
-      toast.warning('Tap Payment and choose how the customer paid before composing the receipt.');
+    // still short: collect another payment for what is left
+    setSplitLines(nextLines);
+    setSplitMethod(null);
+    setSplitAmountText('');
+    setSplitError(null);
+    return;
+  }
+
+  // fully paid: close the popup and save the receipt
+  const paymentLines: PaymentLine[] = nextLines.map((l) => ({ method: l.method, amount: l.applied }));
+  const tenderedTotal = fromCents(nextLines.reduce((sum, l) => sum + toCents(l.tendered), 0));
+  resetSplitState();
+  void performSubmit(paymentLines, tenderedTotal);
+};
+
+// Handler for submitting the receipt.
+// Everything that can be checked on screen is checked HERE, before stock is deducted,
+// so a receipt the server would refuse never leaves the stock changed.
+const handleSubmitReceipt = async () => {
+  if (receiptItems.length === 0 || receiptItems.every(item => item.quantity === 0)) {
+    toast.warning('Cannot submit an empty receipt');
+    return;
+  }
+  // NEW: a payment method must be chosen before the receipt can go through.
+  // Reminds the cashier and opens the Payment modal for them.
+  if (!paymentMethod) {
+    toast.warning('Tap Payment and choose how the customer paid before composing the receipt.');
+    setShowPaymentModal(true);
+    return;
+  }
+  // NEW: lay-buy specific guardrails, mirrors backend validation
+  if (saleType === 'laybuy') {
+    if (!laybuyDueDate) {
+      toast.warning('Please choose a due date for this lay-buy');
+      return;
+    }
+    if (cashPaid <= 0) {
+      toast.warning('A deposit is required to start a lay-buy sale');
+      return;
+    }
+    if (cashPaid >= total) {
+      toast.warning('Deposit covers the full total — choose a normal payment method instead');
+      return;
+    }
+    // NEW: the deposit must say how it was paid
+    if (!depositMethod) {
+      toast.warning('Choose how the deposit was paid');
+      setShowDepositModal(true);
+      return;
+    }
+    // NEW: the customer details come from the Lay-buy step of the payment popup
+    if (!laybuyCustomer) {
+      toast.warning('Customer details are missing. Tap Payment and choose Lay-buy again.');
       setShowPaymentModal(true);
       return;
     }
-    // NEW: lay-buy specific guardrails, mirrors backend validation
-    if (saleType === 'laybuy') {
-      if (!laybuyDueDate) {
-        toast.warning('Please choose a due date for this lay-buy');
-        return;
-      }
-      if (cashPaid <= 0) {
-        toast.warning('A deposit is required to start a lay-buy sale');
-        return;
-      }
-      if (cashPaid >= total) {
-        toast.warning('Deposit covers the full total — choose a normal payment method instead');
-        return;
-      }
-      // NEW: the deposit must say how it was paid
-      if (!depositMethod) {
-        toast.warning('Choose how the deposit was paid');
-        setShowDepositModal(true);
-        return;
-      }
-      // NEW: the customer details come from the Lay-buy step of the payment popup
-      if (!laybuyCustomer) {
-        toast.warning('Customer details are missing. Tap Payment and choose Lay-buy again.');
-        setShowPaymentModal(true);
-        return;
-      }
-    }
-    
-    setSubmitting(true);
-    
-    try {
-      // NEW: Build soldItems for inventory deduction
-      const soldItems = receiptItems.map(rItem => ({
-        categoryId: rItem.categoryId,
-        itemId: rItem.itemId,
-        soldQuantity: rItem.quantity
-      }));
- 
-      // NEW: a fingerprint of exactly what is being sold, so a retry can tell it is the same sale
-      const saleSignature = JSON.stringify(soldItems);
- 
-      // The items were changed after a failed attempt: stock for the earlier attempt is already gone
-      if (stockDeductedForRef.current && stockDeductedForRef.current !== saleSignature) {
-        toast.warning(
-          'Stock was already updated for an earlier attempt of this sale, before the items were changed. Please tell the owner so the stock can be corrected.',
-          { autoClose: 15000 }
-        );
-        stockDeductedForRef.current = '';
-      }
- 
-      if (stockDeductedForRef.current === saleSignature) {
-        // Same sale as the failed attempt: stock was already deducted, so do NOT deduct again
-        toast.info('Stock was already updated for this sale. Saving the receipt again.');
-      } else {
-        // Process sale to deduct inventory (backend handles stock check)
-        await processSaleDirect(soldItems, paymentMethod);
-        stockDeductedForRef.current = saleSignature; // stock is now deducted for exactly this sale
-      }
- 
-      // Prepare receipt data (keep your existing sales logging)
-      const receiptData = {
-        items: receiptItems, // each item now carries discountBy
-        subtotal,
-        vat,
-        discount: discountAmount,
-        discountedBy: discountAmount > 0 ? discountedBy : [], // NEW: sellers who gave a discount
-        total,
-        cashPaid,
-        change,
-        paymentMethod, // NEW
-        saleType,
-        vatEnabled, // NEW // NEW
-        dueDate: laybuyDueDate, // NEW
-        depositMethod: saleType === 'laybuy' ? depositMethod : undefined, // NEW
-        seller: sellerName, // NEW
-        customer: saleType === 'laybuy' ? laybuyCustomer : undefined, // NEW
-      };
-      
-      // Send to backend
-      const response = await fetch(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/submit-receipt`, {
-        method: 'POST',
-         headers: { 'Content-Type': 'application/json',
-          'authorization': `Bearer ${localStorage.getItem("token")}`
- 
- 
-         },
-        credentials: 'include',
-        body: JSON.stringify(receiptData),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
- 
-      // NEW: the receipt is saved, so nothing is pending any more
+
+    await performSubmit(null, cashPaid);
+    return;
+  }
+
+  // NEW: a normal sale must be paid in full
+  const totalCents = toCents(total);
+  const paidCents = toCents(cashPaid);
+
+  if (totalCents > 0 && paidCents <= 0) {
+    toast.warning('Enter the amount the customer paid.');
+    return;
+  }
+
+  // paid less than the total: ask how the balance is paid (split payment)
+  if (paidCents < totalCents) {
+    setSplitLines([{ method: paymentMethod, applied: cashPaid, tendered: cashPaid }]);
+    setSplitMethod(null);
+    setSplitAmountText('');
+    setSplitError(null);
+    setShowSplitModal(true);
+    return;
+  }
+
+  // paid more than the total: only cash can give change
+  if (paidCents > totalCents && paymentMethod !== 'Cash') {
+    toast.warning(
+      `Only cash can give change. For ${paymentMethod}, enter exactly BWP ${(totalCents / 100).toFixed(2)}.`
+    );
+    return;
+  }
+
+  await performSubmit([{ method: paymentMethod, amount: fromCents(totalCents) }], cashPaid);
+};
+
+// NEW: deducts stock and saves the receipt.
+//   paymentLines = how a normal sale was paid (null for a lay-buy)
+//   tenderedAmount = everything the customer handed over (stored as cashPaid)
+const performSubmit = async (paymentLines: PaymentLine[] | null, tenderedAmount: number) => {
+  const firstMethod = paymentLines && paymentLines.length > 0 ? paymentLines[0].method : paymentMethod;
+
+  setSubmitting(true);
+  
+  try {
+    // NEW: Build soldItems for inventory deduction
+    const soldItems = receiptItems.map(rItem => ({
+      categoryId: rItem.categoryId,
+      itemId: rItem.itemId,
+      soldQuantity: rItem.quantity
+    }));
+
+    // NEW: a fingerprint of exactly what is being sold, so a retry can tell it is the same sale
+    const saleSignature = JSON.stringify(soldItems);
+
+    // The items were changed after a failed attempt: stock for the earlier attempt is already gone
+    if (stockDeductedForRef.current && stockDeductedForRef.current !== saleSignature) {
+      toast.warning(
+        'Stock was already updated for an earlier attempt of this sale, before the items were changed. Please tell the owner so the stock can be corrected.',
+        { autoClose: 15000 }
+      );
       stockDeductedForRef.current = '';
-      
-      // Clear receipt after successful submission
-      clearReceipt();
-      // NEW: reset lay-buy state alongside the rest of the receipt
-      setSaleType('full');
-      setLaybuyDueDate(null);
-      setLaybuyCustomer(null); // NEW
-      setDepositMethod(''); // NEW
-      setPaymentMethod('');
-      toast.success('Receipt submitted successfully!');
-      navigate("/current-receipt")
-    } catch (error: any) {
-      console.error('Failed to submit receipt:', error);
-      // Handle e.g., insufficient stock from backend
-      if (error.message?.includes('Insufficient stock')) {
-        toast.error(error.message);
-      } else if (stockDeductedForRef.current) {
-        // NEW: stock WAS deducted but the receipt did not save. Tell the cashier exactly what to do.
-        toast.error(
-          'Stock was updated but the receipt did not save. Keep the items as they are and tap Compose Receipt again.',
-          { autoClose: 10000 }
-        );
-      } else {
-        toast.error('Failed to submit receipt. Please try again.');
-      }
-    } finally {
-      setSubmitting(false);
     }
-  };
+
+    if (stockDeductedForRef.current === saleSignature) {
+      // Same sale as the failed attempt: stock was already deducted, so do NOT deduct again
+      toast.info('Stock was already updated for this sale. Saving the receipt again.');
+    } else {
+      // Process sale to deduct inventory (backend handles stock check)
+      await processSaleDirect(soldItems, firstMethod);
+      stockDeductedForRef.current = saleSignature; // stock is now deducted for exactly this sale
+    }
+
+    // Prepare receipt data (keep your existing sales logging)
+    const receiptData = {
+      items: receiptItems, // each item now carries discountBy
+      subtotal,
+      vat,
+      discount: discountAmount,
+      discountedBy: discountAmount > 0 ? discountedBy : [], // NEW: sellers who gave a discount
+      total,
+      cashPaid: tenderedAmount, // NEW: everything handed over, across all payment methods
+      change: tenderedAmount - total,
+      paymentMethod: firstMethod, // NEW: for a split payment, the first method
+      payments: paymentLines ?? undefined, // NEW: how a normal sale was paid (amounts add up to the total)
+      saleType,
+      vatEnabled, // NEW // NEW
+      dueDate: laybuyDueDate, // NEW
+      depositMethod: saleType === 'laybuy' ? depositMethod : undefined, // NEW
+      seller: sellerName, // NEW
+      customer: saleType === 'laybuy' ? laybuyCustomer : undefined, // NEW
+    };
+    
+    // Send to backend
+    const response = await fetch(`${import.meta.env.VITE_CATEGORY_RECEIPTS_SERVICE_URL}api/submit-receipt`, {
+      method: 'POST',
+       headers: { 'Content-Type': 'application/json',
+        'authorization': `Bearer ${localStorage.getItem("token")}`
+
+
+       },
+      credentials: 'include',
+      body: JSON.stringify(receiptData),
+    });
+    
+    if (!response.ok) {
+      // NEW: keep the server's own reason (e.g. "Payment is short by ...") so it can be shown
+      let serverMessage = '';
+      try {
+        const errBody = await response.json();
+        serverMessage = typeof errBody?.message === 'string' ? errBody.message : '';
+      } catch {
+        // body was not JSON; fall back to the status code below
+      }
+      const err: any = new Error(serverMessage || `HTTP error! Status: ${response.status}`);
+      err.serverMessage = serverMessage;
+      throw err;
+    }
+
+    // NEW: the receipt is saved, so nothing is pending any more
+    stockDeductedForRef.current = '';
+    
+    // Clear receipt after successful submission
+    clearReceipt();
+    // NEW: reset lay-buy state alongside the rest of the receipt
+    setSaleType('full');
+    setLaybuyDueDate(null);
+    setLaybuyCustomer(null); // NEW
+    setDepositMethod(''); // NEW
+    setPaymentMethod('');
+    resetSplitState(); // NEW
+    toast.success('Receipt submitted successfully!');
+    navigate("/current-receipt")
+  } catch (error: any) {
+    console.error('Failed to submit receipt:', error);
+    // Handle e.g., insufficient stock from backend
+    if (error.message?.includes('Insufficient stock')) {
+      toast.error(error.message);
+    } else if (stockDeductedForRef.current) {
+      // NEW: stock WAS deducted but the receipt did not save. Tell the cashier exactly what to do.
+      toast.error(
+        `Stock was updated but the receipt did not save${error.serverMessage ? ` (${error.serverMessage})` : ''}. Keep the items as they are and tap Compose Receipt again.`,
+        { autoClose: 10000 }
+      );
+    } else if (error.serverMessage) {
+      toast.error(error.serverMessage);
+    } else {
+      toast.error('Failed to submit receipt. Please try again.');
+    }
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   const hasSearch = searchTerm.trim().length > 0;
+
+  // NEW: small helpers for the split popup display
+  const splitAmountNumber = Number(splitAmountText) || 0;
+  const splitChangeCents =
+    splitMethod === 'Cash' ? Math.max(toCents(splitAmountNumber) - splitRemainingCents, 0) : 0;
 
   return (
     <div className={styles.posContainer}>
@@ -853,6 +1008,100 @@ const handleDepositMethodSelect = (method: string) => {
             >
               Cancel
             </button>
+          </div>
+        </div>
+      )}
+      {/* NEW: split payment — the amount paid is less than the total, so collect the balance.
+          Reuses the deposit popup styles; clicking outside does NOT close it, so a half-finished
+          payment can't be dismissed by accident. */}
+      {showSplitModal && (
+        <div className={styles.depositOverlay}>
+          <div className={styles.depositModal} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.depositTitle}>Balance still to pay</h3>
+            <p style={{ fontSize: '1.4rem', fontWeight: 700, margin: '4px 0 8px', textAlign: 'center' }}>
+              BWP {(splitRemainingCents / 100).toFixed(2)}
+            </p>
+
+            {/* what has been paid so far */}
+            <div style={{ fontSize: '0.9rem', marginBottom: '10px' }}>
+              {splitLines.map((l, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Paid by {l.method}</span>
+                  <span>BWP {l.applied.toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+
+            {!splitMethod ? (
+              <>
+                <p style={{ fontSize: '0.9rem', margin: '0 0 6px' }}>How is the balance paid?</p>
+                {DEPOSIT_METHODS.map((method) => (
+                  <button
+                    key={method}
+                    type="button"
+                    className={styles.depositOption}
+                    onClick={() => handleSplitMethodPick(method)}
+                  >
+                    {method}
+                  </button>
+                ))}
+                <button type="button" className={styles.depositCancel} onClick={resetSplitState}>
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: '0.95rem', fontWeight: 600, margin: '0 0 4px' }}>{splitMethod}</p>
+                <label style={{ fontSize: '0.85rem' }}>
+                  {splitMethod === 'Cash' ? 'Cash received (BWP)' : 'Amount paid (BWP)'}
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  autoFocus
+                  value={splitAmountText}
+                  onChange={(e) => {
+                    setSplitAmountText(e.target.value);
+                    setSplitError(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSplitConfirmAmount();
+                  }}
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    padding: '10px',
+                    fontSize: '1.1rem',
+                    margin: '6px 0',
+                  }}
+                />
+                {splitMethod === 'Cash' && splitChangeCents > 0 && (
+                  <p style={{ margin: '4px 0', fontWeight: 600 }}>
+                    Change to give: BWP {(splitChangeCents / 100).toFixed(2)}
+                  </p>
+                )}
+                {splitMethod !== 'Cash' && toCents(splitAmountNumber) > 0 && toCents(splitAmountNumber) < splitRemainingCents && (
+                  <p style={{ margin: '4px 0', fontSize: '0.85rem' }}>
+                    BWP {((splitRemainingCents - toCents(splitAmountNumber)) / 100).toFixed(2)} will still be owing after this.
+                  </p>
+                )}
+                {splitError && <p style={{ color: '#dc2626', margin: '4px 0' }}>{splitError}</p>}
+                <button type="button" className={styles.depositOption} onClick={handleSplitConfirmAmount}>
+                  Confirm
+                </button>
+                <button
+                  type="button"
+                  className={styles.depositCancel}
+                  onClick={() => {
+                    setSplitMethod(null);
+                    setSplitError(null);
+                  }}
+                >
+                  Back
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

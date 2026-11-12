@@ -23,7 +23,17 @@ interface ReceiptItem {
   _id: string;
 }
 
-// NEW: mirrors the laybuy subdocument on the backend
+// NEW: ways a lay-buy installment can be paid (same list as the POS payment modal, minus Lay-buy)
+const PAYMENT_METHODS = ['Cash', 'Swiped', 'Orange Money', 'MyZaka', 'Pay2Cell', 'Ewallet', 'Other'];
+
+// NEW: one payment applied to a normal sale. A split sale has several, and their amounts
+// add up to the receipt total. Missing on receipts made before split payments existed.
+interface SalePayment {
+  method: string;
+  amount: number;
+}
+
+// mirrors the laybuy subdocument on the backend
 interface LaybuyDetails {
   dueDate: string;
   balanceRemaining: number;
@@ -53,6 +63,9 @@ interface ReceiptData {
   laybuy?: LaybuyDetails;
   // NEW (seller): name stamped on the receipt at the moment of sale — this is the source of truth
   seller?: string;
+  // NEW: how the sale was paid
+  paymentMethod?: string;
+  payments?: SalePayment[];
 }
 
 interface ApiResponse {
@@ -97,6 +110,8 @@ const DetailedReceipt: React.FC = () => {
 
   // NEW: lay-buy installment payment state
   const [paymentAmount, setPaymentAmount] = useState<string>('');
+  // NEW: how this installment was paid (the server requires a method)
+  const [paymentMethodChoice, setPaymentMethodChoice] = useState<string>('Cash');
   const [submittingPayment, setSubmittingPayment] = useState<boolean>(false);
 
 useEffect(() => {
@@ -266,6 +281,8 @@ useEffect(() => {
         total: receipt?.total,
         cashPaid: receipt?.cashPaid,
         change: receipt?.change,
+        paymentMethod: receipt?.paymentMethod, // NEW
+        payments: receipt?.payments || [], // NEW
         createdAt: receipt?.createdAt,
         htmlContent,
         sellerName: getSellerName(),
@@ -355,6 +372,33 @@ useEffect(() => {
     return r.laybuy.status === 'completed' ? 'LAY-BUY — PAID IN FULL' : 'LAY-BUY';
   };
 
+  // NEW: a normal sale paid with more than one method lists each payment on the receipt
+  const salePayments: SalePayment[] = !isLaybuy ? (receipt?.payments ?? []) : [];
+  const isSplit = salePayments.length > 1;
+
+  // NEW: the "Paid" part of the totals. A split sale shows one line per method;
+  // every other receipt keeps the single "Paid" line exactly as before.
+  const renderPaidRows = (r: ReceiptData) => {
+    if (isSplit) {
+      return (
+        <>
+          {salePayments.map((p, i) => (
+            <div key={`pay-${i}`} className={styles.cashPaid}>
+              <h4>Paid by {p.method}</h4>
+              <div className={styles.paidAmount}>{formatDecimalCurrency(p.amount, currency)}</div>
+            </div>
+          ))}
+        </>
+      );
+    }
+    return (
+      <div className={styles.cashPaid}>
+        <h4>Paid</h4>
+        <div className={styles.paidAmount}>{formatDecimalCurrency(r.cashPaid, currency)}</div>
+      </div>
+    );
+  };
+
   // NEW: record an installment payment against this lay-buy
   const handleAddPayment = async () => {
     if (!receipt) return;
@@ -375,7 +419,8 @@ useEffect(() => {
           'Authorization': `Bearer ${token}`
         },
         credentials: 'include',
-        body: JSON.stringify({ amount })
+        // CHANGED: the server requires the method the installment was paid with
+        body: JSON.stringify({ amount, method: paymentMethodChoice })
       });
 
       const data = await response.json();
@@ -472,10 +517,8 @@ useEffect(() => {
             <div className={styles.totalAmount}>{formatDecimalCurrency(receipt.total, currency)}</div>
           </div>
 
-          <div className={styles.cashPaid}>
-            <h4>Paid</h4>
-            <div className={styles.paidAmount}>{formatDecimalCurrency(receipt.cashPaid, currency)}</div>
-          </div>
+          {/* CHANGED: one line per method for a split sale, the usual single "Paid" line otherwise */}
+          {renderPaidRows(receipt)}
 
           {/* NEW: lay-buy shows balance remaining + due date instead of "change" */}
           {isLaybuy && receipt.laybuy ? (
@@ -491,7 +534,7 @@ useEffect(() => {
             </>
           ) : (
             <div className={styles.balance}>
-              <h4>Balance</h4>
+              <h4>{isSplit ? 'Change' : 'Balance'}</h4>
               <div className={styles.balanceAmount}>{formatDecimalCurrency(receipt.change, currency)}</div>
             </div>
           )}
@@ -541,6 +584,8 @@ useEffect(() => {
           total: receipt?.total,
           cashPaid: receipt?.cashPaid,
           change: receipt?.change,
+          paymentMethod: receipt?.paymentMethod, // NEW
+          payments: receipt?.payments || [], // NEW
           createdAt: receipt?.createdAt,
           htmlContent,
           sellerName: getSellerName(),
@@ -602,6 +647,8 @@ useEffect(() => {
           cashPaid: receipt?.cashPaid,
           countryCode: countryCode || 'BW', // Default to 'BW' if not provided
           change: receipt?.change,
+          paymentMethod: receipt?.paymentMethod, // NEW
+          payments: receipt?.payments || [], // NEW
           createdAt: receipt?.createdAt,
           htmlContent,
           sellerName: getSellerName(),
@@ -648,6 +695,8 @@ useEffect(() => {
           total: receipt?.total,
           cashPaid: receipt?.cashPaid,
           change: receipt?.change,
+          paymentMethod: receipt?.paymentMethod, // NEW
+          payments: receipt?.payments || [], // NEW
           createdAt: receipt?.createdAt,
           htmlContent,
           sellerName: getSellerName(),
@@ -748,10 +797,8 @@ useEffect(() => {
             <div className={styles.totalAmount}>{formatDecimalCurrency(receipt.total, currency)}</div>
           </div>
 
-          <div className={styles.cashPaid}>
-            <h4>Paid</h4>
-            <div className={styles.paidAmount}>{formatDecimalCurrency(receipt.cashPaid, currency)}</div>
-          </div>
+          {/* CHANGED: one line per method for a split sale, the usual single "Paid" line otherwise */}
+          {renderPaidRows(receipt)}
 
           {/* NEW: lay-buy shows balance remaining + due date instead of "change" */}
           {isLaybuy && receipt.laybuy ? (
@@ -767,7 +814,7 @@ useEffect(() => {
             </>
           ) : (
             <div className={styles.balance}>
-              <h4>Balance</h4>
+              <h4>{isSplit ? 'Change' : 'Balance'}</h4>
               <div className={styles.balanceAmount}>{formatDecimalCurrency(receipt.change, currency)}</div>
             </div>
           )}
@@ -806,6 +853,17 @@ useEffect(() => {
               placeholder="Amount paid"
               className={styles.laybuyPaymentInput}
             />
+            {/* NEW: how this installment was paid */}
+            <select
+              value={paymentMethodChoice}
+              onChange={(e) => setPaymentMethodChoice(e.target.value)}
+              className={styles.laybuyPaymentInput}
+              aria-label="Payment method"
+            >
+              {PAYMENT_METHODS.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
             <button
               onClick={handleAddPayment}
               disabled={submittingPayment}

@@ -62,6 +62,25 @@ const LaybuyPaymentSchema = new mongoose.Schema({
 }, {
   _id: false
 });
+
+// NEW: one payment applied to a normal sale (split payments).
+// "amount" is what was applied to the sale, NOT what the customer handed over,
+// so the amounts on one receipt always add up to the receipt total.
+const PaymentLineSchema = new mongoose.Schema({
+  method: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  amount: {
+    type: Number,
+    required: true,
+    min: 0
+  }
+}, {
+  _id: false
+});
+
 // NEW: who the lay-buy is for. At least one field is filled (enforced in the controller).
 const LaybuyCustomerSchema = new mongoose.Schema({
   name: {
@@ -156,6 +175,9 @@ const ReceiptSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
+  // For a normal sale this is the TOTAL HANDED OVER across all payment methods
+  // (so a split payment is the sum of what was tendered on each). For a lay-buy
+  // it is the money paid so far.
   cashPaid: {
     type: Number,
     required: true,
@@ -176,9 +198,18 @@ const ReceiptSchema = new mongoose.Schema({
     type: LaybuySchema,
     default: undefined
   },
+  // For a split payment this holds the FIRST method, so older code that only
+  // reads this field keeps working. The full picture is in "payments" below.
   paymentMethod: {
     type: String,
     default: 'Cash'
+  },
+  // NEW: how a normal sale was paid. One entry per method, amounts add up to the total.
+  // Empty on receipts made before split payments existed (and on lay-buys, which use
+  // laybuy.payments instead) — readers fall back to paymentMethod + total.
+  payments: {
+    type: [PaymentLineSchema],
+    default: []
   },
    seller: {
     type: String,

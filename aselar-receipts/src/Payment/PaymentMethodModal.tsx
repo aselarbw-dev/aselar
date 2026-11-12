@@ -15,7 +15,8 @@ interface PaymentMethodModalProps {
   onClose: () => void;
 }
 
-const PAYMENT_METHODS = ['Cash', 'Swiped', 'Orange Money', 'MyZaka', 'Other'];
+// CHANGED: Pay2Cell and Ewallet added (clients asked for them)
+const PAYMENT_METHODS = ['Cash', 'Swiped', 'Orange Money', 'MyZaka', 'Pay2Cell', 'Ewallet', 'Other'];
 
 const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({ onSelect, onClose }) => {
   // when true, we're on the "pick a due date" step instead of the method list

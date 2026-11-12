@@ -38,6 +38,13 @@ interface LaybuyPayment {
   paidAt: string;
 }
 
+// NEW: one payment applied to a normal sale. A split sale has several of these and
+// their amounts add up to the receipt total. Missing on receipts made before split payments.
+interface SalePayment {
+  method: string;
+  amount: number;
+}
+
 // mirrors the laybuy subdocument on the backend
 interface LaybuyDetails {
   dueDate: string;
@@ -66,6 +73,7 @@ interface ReceiptData {
   saleType?: 'full' | 'laybuy';
   laybuy?: LaybuyDetails;
   paymentMethod?: string;
+  payments?: SalePayment[]; // NEW: how a normal sale was paid (see SalePayment)
 }
 
 interface BusinessData {
@@ -120,8 +128,8 @@ const DAILY_PAGE_SIZE = 31;
 const CUSTOMER_SEARCH_MIN_CHARS = 3;
 const EMPTY_IDS = new Set<string>();
 
-// payment methods tracked in the daily breakdown
-const PAYMENT_METHOD_COLUMNS = ['Cash', 'Swiped', 'Orange Money', 'MyZaka', 'Other'] as const;
+// payment methods tracked in the daily breakdown (Pay2Cell and Ewallet added)
+const PAYMENT_METHOD_COLUMNS = ['Cash', 'Swiped', 'Orange Money', 'MyZaka', 'Pay2Cell', 'Ewallet', 'Other'] as const;
 const UNSPECIFIED_METHOD = 'Unspecified';
 
 // maps whatever is stored on the receipt to one of the known columns
@@ -674,7 +682,9 @@ useEffect(() => {
   }, [filteredReceipts, dailySellers, profileData]);
 
   // payment-method totals, overall and per day.
-  // - Normal sales count their total on the day the receipt was made.
+  // - Normal sales count their payments on the day the receipt was made. A split sale counts
+  //   each part under its own method; receipts made before split payments existed have no
+  //   payments list, so they count their total under the single payment method.
   // - Lay-buys count every ledger payment (deposit + installments) under the method used,
   //   on the day that payment was made. Because of that, the date filter is applied to each
   //   payment's date for lay-buys, not to the receipt's creation date.
@@ -755,7 +765,14 @@ useEffect(() => {
       // normal sale
       const day = localDateKey(r.createdAt);
       if (!inRange(day)) return;
-      addAmount(normalizeMethod(r.paymentMethod), r.total, day || 'Unknown');
+
+      if (r.payments && r.payments.length > 0) {
+        // NEW: each part of a split sale counts under its own method
+        r.payments.forEach((p) => addAmount(normalizeMethod(p.method), p.amount, day || 'Unknown'));
+      } else {
+        // older receipt: one method, the whole total
+        addAmount(normalizeMethod(r.paymentMethod), r.total, day || 'Unknown');
+      }
     });
 
     // hide the Unspecified column unless there's something in it
@@ -999,9 +1016,27 @@ useEffect(() => {
         doc.setFontSize(12);
       }
     } else {
-      doc.text(`Cash Paid: BWP ${receipt.cashPaid.toFixed(2)}`, 100, yPosition, { align: 'right' });
+      // CHANGED: "Amount Paid" because the payment may be a card or mobile money, not cash
+      doc.text(`Amount Paid: BWP ${receipt.cashPaid.toFixed(2)}`, 100, yPosition, { align: 'right' });
       yPosition += 7;
       doc.text(`Change: BWP ${receipt.change.toFixed(2)}`, 100, yPosition, { align: 'right' });
+      yPosition += 7;
+
+      // NEW: a split payment lists each method with what it covered
+      const salePayments = receipt.payments || [];
+      if (salePayments.length > 1) {
+        yPosition += 5;
+        doc.setFontSize(12);
+        doc.text('Payments', 14, yPosition);
+        yPosition += 7;
+        doc.setFontSize(10);
+        salePayments.forEach((p) => {
+          doc.text(normalizeMethod(p.method), 14, yPosition);
+          doc.text(`BWP ${p.amount.toFixed(2)}`, 100, yPosition, { align: 'right' });
+          yPosition += 6;
+        });
+        doc.setFontSize(12);
+      }
     }
     
     // Footer
@@ -1292,6 +1327,7 @@ useEffect(() => {
             </div>
             <p className={styles.paymentNote}>
               Includes lay-buy deposits and installments, counted on the day each payment was made.
+              A split payment is counted under each method used.
             </p>
 
             {/* daily totals per payment method, 31 days per page */}
@@ -1463,6 +1499,9 @@ useEffect(() => {
               const isLaybuy = receipt.saleType === 'laybuy';
               const isOpenLaybuy = isLaybuy && receipt.laybuy && receipt.laybuy.status !== 'completed' && receipt.laybuy.status !== 'cancelled';
               const laybuyPayments = receipt.laybuy?.payments || [];
+              // NEW: how a normal sale was paid; "split" means more than one method was used
+              const salePayments = !isLaybuy ? (receipt.payments || []) : [];
+              const isSplit = salePayments.length > 1;
               return (
               <div key={receipt._id} className={styles.receiptCard}>
                 <div className={styles.cardPreview}>
@@ -1493,9 +1532,9 @@ useEffect(() => {
                       <h4>Receipt ID: {receipt.receiptsNumber || receipt._id.slice(-6)}</h4>
                       {/* seller line, mirrors the fallback used in the PDF export */}
                       <h4 className={styles.sellerLine}>Seller: {getSellerName(receipt)}</h4>
-                      {/* how the customer paid (lay-buys show their own details below) */}
+                      {/* how the customer paid (lay-buys show their own details below; a split sale lists its parts below) */}
                       {!isLaybuy && (
-                        <h4>Payment: {normalizeMethod(receipt.paymentMethod)}</h4>
+                        <h4>Payment: {isSplit ? 'Split' : normalizeMethod(receipt.paymentMethod)}</h4>
                       )}
                     </div>
             
@@ -1559,7 +1598,8 @@ useEffect(() => {
                       ) : (
                         <>
                           <div className={styles.total}>
-                            <h4 className={styles.totalHeader}>Cash Paid</h4>
+                            {/* CHANGED: "Amount Paid" (it is everything handed over, across all methods) */}
+                            <h4 className={styles.totalHeader}>Amount Paid</h4>
                             <div className={styles.totalAmount}>BWP {receipt.cashPaid.toFixed(2)}</div>
                           </div>
                           <div className={styles.total}>
@@ -1569,6 +1609,19 @@ useEffect(() => {
                         </>
                       )}
                     </div>
+
+                    {/* NEW: each part of a split payment with its method (reuses the payment history look) */}
+                    {isSplit && (
+                      <div className={styles.paymentHistory}>
+                        <span className={styles.paymentHistoryTitle}>Payments</span>
+                        {salePayments.map((p, i) => (
+                          <div key={i} className={styles.paymentHistoryRow}>
+                            <span>{normalizeMethod(p.method)}</span>
+                            <span>BWP {p.amount.toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     {/* payment history for lay-buys (deposit + installments, each with its method) */}
                     {isLaybuy && laybuyPayments.length > 0 && (

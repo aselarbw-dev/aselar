@@ -13,6 +13,10 @@ const NewReceipt = require('../../CategoryReceipts/models/inventoryReceipts.js')
  *   reason
  * }
  *
+ * A receipt can be returned in several steps (e.g. one item today, another next week).
+ * What was already sent back by earlier returns is subtracted first, so in total a
+ * receipt can never give back more than it sold.
+ *
  * Since receipts store only name/quantity/price (no categoryId/itemId),
  * each returned item is matched back to current inventory by exact name
  * within this business's own categories. If an item was renamed or
@@ -21,8 +25,8 @@ const NewReceipt = require('../../CategoryReceipts/models/inventoryReceipts.js')
  *
  * Security notes:
  * - originalReceiptId must be a plain ObjectId string (blocks query-operator injection).
- * - Quantities are capped at what the original receipt sold, and prices come
- *   from the saved receipt, never from the browser.
+ * - Quantities are capped at what the original receipt sold (minus earlier returns), and prices
+ *   come from the saved receipt, never from the browser.
  */
 const processReturn = async (req, res) => {
   try {
@@ -70,20 +74,39 @@ const processReturn = async (req, res) => {
       return res.status(404).json({ message: 'Original receipt not found' });
     }
 
-    // Block double returns — a receipt can only be returned once.
+    // A receipt can be returned in several steps, but never beyond what it sold.
+    // A receipt can contain the same product on several lines (e.g. "Marq x3" and
+    // "Marq x2"), so quantity is tracked per receipt line and allocated in order.
     // Must run BEFORE any restocking so inventory is never adjusted twice.
-    const existingReturn = await ReturnRecord.findOne({ originalReceiptId });
-    if (existingReturn) {
+    const remainingPerLine = originalReceipt.items.map(line => line.quantity);
+
+    // NEW: take away what earlier returns on this receipt already sent back,
+    // allocated line by line in the same order the new request is allocated
+    const previousReturns = await ReturnRecord.find({ originalReceiptId });
+    const alreadyReturned = new Map(); // name -> quantity already returned
+    for (const record of previousReturns) {
+      for (const item of record.returnedItems) {
+        alreadyReturned.set(item.name, (alreadyReturned.get(item.name) || 0) + item.quantity);
+      }
+    }
+    for (const [name, qty] of alreadyReturned) {
+      let toConsume = qty;
+      for (let idx = 0; idx < originalReceipt.items.length && toConsume > 1e-9; idx++) {
+        if (originalReceipt.items[idx].name !== name || remainingPerLine[idx] <= 0) continue;
+        const take = Math.min(toConsume, remainingPerLine[idx]);
+        remainingPerLine[idx] -= take;
+        toConsume -= take;
+      }
+    }
+
+    if (remainingPerLine.every(q => q <= 1e-9)) {
       return res.status(409).json({
-        message: 'A return has already been processed for this receipt.',
+        message: 'Every item on this receipt has already been returned.',
       });
     }
 
-    // Gap 1 fix: validate every returned item against what the receipt actually sold.
-    // A receipt can contain the same product on several lines (e.g. "Marq x3" and
-    // "Marq x2"), so quantity is tracked per receipt line and allocated in order.
+    // Gap 1 fix: validate every returned item against what is still left to return.
     // Prices come from the receipt line, not from the request.
-    const remainingPerLine = originalReceipt.items.map(line => line.quantity);
     const validatedItems = []; // { name, quantity, price } with trusted values
 
     for (const entry of returnedItems) {
@@ -103,7 +126,7 @@ const processReturn = async (req, res) => {
       if (needed > 1e-9) {
         // Runs before any restocking, so nothing has been changed yet
         return res.status(400).json({
-          message: `Cannot return ${entry.quantity} x ${name}: that is more than was sold on this receipt.`,
+          message: `Cannot return ${entry.quantity} x ${name}: that is more than is left to return on this receipt.`,
         });
       }
     }

@@ -305,9 +305,23 @@ const getReceiptById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Receipt not found' });
     }
 
+    // NEW: what earlier returns on this receipt already sent back (name -> quantity),
+    // so the return screen only offers what is still left to return
+    const returnRecords = await ReturnRecord.find(
+      { originalReceiptId: id },
+      'returnedItems.name returnedItems.quantity'
+    ).lean();
+    const returnedByName = new Map();
+    returnRecords.forEach((rec) => {
+      (rec.returnedItems || []).forEach((item) => {
+        returnedByName.set(item.name, (returnedByName.get(item.name) || 0) + item.quantity);
+      });
+    });
+    const returned = Array.from(returnedByName, ([name, quantity]) => ({ name, quantity }));
+
     return res.status(200).json({
       success: true,
-      data: receipt
+      data: { ...receipt.toObject(), returned }
     });
   } catch (error) {
     console.error('Error retrieving receipt:', error);
@@ -325,13 +339,22 @@ const getReceipts = async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 10;
     const startIndex = (page - 1) * limit;
 
-    // Filter by date range if provided
+    // Filter by date range if provided. CHANGED: either end can be given on its own,
+    // and an unreadable date is ignored instead of breaking the query.
     const filterOptions = {};
-    if (req.query.startDate && req.query.endDate) {
-      filterOptions.createdAt = {
-        $gte: new Date(req.query.startDate),
-        $lte: new Date(req.query.endDate)
-      };
+    const createdAtRange = {};
+    const rangeStart = req.query.startDate ? new Date(req.query.startDate) : null;
+    const rangeEnd = req.query.endDate ? new Date(req.query.endDate) : null;
+    if (rangeStart && !isNaN(rangeStart.getTime())) createdAtRange.$gte = rangeStart;
+    if (rangeEnd && !isNaN(rangeEnd.getTime())) createdAtRange.$lte = rangeEnd;
+    if (Object.keys(createdAtRange).length > 0) {
+      filterOptions.createdAt = createdAtRange;
+    }
+
+    // NEW: ?item=<text> finds receipts that contain an item whose name matches (any letter case)
+    if (typeof req.query.item === 'string' && req.query.item.trim()) {
+      const itemTerm = req.query.item.trim().replace(/\s+/g, ' ').slice(0, 100);
+      filterOptions['items.name'] = { $regex: escapeRegex(itemTerm), $options: 'i' };
     }
 
     // Filter by user if role is not admin (admins can see all receipts)
@@ -341,9 +364,9 @@ const getReceipts = async (req, res) => {
     await connectDB();
     const NewReceipt = require('../models/inventoryReceipts');
 
-    // Hide receipts that already have a return processed against them.
-    // Use the same ReturnRecord import line you used in getReceiptsSummary.
-    const returnedReceiptIds = await ReturnRecord.distinct('originalReceiptId');
+    // CHANGED: hide only receipts whose items have ALL been returned. A receipt with a
+    // partial return stays in the list so the remaining items can still be returned.
+    const returnedReceiptIds = await getFullyReturnedReceiptIds();
     if (returnedReceiptIds.length > 0) {
       filterOptions._id = { $nin: returnedReceiptIds };
     }
@@ -359,6 +382,7 @@ const getReceipts = async (req, res) => {
     return res.status(200).json({
       success: true,
       count: receipts.length,
+      total: totalReceipts, // NEW: how many receipts match the filters, across all pages
       totalPages: Math.ceil(totalReceipts / limit),
       currentPage: page,
       data: receipts
@@ -471,6 +495,45 @@ const getSalesSummary = async (req, res) => {
 };
 const NewReceipt = require('../models/inventoryReceipts.js');
 const ReturnRecord = require('../models/returnRecord.js'); // adjust path if returnRecord.js lives in a different service
+
+// NEW: a receipt is "fully returned" once every item on it has been sent back.
+// A receipt that is only partly returned stays visible, so the items still with the
+// customer can be returned later.
+const getFullyReturnedReceiptIds = async () => {
+  const records = await ReturnRecord.find({}, 'originalReceiptId returnedItems.name returnedItems.quantity').lean();
+  if (records.length === 0) return [];
+
+  // receiptId -> (item name -> quantity returned so far)
+  const returnedByReceipt = new Map();
+  records.forEach((rec) => {
+    const key = String(rec.originalReceiptId);
+    if (!returnedByReceipt.has(key)) returnedByReceipt.set(key, new Map());
+    const perName = returnedByReceipt.get(key);
+    (rec.returnedItems || []).forEach((item) => {
+      perName.set(item.name, (perName.get(item.name) || 0) + item.quantity);
+    });
+  });
+
+  const receipts = await NewReceipt.find(
+    { _id: { $in: Array.from(returnedByReceipt.keys()) } },
+    'items.name items.quantity'
+  ).lean();
+
+  const fullyReturned = [];
+  receipts.forEach((r) => {
+    const returned = returnedByReceipt.get(String(r._id)) || new Map();
+    const sold = new Map();
+    (r.items || []).forEach((item) => {
+      sold.set(item.name, (sold.get(item.name) || 0) + item.quantity);
+    });
+    const everythingBack = Array.from(sold.entries()).every(
+      ([name, qty]) => (returned.get(name) || 0) + 1e-9 >= qty
+    );
+    if (everythingBack) fullyReturned.push(r._id);
+  });
+
+  return fullyReturned;
+};
 
 const getReceiptsSummary = async (req, res) => {
   try {

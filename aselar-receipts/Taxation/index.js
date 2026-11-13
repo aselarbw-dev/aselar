@@ -44,9 +44,10 @@ app.use(
       return cb(new Error("Not allowed by CORS"));
     },
     credentials: true, // protect also reads a token cookie
+   exposedHeaders: ["Content-Disposition"]
   })
 );
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 
 // ---------------------------------------------------------------------------

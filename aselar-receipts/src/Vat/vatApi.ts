@@ -69,16 +69,18 @@ async function send(path: string, init: RequestInit = {}): Promise<Response> {
   }
 
   if (!response.ok) {
-    let body: { message?: string; details?: unknown } | null = null;
+    let body: { message?: string; details?: unknown; errors?: unknown } | null = null;
     try {
       body = await response.json();
     } catch {
       // not JSON: fall through to the generic message
     }
+    // Validation problems come back as `details` (from the VAT code) or `errors` (from the schema).
+    const details = body?.details ?? body?.errors;
     if (response.status === 401) {
-      throw new VatApiError(body?.message ?? "Please log in again.", 401, body?.details);
+      throw new VatApiError(body?.message ?? "Please log in again.", 401, details);
     }
-    throw new VatApiError(body?.message ?? `The request failed (${response.status}).`, response.status, body?.details);
+    throw new VatApiError(body?.message ?? `The request failed (${response.status}).`, response.status, details);
   }
   return response;
 }

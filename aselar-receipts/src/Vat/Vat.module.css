@@ -1,0 +1,415 @@
+/* src/Vat/Vat.module.css
+   One shared stylesheet for the VAT screens. To match the rest of the app, change the variables
+   in .root; everything else uses them. */
+
+.root {
+  --vat-accent: #0f6cbd;
+  --vat-accent-dark: #0b5394;
+  --vat-text: #1f2933;
+  --vat-muted: #667085;
+  --vat-border: #d9dee5;
+  --vat-surface: #ffffff;
+  --vat-surface-alt: #f5f7fa;
+  --vat-good: #1a7f4b;
+  --vat-good-bg: #e6f5ec;
+  --vat-warn: #9a6700;
+  --vat-warn-bg: #fff4d6;
+  --vat-bad: #b42318;
+  --vat-bad-bg: #fde8e6;
+  --vat-info-bg: #e7f0fa;
+  --vat-radius: 8px;
+
+  color: var(--vat-text);
+  font-size: 14px;
+  line-height: 1.45;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.root h1 {
+  font-size: 22px;
+  margin: 0 0 4px;
+}
+.root h2 {
+  font-size: 16px;
+  margin: 0;
+}
+.root h3 {
+  font-size: 14px;
+  margin: 0 0 8px;
+}
+
+.muted {
+  color: var(--vat-muted);
+}
+.small {
+  font-size: 12px;
+}
+.right {
+  text-align: right;
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.spread {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.back {
+  color: var(--vat-accent);
+  text-decoration: none;
+  font-size: 13px;
+}
+
+/* ---------- cards ---------- */
+.card {
+  background: var(--vat-surface);
+  border: 1px solid var(--vat-border);
+  border-radius: var(--vat-radius);
+  padding: 16px;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+.stat {
+  background: var(--vat-surface-alt);
+  border-radius: var(--vat-radius);
+  padding: 12px 14px;
+}
+.statLabel {
+  color: var(--vat-muted);
+  font-size: 12px;
+}
+.statValue {
+  font-size: 20px;
+  font-weight: 600;
+  margin-top: 2px;
+}
+.statNote {
+  color: var(--vat-muted);
+  font-size: 12px;
+}
+
+/* ---------- buttons ---------- */
+.button {
+  border: 1px solid var(--vat-border);
+  background: var(--vat-surface);
+  color: var(--vat-text);
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.button:hover:not(:disabled) {
+  background: var(--vat-surface-alt);
+}
+.button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.buttonPrimary {
+  background: var(--vat-accent);
+  border-color: var(--vat-accent);
+  color: #fff;
+}
+.buttonPrimary:hover:not(:disabled) {
+  background: var(--vat-accent-dark);
+}
+.buttonDanger {
+  color: var(--vat-bad);
+  border-color: var(--vat-bad);
+}
+.buttonSmall {
+  padding: 3px 8px;
+  font-size: 12px;
+}
+.buttonRow {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.linkButton {
+  background: none;
+  border: 0;
+  color: var(--vat-accent);
+  cursor: pointer;
+  padding: 0;
+  font-size: inherit;
+  text-decoration: underline;
+}
+.iconButton {
+  background: none;
+  border: 0;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--vat-muted);
+  padding: 2px 6px;
+}
+
+/* ---------- badges and notices ---------- */
+.badge {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 1px 9px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.badgeGood {
+  background: var(--vat-good-bg);
+  color: var(--vat-good);
+}
+.badgeWarn {
+  background: var(--vat-warn-bg);
+  color: var(--vat-warn);
+}
+.badgeBad {
+  background: var(--vat-bad-bg);
+  color: var(--vat-bad);
+}
+.badgeMuted {
+  background: var(--vat-surface-alt);
+  color: var(--vat-muted);
+}
+.badgeInfo {
+  background: var(--vat-info-bg);
+  color: var(--vat-accent-dark);
+}
+
+.notice {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  border-radius: var(--vat-radius);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+.noticeSuccess {
+  background: var(--vat-good-bg);
+  color: var(--vat-good);
+}
+.noticeError {
+  background: var(--vat-bad-bg);
+  color: var(--vat-bad);
+}
+.noticeInfo {
+  background: var(--vat-info-bg);
+  color: var(--vat-accent-dark);
+}
+.banner {
+  border-radius: var(--vat-radius);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+.bannerLate {
+  background: var(--vat-bad-bg);
+  color: var(--vat-bad);
+}
+.bannerSoon {
+  background: var(--vat-warn-bg);
+  color: var(--vat-warn);
+}
+.bannerOk {
+  background: var(--vat-info-bg);
+  color: var(--vat-accent-dark);
+}
+.toneLate {
+  color: var(--vat-bad);
+  font-weight: 600;
+}
+.toneSoon {
+  color: var(--vat-warn);
+  font-weight: 600;
+}
+.toneDone {
+  color: var(--vat-good);
+}
+
+/* ---------- tables ---------- */
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--vat-border);
+  border-radius: var(--vat-radius);
+  background: var(--vat-surface);
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--vat-muted);
+  background: var(--vat-surface-alt);
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+.table td {
+  padding: 8px 10px;
+  border-top: 1px solid var(--vat-border);
+  vertical-align: top;
+}
+.table .num {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.detailRow td {
+  background: var(--vat-surface-alt);
+}
+.detailGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px 24px;
+  margin-bottom: 10px;
+}
+.detailLabel {
+  color: var(--vat-muted);
+  font-size: 12px;
+}
+.flagItem {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 4px 0;
+}
+.flagResolved {
+  color: var(--vat-muted);
+  text-decoration: line-through;
+}
+.totalRow td {
+  font-weight: 600;
+  background: var(--vat-surface-alt);
+}
+.cell {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--vat-muted);
+}
+
+/* ---------- forms ---------- */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+}
+.fieldWide {
+  grid-column: 1 / -1;
+}
+.field label,
+.label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 3px;
+}
+.field input[type="text"],
+.field input[type="number"],
+.field input[type="date"],
+.field select,
+.field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--vat-border);
+  border-radius: 6px;
+  padding: 7px 9px;
+  font-size: 14px;
+  background: var(--vat-surface);
+  color: var(--vat-text);
+}
+.field input:disabled,
+.field select:disabled {
+  background: var(--vat-surface-alt);
+  color: var(--vat-muted);
+}
+.field textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+.checkbox {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.checkbox input {
+  margin-top: 3px;
+}
+.hint {
+  color: var(--vat-muted);
+  font-size: 12px;
+  margin-top: 3px;
+}
+.fieldError {
+  color: var(--vat-bad);
+  font-size: 12px;
+  margin-top: 3px;
+}
+.inputInvalid {
+  border-color: var(--vat-bad) !important;
+}
+
+/* ---------- modal ---------- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 24, 40, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+.modal {
+  background: var(--vat-surface);
+  border-radius: var(--vat-radius);
+  width: 100%;
+  max-width: 560px;
+  outline: none;
+  box-shadow: 0 12px 32px rgba(16, 24, 40, 0.25);
+}
+.modalWide {
+  max-width: 860px;
+}
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--vat-border);
+}
+.modalBody {
+  padding: 18px;
+}
+
+/* ---------- small screens ---------- */
+@media (max-width: 640px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}

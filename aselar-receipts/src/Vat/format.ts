@@ -27,6 +27,31 @@ export function pulaWhole(amount: number | null | undefined): string {
   return `${sign}P${Math.abs(Math.round(amount)).toLocaleString("en-US")}`;
 }
 
+/** Whole thebe to plain text for an input box: 27632 -> "276.32" (no symbol, no commas). */
+export function thebeToInput(thebe: number): string {
+  const abs = Math.abs(Math.round(thebe));
+  const whole = Math.floor(abs / 100);
+  const cents = abs % 100;
+  return `${thebe < 0 ? "-" : ""}${whole}.${String(cents).padStart(2, "0")}`;
+}
+
+/**
+ * What a person typed ("1,234.50", "P12", "12.5") to whole thebe, or null if it is not an amount.
+ * Reads the digits, so there is no floating-point error. More than two decimals is refused.
+ */
+export function parsePulaToThebe(text: string): number | null {
+  const cleaned = text.replace(/[P\s,]/gi, "");
+  const match = /^(-?)(\d*)(?:\.(\d*))?$/.exec(cleaned);
+  if (!match) return null;
+  const whole = match[2] ?? "";
+  const fraction = match[3] ?? "";
+  if (whole === "" && fraction === "") return null;
+  if (fraction.length > 2) return null;
+  const thebe = Number(whole || "0") * 100 + Number((fraction + "00").slice(0, 2));
+  if (!Number.isSafeInteger(thebe)) return null;
+  return match[1] === "-" && thebe !== 0 ? -thebe : thebe;
+}
+
 // ---------------------------------------------------------------------------
 // dates
 // ---------------------------------------------------------------------------

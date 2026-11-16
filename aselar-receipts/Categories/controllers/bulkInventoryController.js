@@ -4,7 +4,7 @@ const stringSimilarity = require('string-similarity'); // npm install string-sim
 const multer = require('multer');
 const Papa = require('papaparse');
 const XLSX = require('xlsx');
-
+const { logMovements } = require('../utils/logMovement');
 // ─────────────────────────────────────────────
 // MATCHING HELPERS
 // ─────────────────────────────────────────────
@@ -179,6 +179,11 @@ const commitBulkImport = async (req, res) => {
 
     const results = [];
 
+    // NEW: one batch id ties every movement of this upload together
+    const batchId = `IMP-${Date.now().toString(36).toUpperCase()}`;
+    const movementEntries = [];
+    const performedBy = String(req.user?.name || req.user?.username || req.user?.email || '');
+
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
 
@@ -241,6 +246,9 @@ const commitBulkImport = async (req, res) => {
             continue;
           }
 
+          // NEW: balance before the restock
+          const balanceBefore = existingItem.quantity;
+
           // Restock: ALWAYS increment quantity, never overwrite it
           existingItem.quantity = existingItem.quantity + parsedQuantity;
           existingItem.lowStock = existingItem.quantity <= 10;
@@ -256,6 +264,28 @@ const commitBulkImport = async (req, res) => {
           }
 
           await category.save();
+
+          // NEW: audit trail (skip zero-quantity restocks, they change nothing)
+          if (parsedQuantity !== 0) {
+            movementEntries.push({
+              user: req.user._id,
+              categoryId: category._id,
+              categoryName: category.name,
+              itemId: existingItem._id,
+              itemName: existingItem.name,
+              barcode: existingItem.barcode || '',
+              type: 'BULK_UPLOAD',
+              qtyChange: parsedQuantity,
+              balanceBefore,
+              balanceAfter: existingItem.quantity,
+              unitPrice: existingItem.sellingPrice,
+              unitCost: existingItem.costPrice,
+              refType: 'IMPORT_BATCH',
+              refId: batchId,
+              performedBy,
+              note: 'Bulk import: restocked existing item',
+            });
+          }
 
           results.push({
             rowIndex: i,
@@ -283,6 +313,26 @@ const commitBulkImport = async (req, res) => {
 
           const createdItem = category.items[category.items.length - 1];
 
+          // NEW: audit trail
+          movementEntries.push({
+            user: req.user._id,
+            categoryId: category._id,
+            categoryName: category.name,
+            itemId: createdItem._id,
+            itemName: createdItem.name,
+            barcode: createdItem.barcode || '',
+            type: 'BULK_UPLOAD',
+            qtyChange: parsedQuantity,
+            balanceBefore: 0,
+            balanceAfter: createdItem.quantity,
+            unitPrice: createdItem.sellingPrice,
+            unitCost: createdItem.costPrice,
+            refType: 'IMPORT_BATCH',
+            refId: batchId,
+            performedBy,
+            note: 'Bulk import: new item created',
+          });
+
           results.push({
             rowIndex: i,
             status: 'success',
@@ -302,11 +352,15 @@ const commitBulkImport = async (req, res) => {
       }
     }
 
+    // NEW: write all movements for this upload in one go (never throws)
+    await logMovements(movementEntries);
+
     const succeeded = results.filter(r => r.status === 'success').length;
     const failed = results.filter(r => r.status === 'failed').length;
 
     res.status(200).json({
       message: `Bulk import complete: ${succeeded} succeeded, ${failed} failed`,
+      batchId,
       totalRows: rows.length,
       succeeded,
       failed,

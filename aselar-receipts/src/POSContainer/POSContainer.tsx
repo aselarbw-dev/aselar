@@ -494,7 +494,7 @@ const handleBarcodeScan = async (code: string) => {
 
 
          },
-        body: JSON.stringify({ soldItems, paymentMethod }),
+   body: JSON.stringify({ soldItems, paymentMethod, sellerName }),
       });
 
       if (!response.ok) {

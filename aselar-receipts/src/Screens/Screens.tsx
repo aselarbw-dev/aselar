@@ -16,6 +16,7 @@ const SignUp = lazy(() => import("../Auth/SignUp"));
 const SignIn = lazy(() => import("../Auth/SignIn"));
 const DashboardLayout = lazy(() => import("../DashboardLayout/DashboardLayout"));
 const Receipt = lazy(() => import("../Materials/Receipt"));
+const StockHistory = lazy(() => import("../HistoryStock/StockHistory"));
 const Invoice = lazy(() => import("../DashboardScreens/Invoice"));
 const Quote = lazy(() => import("../DashboardScreens/Quote"));
 //const FeedBack = lazy(() => import("../FeedBack/FeedBack"));
@@ -76,6 +77,7 @@ const Screens = () => {
         <Route path="/delete-account" element={<DeleteAccountButton />} />
         <Route path="/current-receipt" element={<DetailedReceipt />} />
         <Route path="/all-receipts" element={<AllReceipts />} />
+        <Route path="/stock-history" element={<StockHistory />} />
         <Route path="/laybuy-receipts" element={<LaybuyReceipts />} />
         <Route path="/scan-history" element={<ScanHistory />} />
         <Route path="/all-quotes" element={<AllQuotes/>} />
@@ -128,7 +130,7 @@ const Screens = () => {
           <Route path="/generative-scanner" element={<POSContainer />} />
           <Route path="/invoice" element={<Invoice />} />
           <Route path="/debt-note" element={<Delivery />} />
-         
+          <Route path="/stock-history" element={<StockHistory />} />
           {/* <Route path="/aselar-chat-ai" element={<GPT />} />*/}
           <Route path="/ledger" element={<Ledger />} />
           <Route path="/pay-slip" element={<PaySlip />} />

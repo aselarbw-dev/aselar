@@ -181,7 +181,9 @@ const Inventory: React.FC = () => {
  <Link to="/laybuy-receipts">
                 <p>Laybuys</p>
               </Link>
-           
+            <Link to="/stock-history">
+                <p>Stock History</p>
+              </Link>
               <Link to="/settings">
                 <button className={styles.settingsBtn}>Settings</button>
               </Link>

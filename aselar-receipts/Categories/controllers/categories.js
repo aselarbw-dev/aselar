@@ -687,7 +687,11 @@ const getStockMovements = async (req, res) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    const { itemId, categoryId, type, from, to, page = 1, limit = 50 } = req.query;
+    const { itemId, categoryId, type, from, to, q, page = 1, limit = 50 } = req.query;
+    if (q) {
+  const safe = String(q).trim().slice(0, 60).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (safe) filter.itemName = { $regex: safe, $options: 'i' };
+}
     await connectDB();
 
     const filter = { user: req.user._id };

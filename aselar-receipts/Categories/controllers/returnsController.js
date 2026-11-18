@@ -3,6 +3,7 @@ const { mongoose, connectDB } = require("../../Shared/config");
 const Category = require('../models/categories.js');
 const ReturnRecord = require('../models/returnRecord.js');
 const NewReceipt = require('../../CategoryReceipts/models/inventoryReceipts.js'); // confirm this matches your actual receipt model path
+const { logMovements } = require('../utils/logMovement'); // NEW: stock audit trail
 
 /**
  * POST /api/returns/process
@@ -137,6 +138,10 @@ const processReturn = async (req, res) => {
     let refundAmount = 0;
     const restockResults = [];
     const matchedReturnedItems = []; // what actually gets saved on the ReturnRecord
+    const movementEntries = [];      // NEW: stock audit trail entries for this return
+
+    // NEW: the receipt reference shown in the ledger (falls back to the document id)
+       const receiptRef = String(originalReceipt.receiptsNumber || originalReceipt._id);
 
     for (const returned of validatedItems) {
       const { name, quantity, price } = returned;
@@ -163,10 +168,33 @@ const processReturn = async (req, res) => {
         continue;
       }
 
+      // NEW: balance before the restock
+      const balanceBefore = matchedItem.quantity;
+
       // Restock — add the returned quantity back
       matchedItem.quantity = matchedItem.quantity + quantity;
       matchedItem.lowStock = matchedItem.quantity <= 10;
       await matchedCategory.save();
+
+      // NEW: audit trail entry (written after the loop)
+      movementEntries.push({
+        user: req.user._id,
+        categoryId: matchedCategory._id,
+        categoryName: matchedCategory.name,
+        itemId: matchedItem._id,
+        itemName: matchedItem.name,
+        barcode: matchedItem.barcode || '',
+        type: 'RETURN',
+        qtyChange: quantity,
+        balanceBefore,
+        balanceAfter: matchedItem.quantity,
+        unitPrice: price,
+        unitCost: matchedItem.costPrice,
+        refType: 'RETURN',
+        refId: receiptRef,
+        performedBy: safeSellerName || String(req.user?.name || req.user?.username || req.user?.email || ''),
+        note: safeReason ? `Return: ${safeReason}` : 'Return',
+      });
 
       refundAmount += quantity * price;
       restockResults.push({ name, status: 'success', newQuantity: matchedItem.quantity });
@@ -186,6 +214,10 @@ const processReturn = async (req, res) => {
         restockResults,
       });
     }
+
+    // NEW: stock has changed, so record it now (never throws). Done before the
+    // ReturnRecord is created so the ledger always matches the real stock.
+    await logMovements(movementEntries);
 
     refundAmount = Math.round(refundAmount * 100) / 100;
 

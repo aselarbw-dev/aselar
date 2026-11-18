@@ -216,6 +216,12 @@ const ReceiptSchema = new mongoose.Schema({
     default: '',
     trim: true
   },
+    // NEW: ties the receipt to the stock-ledger SALE rows made for the same sale
+  saleRef: {
+    type: String,
+    default: '',
+    trim: true
+  },
   user: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: "User", 
@@ -325,7 +331,7 @@ ReceiptSchema.pre('save', function(next) {
 ReceiptSchema.index({ receiptsNumber: 1 });
 // NEW: Index to make "which lay-buy are due soon" scans cheap
 ReceiptSchema.index({ 'saleType': 1, 'laybuy.status': 1, 'laybuy.dueDate': 1 });
-
+ReceiptSchema.index({ user: 1, saleRef: 1 });
 // Export the Receipt model (kept as NewReceipt per your original)
 const NewReceipt = mongoose.model('NewReceipt', ReceiptSchema);
 module.exports = NewReceipt;

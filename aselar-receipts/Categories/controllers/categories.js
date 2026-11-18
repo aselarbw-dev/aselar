@@ -1,9 +1,32 @@
 const { mongoose, connectDB } = require("../../Shared/config");
 const { uploadToCloudinary } = require('../utils/cloudinary');
+const NewReceipt = require('../../CategoryReceipts/models/inventoryReceipts.js'); // NEW: for receipt numbers
 const ScanLog=require('../models/scanLog');
 // Require model once at top
 const Category = require('../models/categories.js');
 const SalesLog = require('../models/salesLog.js'); // NEW: dated sales records for reporting
+const StockMovement = require('../models/StockMovement.js'); // NEW: stock audit trail
+const { logMovement, logMovements } = require('../utils/logMovement'); // NEW
+
+// NEW: who performed the operation (seller name if the frontend sends one, else the account)
+const actorName = (req) => {
+  const fromBody = req.body && (req.body.sellerName || req.body.seller);
+  return String(fromBody || req.user?.name || req.user?.username || req.user?.email || '');
+};
+
+// NEW: builds a StockMovement entry from a category + item snapshot
+const makeEntry = (req, category, item, fields) => ({
+  user: req.user?._id || req.body?.user,
+  categoryId: category._id,
+  categoryName: category.name,
+  itemId: item._id,
+  itemName: item.name,
+  barcode: item.barcode || '',
+  unitPrice: item.sellingPrice,
+  unitCost: item.costPrice,
+  performedBy: actorName(req),
+  ...fields,
+});
 
 const createCategory = async (req, res) => {
   try {
@@ -107,6 +130,18 @@ const items = async (req, res) => {
       return res.status(404).json({ message: 'Category not found' });
     }
 
+    // NEW: audit trail — the item that was just pushed is the last one in the array
+    const createdItem = updatedCategory.items[updatedCategory.items.length - 1];
+    logMovement(makeEntry(req, updatedCategory, createdItem, {
+      type: 'MANUAL_ADD',
+      qtyChange: createdItem.quantity || 0,
+      balanceBefore: 0,
+      balanceAfter: createdItem.quantity || 0,
+      refType: 'MANUAL',
+      refId: '',
+      note: 'Item added via form',
+    }));
+
     res.status(200).json(newItem);
   } catch (error) {
     console.error('Add item error:', error);
@@ -134,6 +169,9 @@ const editItem = async (req, res) => {
       return res.status(404).json({ message: 'Item not found' });
     }
 
+    // NEW: remember the balance before any change
+    const balanceBefore = item.quantity;
+
     // NEW: only upload when a fresh base64 image was sent; keep existing URLs as-is
     if (updates.image && updates.image.startsWith('data:')) {
       try {
@@ -152,6 +190,20 @@ const editItem = async (req, res) => {
       item.lowStock = item.quantity <= 10;
     }
     await category.save();
+
+    // NEW: audit trail — only when the quantity actually changed
+    if (updates.quantity !== undefined && item.quantity !== balanceBefore) {
+      const diff = item.quantity - balanceBefore;
+      logMovement(makeEntry(req, category, item, {
+        type: diff > 0 ? 'RESTOCK_EDIT' : 'ADJUSTMENT',
+        qtyChange: diff,
+        balanceBefore,
+        balanceAfter: item.quantity,
+        refType: 'MANUAL',
+        refId: '',
+        note: 'Quantity changed via item edit',
+      }));
+    }
 
     res.json({ message: 'Item updated successfully', item });
   } catch (error) {
@@ -224,6 +276,17 @@ const removeItem = async (req, res) => {
       console.log('❌ Item not found in category');
       return res.status(404).json({ message: 'Item not found in category' });
     }
+
+    // NEW: snapshot the audit entry BEFORE the item is removed
+    const deleteEntry = makeEntry(req, category, item, {
+      type: 'DELETE',
+      qtyChange: -(item.quantity || 0),
+      balanceBefore: item.quantity || 0,
+      balanceAfter: 0,
+      refType: 'MANUAL',
+      refId: '',
+      note: 'Item deleted',
+    });
     
     // Remove the item (Mongoose removes and marks for save)
     item.remove();
@@ -233,6 +296,9 @@ const removeItem = async (req, res) => {
     const savedCategory = await category.save();
     console.log('✅ Category saved successfully');
     console.log('Final item count:', savedCategory.items.length);
+
+    // NEW: audit trail
+    logMovement(deleteEntry);
     
     res.status(200).json({ 
       message: 'Item removed successfully',
@@ -273,9 +339,25 @@ const removeCategory = async (req, res) => {
 
     console.log('✅ Category found:', category.name);
     console.log('Items in category:', category.items.length);
+
+    // NEW: snapshot audit entries for every item BEFORE the category is deleted
+    const deleteEntries = category.items.map((it) =>
+      makeEntry(req, category, it, {
+        type: 'DELETE',
+        qtyChange: -(it.quantity || 0),
+        balanceBefore: it.quantity || 0,
+        balanceAfter: 0,
+        refType: 'MANUAL',
+        refId: '',
+        note: `Category deleted: ${category.name}`,
+      })
+    );
     
     // Delete the category (Mongoose handles embedded items)
     await Category.findByIdAndDelete(categoryId);
+
+    // NEW: audit trail
+    await logMovements(deleteEntries);
     
     console.log('✅ Category deleted successfully');
     
@@ -356,6 +438,17 @@ const processSale = async (req, res) => {
         quantity: soldQuantity,
         revenue: saleRevenue,
       });
+
+      // NEW: audit trail (fire-and-forget; never blocks the sale)
+      logMovement(makeEntry(req, category, item, {
+        type: 'SALE',
+        qtyChange: -soldQuantity,
+        balanceBefore: currentQty,
+        balanceAfter: item.quantity,
+        refType: 'RECEIPT',
+        refId: String(req.body.saleRef || '').replace(/[^A-Za-z0-9-]/g, '').slice(0, 64),
+        note: paymentMethod ? `Paid via ${paymentMethod}` : '',
+      }));
 
       updatedCategories.push({
         categoryId,
@@ -533,7 +626,30 @@ const removeAllCategories = async (req, res) => {
     }
 
     await connectDB();
+
+    // NEW: snapshot audit entries for every item BEFORE everything is deleted
+    const categoriesToDelete = await Category.find({ user: req.user._id.toString() });
+    const deleteEntries = [];
+    categoriesToDelete.forEach((cat) => {
+      cat.items.forEach((it) => {
+        deleteEntries.push(
+          makeEntry(req, cat, it, {
+            type: 'DELETE',
+            qtyChange: -(it.quantity || 0),
+            balanceBefore: it.quantity || 0,
+            balanceAfter: 0,
+            refType: 'MANUAL',
+            refId: '',
+            note: 'Delete all categories',
+          })
+        );
+      });
+    });
+
     const result = await Category.deleteMany({ user: req.user._id.toString() });
+
+    // NEW: audit trail
+    await logMovements(deleteEntries);
 
     res.status(200).json({
       message: 'All categories removed successfully',
@@ -563,6 +679,70 @@ const deleteSalesReport = async (req, res) => {
     res.status(500).json({ message: 'Failed to delete sales report data', error: error.message });
   }
 };
+
+// NEW: Read the stock audit trail.
+// GET ?itemId=&categoryId=&type=&from=YYYY-MM-DD&to=YYYY-MM-DD&page=1&limit=50
+const getStockMovements = async (req, res) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    const { itemId, categoryId, type, from, to, q, page = 1, limit = 50 } = req.query;
+    if (q) {
+  const safe = String(q).trim().slice(0, 60).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (safe) filter.itemName = { $regex: safe, $options: 'i' };
+}
+    await connectDB();
+
+    const filter = { user: req.user._id };
+    if (itemId) filter.itemId = itemId;
+    if (categoryId) filter.categoryId = categoryId;
+    if (type) filter.type = type;
+    if (from || to) {
+      filter.createdAt = {};
+      if (from) filter.createdAt.$gte = new Date(`${from}T00:00:00`);
+      if (to) {
+        const end = new Date(`${to}T00:00:00`);
+        end.setDate(end.getDate() + 1);
+        filter.createdAt.$lt = end;
+      }
+    }
+
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const limitNum = Math.min(Math.max(parseInt(limit, 10) || 50, 1), 200);
+
+    const [movements, total] = await Promise.all([
+      StockMovement.find(filter)
+        .sort({ createdAt: -1 })
+        .skip((pageNum - 1) * limitNum)
+        .limit(limitNum)
+        .lean(),
+      StockMovement.countDocuments(filter),
+    ]);
+        // NEW: attach the receipt number to sale rows (read-time join; the ledger is never edited)
+    const saleRefs = [...new Set(movements.filter((m) => m.type === 'SALE' && m.refId).map((m) => m.refId))];
+    if (saleRefs.length > 0) {
+      try {
+        const receipts = await NewReceipt.find({ user: req.user._id, saleRef: { $in: saleRefs } })
+          .select('saleRef receiptsNumber')
+          .lean();
+        const numberByRef = new Map(receipts.map((r) => [r.saleRef, r.receiptsNumber]));
+        movements.forEach((m) => {
+          if (m.type === 'SALE' && numberByRef.has(m.refId)) m.receiptNumber = numberByRef.get(m.refId);
+        });
+      } catch (lookupError) {
+        console.error('Receipt number lookup failed (non-blocking):', lookupError.message);
+      }
+    }
+
+    res.status(200).json({ total, page: pageNum, limit: limitNum, movements });
+  } catch (error) {
+    console.error('Get stock movements error:', error);
+    res.status(500).json({ message: 'Failed to fetch stock movements', error: error.message });
+  }
+};
+
 module.exports = {
   createCategory,
   items,
@@ -574,5 +754,6 @@ module.exports = {
   processSale,
   getSalesReport,
   removeAllCategories,
-  deleteSalesReport        // NEW: daily sales report
+  deleteSalesReport,        // NEW: daily sales report
+  getStockMovements         // NEW: stock audit trail
 };

@@ -1,0 +1,373 @@
+.page {
+  padding: 16px;
+  max-width: 1100px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.title {
+  margin: 0 0 4px;
+}
+
+.subtitle {
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+  opacity: 0.75;
+}
+
+/* ───────── filters ───────── */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+  margin-bottom: 12px;
+}
+
+.input {
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #fff;
+  color: #0f172a;
+  box-sizing: border-box;
+}
+
+.filterSearch {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.filterType {
+  flex: 0 1 180px;
+  min-width: 0;
+}
+
+.dateLabel {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.75rem;
+  gap: 2px;
+  min-width: 0;
+}
+
+.clearButton {
+  padding: 8px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #f1f5f9;
+  cursor: pointer;
+}
+
+.itemNotice {
+  font-size: 0.85rem;
+  margin: 0 0 8px;
+}
+
+.error {
+  color: #dc2626;
+  margin: 8px 0;
+}
+
+/* ───────── table ───────── */
+.tableWrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.table th {
+  text-align: left;
+  padding: 10px;
+  background: #f1f5f9;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 10px;
+  border-top: 1px solid #e2e8f0;
+  vertical-align: top;
+}
+
+.num {
+  text-align: right;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.itemName {
+  font-weight: 600;
+}
+
+.category {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.plus {
+  color: #15803d;
+  font-weight: 700;
+}
+
+.minus {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.ref {
+  font-size: 0.8rem;
+  word-break: break-all;
+}
+
+.empty {
+  text-align: center;
+  padding: 24px;
+  opacity: 0.7;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #e2e8f0;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.type_SALE {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.type_RETURN {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.type_BULK_UPLOAD,
+.type_MANUAL_ADD,
+.type_RESTOCK_EDIT,
+.type_OPENING {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.type_ADJUSTMENT {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.type_DELETE {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* ───────── pagination ───────── */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 0.85rem;
+}
+
+.pagination button {
+  padding: 8px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #f1f5f9;
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pageInfo {
+  text-align: center;
+}
+
+/* ───────── tablets ───────── */
+@media (max-width: 900px) {
+  .page {
+    padding: 12px;
+  }
+
+  .filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: end;
+  }
+
+  .filterSearch,
+  .filterType {
+    flex: none;
+    width: 100%;
+  }
+
+  .dateLabel .input {
+    width: 100%;
+  }
+
+  .clearButton {
+    grid-column: 1 / -1;
+  }
+
+  .table {
+    font-size: 0.82rem;
+    min-width: 680px; /* scrolls sideways inside its box instead of squashing */
+  }
+
+  .table th,
+  .table td {
+    padding: 8px;
+  }
+}
+
+/* ───────── phones: each movement becomes a card ───────── */
+@media (max-width: 640px) {
+  .page {
+    padding: 10px;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.82rem;
+  }
+
+  /* 16px stops iPhones zooming in when a field is tapped */
+  .input {
+    font-size: 16px;
+    padding: 10px;
+  }
+
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .filterSearch,
+  .filterType {
+    grid-column: 1 / -1;
+  }
+
+  .clearButton {
+    padding: 10px 14px;
+  }
+
+  .tableWrapper {
+    overflow: visible;
+    border: none;
+  }
+
+  .table {
+    min-width: 0;
+    display: block;
+  }
+
+  /* hide the header row but keep it for screen readers */
+  .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .table tbody {
+    display: block;
+  }
+
+  .row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-top: 1px solid #f1f5f9;
+    text-align: right;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    opacity: 0.6;
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  /* the item name leads the card */
+  .cellItem {
+    order: -1;
+    display: block;
+    text-align: left;
+    background: #f8fafc;
+    border-top: none;
+  }
+
+  .cellItem::before {
+    display: none;
+  }
+
+  .itemName {
+    font-size: 1rem;
+  }
+
+  .ref {
+    word-break: break-all;
+  }
+
+  /* loading / empty message rows */
+  .table td[colspan] {
+    display: block;
+    text-align: center;
+  }
+
+  .table td[colspan]::before {
+    display: none;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+  }
+
+  .pageInfo {
+    order: -1;
+    flex: 1 0 100%;
+  }
+
+  .pagination button {
+    flex: 1;
+    padding: 12px 14px;
+  }
+}

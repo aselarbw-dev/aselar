@@ -12,13 +12,15 @@ const {
   processSale,
   getSalesReport,
   removeAllCategories,
-  deleteSalesReport      // NEW
+  deleteSalesReport,
+  getStockMovements     // NEW
 } = require('../controllers/categories');
 
 router.post('/add-category', protect, createCategory);
 router.post('/process-sale', protect, processSale);
 router.get('/get-categories', protect, getAllCategories);
 router.delete('/delete-all-categories', protect, removeAllCategories);
+router.get('/stock-movements', protect, getStockMovements);
 //router.get('/:categoryId', protect, getCategoryById);
 router.post('/add-item/:categoryId', protect, items);
 router.put('/items/:categoryId/:itemId', protect, editItem);

@@ -1,4 +1,4 @@
- import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import CategoryLists from '../CategoryLists/CategoryLists';
 import ItemsList from '../ItemsList/ItemsList';
 import NumberPad from '../NumberPad/NumberPad';
@@ -77,6 +77,12 @@ const MAX_PAYMENT_LINES = 5;
 // NEW: money is compared in cents so floating-point noise never blocks a correct payment
 const toCents = (n: number) => Math.round(n * 100);
 const fromCents = (c: number) => c / 100;
+
+// NEW: one reference per sale, shared by the stock deduction (stock history) and the receipt
+const newSaleRef = () =>
+  typeof crypto !== 'undefined' && 'randomUUID' in crypto
+    ? crypto.randomUUID()
+    : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
 // Custom hook for receipt management
 const useReceiptManager = (vatEnabled: boolean = true) => {
@@ -242,6 +248,8 @@ const [splitMethod, setSplitMethod] = useState<string | null>(null); // method p
 const [splitAmountText, setSplitAmountText] = useState<string>('');
 const [splitError, setSplitError] = useState<string | null>(null);
  const stockDeductedForRef = useRef<string>('');
+ // NEW: the reference shared by this sale's stock deduction and its receipt (kept across retries)
+ const saleRefRef = useRef<string>('');
 // NEW: search / filter state (name, category, barcode or custom code)
 const [searchTerm, setSearchTerm] = useState<string>('');
 const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -483,8 +491,13 @@ const handleBarcodeScan = async (code: string) => {
     }
   };
 
-  // NEW: Direct API call to process sale and deduct inventory (no Redux needed)
-  const processSaleDirect = async (soldItems: { categoryId: string; itemId: string; soldQuantity: number }[],paymentMethod: string) => {
+  // NEW: Direct API call to process sale and deduct inventory (no Redux needed).
+  // sellerName and saleRef are sent so the stock history shows who sold it and ties it to the receipt.
+  const processSaleDirect = async (
+    soldItems: { categoryId: string; itemId: string; soldQuantity: number }[],
+    paymentMethod: string,
+    saleRef: string
+  ) => {
     try {
       const response = await fetch(`${import.meta.env.VITE_CATEGORIES_SERVICE_URL}api/process-sale`, {
         method: 'POST',
@@ -494,7 +507,7 @@ const handleBarcodeScan = async (code: string) => {
 
 
          },
-        body: JSON.stringify({ soldItems, paymentMethod }),
+        body: JSON.stringify({ soldItems, paymentMethod, sellerName, saleRef }),
       });
 
       if (!response.ok) {
@@ -714,14 +727,18 @@ const performSubmit = async (paymentLines: PaymentLine[] | null, tenderedAmount:
         { autoClose: 15000 }
       );
       stockDeductedForRef.current = '';
+      saleRefRef.current = ''; // NEW: the changed sale gets its own reference
     }
+
+    // NEW: one reference per sale, kept across retries of the same sale
+    if (!saleRefRef.current) saleRefRef.current = newSaleRef();
 
     if (stockDeductedForRef.current === saleSignature) {
       // Same sale as the failed attempt: stock was already deducted, so do NOT deduct again
       toast.info('Stock was already updated for this sale. Saving the receipt again.');
     } else {
       // Process sale to deduct inventory (backend handles stock check)
-      await processSaleDirect(soldItems, firstMethod);
+      await processSaleDirect(soldItems, firstMethod, saleRefRef.current);
       stockDeductedForRef.current = saleSignature; // stock is now deducted for exactly this sale
     }
 
@@ -742,6 +759,7 @@ const performSubmit = async (paymentLines: PaymentLine[] | null, tenderedAmount:
       dueDate: laybuyDueDate, // NEW
       depositMethod: saleType === 'laybuy' ? depositMethod : undefined, // NEW
       seller: sellerName, // NEW
+      saleRef: saleRefRef.current, // NEW: ties this receipt to its stock history rows
       customer: saleType === 'laybuy' ? laybuyCustomer : undefined, // NEW
     };
     
@@ -773,6 +791,7 @@ const performSubmit = async (paymentLines: PaymentLine[] | null, tenderedAmount:
 
     // NEW: the receipt is saved, so nothing is pending any more
     stockDeductedForRef.current = '';
+    saleRefRef.current = ''; // NEW: the next sale starts with a fresh reference
     
     // Clear receipt after successful submission
     clearReceipt();

@@ -141,9 +141,7 @@ const processReturn = async (req, res) => {
     const movementEntries = [];      // NEW: stock audit trail entries for this return
 
     // NEW: the receipt reference shown in the ledger (falls back to the document id)
-    const receiptRef = String(
-      originalReceipt.receiptNumber || originalReceipt.receiptId || originalReceipt._id
-    );
+       const receiptRef = String(originalReceipt.receiptsNumber || originalReceipt._id);
 
     for (const returned of validatedItems) {
       const { name, quantity, price } = returned;

@@ -1,5 +1,6 @@
 const { mongoose, connectDB } = require("../../Shared/config");
 const { uploadToCloudinary } = require('../utils/cloudinary');
+const NewReceipt = require('../../CategoryReceipts/models/inventoryReceipts.js'); // NEW: for receipt numbers
 const ScanLog=require('../models/scanLog');
 // Require model once at top
 const Category = require('../models/categories.js');
@@ -445,7 +446,7 @@ const processSale = async (req, res) => {
         balanceBefore: currentQty,
         balanceAfter: item.quantity,
         refType: 'RECEIPT',
-        refId: String(req.body.receiptNumber || req.body.receiptId || ''),
+        refId: String(req.body.saleRef || '').replace(/[^A-Za-z0-9-]/g, '').slice(0, 64),
         note: paymentMethod ? `Paid via ${paymentMethod}` : '',
       }));
 
@@ -719,6 +720,21 @@ const getStockMovements = async (req, res) => {
         .lean(),
       StockMovement.countDocuments(filter),
     ]);
+        // NEW: attach the receipt number to sale rows (read-time join; the ledger is never edited)
+    const saleRefs = [...new Set(movements.filter((m) => m.type === 'SALE' && m.refId).map((m) => m.refId))];
+    if (saleRefs.length > 0) {
+      try {
+        const receipts = await NewReceipt.find({ user: req.user._id, saleRef: { $in: saleRefs } })
+          .select('saleRef receiptsNumber')
+          .lean();
+        const numberByRef = new Map(receipts.map((r) => [r.saleRef, r.receiptsNumber]));
+        movements.forEach((m) => {
+          if (m.type === 'SALE' && numberByRef.has(m.refId)) m.receiptNumber = numberByRef.get(m.refId);
+        });
+      } catch (lookupError) {
+        console.error('Receipt number lookup failed (non-blocking):', lookupError.message);
+      }
+    }
 
     res.status(200).json({ total, page: pageNum, limit: limitNum, movements });
   } catch (error) {

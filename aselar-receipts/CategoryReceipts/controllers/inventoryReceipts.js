@@ -16,7 +16,7 @@ const cleanText = (value, max) =>
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const submitReceipt = async (req, res) => {
   try {
-    const { items, subtotal, vat, discount,vatEnabled, discountedBy, total, cashPaid, change,customer, paymentMethod, payments, saleType, dueDate, depositMethod,seller } = req.body;
+const { items, subtotal, vat, discount,vatEnabled, discountedBy, total, cashPaid, change,customer, paymentMethod, payments, saleType, dueDate, depositMethod,seller, saleRef } = req.body;
 
     // Validate the request
     if (!items || !Array.isArray(items) || items.length === 0) {
@@ -204,6 +204,7 @@ const submitReceipt = async (req, res) => {
       paymentMethod: cleanPayments.length > 0 ? cleanPayments[0].method : (paymentMethod || 'Cash'),
       payments: cleanPayments, // NEW: empty for lay-buys, which keep their own ledger
       seller: typeof seller === 'string' ? seller.trim().slice(0, 100) : '', // NEW
+            saleRef: String(saleRef || '').replace(/[^A-Za-z0-9-]/g, '').slice(0, 64), // NEW
       createdBy: req.user._id,
       user: req.user._id.toString() // Assuming user is authenticated and available in req.user
     };

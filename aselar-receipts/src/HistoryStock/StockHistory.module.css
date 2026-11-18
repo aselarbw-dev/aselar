@@ -2,6 +2,7 @@
   padding: 16px;
   max-width: 1100px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .title {
@@ -14,6 +15,7 @@
   opacity: 0.75;
 }
 
+/* ───────── filters ───────── */
 .filters {
   display: flex;
   flex-wrap: wrap;
@@ -29,6 +31,17 @@
   border-radius: 6px;
   background: #fff;
   color: #0f172a;
+  box-sizing: border-box;
+}
+
+.filterSearch {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.filterType {
+  flex: 0 1 180px;
+  min-width: 0;
 }
 
 .dateLabel {
@@ -36,6 +49,7 @@
   flex-direction: column;
   font-size: 0.75rem;
   gap: 2px;
+  min-width: 0;
 }
 
 .clearButton {
@@ -56,8 +70,10 @@
   margin: 8px 0;
 }
 
+/* ───────── table ───────── */
 .tableWrapper {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
 }
@@ -159,6 +175,7 @@
   color: #374151;
 }
 
+/* ───────── pagination ───────── */
 .pagination {
   display: flex;
   justify-content: space-between;
@@ -179,4 +196,178 @@
 .pagination button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.pageInfo {
+  text-align: center;
+}
+
+/* ───────── tablets ───────── */
+@media (max-width: 900px) {
+  .page {
+    padding: 12px;
+  }
+
+  .filters {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: end;
+  }
+
+  .filterSearch,
+  .filterType {
+    flex: none;
+    width: 100%;
+  }
+
+  .dateLabel .input {
+    width: 100%;
+  }
+
+  .clearButton {
+    grid-column: 1 / -1;
+  }
+
+  .table {
+    font-size: 0.82rem;
+    min-width: 680px; /* scrolls sideways inside its box instead of squashing */
+  }
+
+  .table th,
+  .table td {
+    padding: 8px;
+  }
+}
+
+/* ───────── phones: each movement becomes a card ───────── */
+@media (max-width: 640px) {
+  .page {
+    padding: 10px;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.82rem;
+  }
+
+  /* 16px stops iPhones zooming in when a field is tapped */
+  .input {
+    font-size: 16px;
+    padding: 10px;
+  }
+
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .filterSearch,
+  .filterType {
+    grid-column: 1 / -1;
+  }
+
+  .clearButton {
+    padding: 10px 14px;
+  }
+
+  .tableWrapper {
+    overflow: visible;
+    border: none;
+  }
+
+  .table {
+    min-width: 0;
+    display: block;
+  }
+
+  /* hide the header row but keep it for screen readers */
+  .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .table tbody {
+    display: block;
+  }
+
+  .row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-top: 1px solid #f1f5f9;
+    text-align: right;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    opacity: 0.6;
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  /* the item name leads the card */
+  .cellItem {
+    order: -1;
+    display: block;
+    text-align: left;
+    background: #f8fafc;
+    border-top: none;
+  }
+
+  .cellItem::before {
+    display: none;
+  }
+
+  .itemName {
+    font-size: 1rem;
+  }
+
+  .ref {
+    word-break: break-all;
+  }
+
+  /* loading / empty message rows */
+  .table td[colspan] {
+    display: block;
+    text-align: center;
+  }
+
+  .table td[colspan]::before {
+    display: none;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
+  }
+
+  .pageInfo {
+    order: -1;
+    flex: 1 0 100%;
+  }
+
+  .pagination button {
+    flex: 1;
+    padding: 12px 14px;
+  }
 }

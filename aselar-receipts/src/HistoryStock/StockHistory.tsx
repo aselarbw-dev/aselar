@@ -15,6 +15,7 @@ interface Movement {
   performedBy: string;
   refType: string;
   refId: string;
+  receiptNumber?: string; // NEW: filled by the server for sale rows
   note: string;
 }
 
@@ -39,6 +40,13 @@ const formatDateTime = (iso: string) =>
     hour: '2-digit',
     minute: '2-digit',
   });
+
+// Sale rows show the receipt number; other rows show their own reference (import batch, receipt on returns)
+const referenceFor = (m: Movement) => {
+  if (m.receiptNumber) return m.receiptNumber;
+  if (m.type === 'SALE') return '—'; // older sales, or the receipt was never saved
+  return m.refId || '—';
+};
 
 const StockHistory: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -129,12 +137,16 @@ const StockHistory: React.FC = () => {
       <div className={styles.filters}>
         <input
           type="text"
-          className={styles.input}
+          className={`${styles.input} ${styles.filterSearch}`}
           placeholder="Search item name…"
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
         />
-        <select className={styles.input} value={type} onChange={(e) => setType(e.target.value)}>
+        <select
+          className={`${styles.input} ${styles.filterType}`}
+          value={type}
+          onChange={(e) => setType(e.target.value)}
+        >
           <option value="">All types</option>
           {Object.entries(TYPE_LABELS).map(([value, label]) => (
             <option key={value} value={value}>
@@ -187,26 +199,31 @@ const StockHistory: React.FC = () => {
               </tr>
             )}
             {movements.map((m) => (
-              <tr key={m._id}>
-                <td className={styles.nowrap}>{formatDateTime(m.createdAt)}</td>
-                <td>
+              <tr key={m._id} className={styles.row}>
+                <td data-label="When" className={styles.nowrap}>
+                  {formatDateTime(m.createdAt)}
+                </td>
+                <td className={styles.cellItem}>
                   <div className={styles.itemName}>{m.itemName}</div>
                   <div className={styles.category}>{m.categoryName}</div>
                 </td>
-                <td>
+                <td data-label="Type">
                   <span className={`${styles.badge} ${styles[`type_${m.type}`] || ''}`}>
                     {TYPE_LABELS[m.type] || m.type}
                   </span>
                 </td>
-                <td className={`${styles.num} ${m.qtyChange >= 0 ? styles.plus : styles.minus}`}>
+                <td
+                  data-label="Change"
+                  className={`${styles.num} ${m.qtyChange >= 0 ? styles.plus : styles.minus}`}
+                >
                   {m.qtyChange > 0 ? `+${m.qtyChange}` : m.qtyChange}
                 </td>
-                <td className={`${styles.num} ${styles.nowrap}`}>
+                <td data-label="Balance" className={`${styles.num} ${styles.nowrap}`}>
                   {m.balanceBefore} → <strong>{m.balanceAfter}</strong>
                 </td>
-                <td>{m.performedBy || '—'}</td>
-                <td className={styles.ref} title={m.note || ''}>
-                  {m.refId || '—'}
+                <td data-label="By">{m.performedBy || '—'}</td>
+                <td data-label="Ref" className={styles.ref} title={m.note || ''}>
+                  {referenceFor(m)}
                 </td>
               </tr>
             ))}
@@ -218,7 +235,7 @@ const StockHistory: React.FC = () => {
         <button type="button" disabled={page <= 1 || loading} onClick={() => setPage((p) => p - 1)}>
           Previous
         </button>
-        <span>
+        <span className={styles.pageInfo}>
           Page {page} of {totalPages} · {total} movements
         </span>
         <button type="button" disabled={page >= totalPages || loading} onClick={() => setPage((p) => p + 1)}>

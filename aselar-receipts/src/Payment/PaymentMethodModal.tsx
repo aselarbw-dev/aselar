@@ -18,6 +18,28 @@ interface PaymentMethodModalProps {
 // CHANGED: Pay2Cell and Ewallet added (clients asked for them)
 const PAYMENT_METHODS = ['Cash', 'Swiped', 'Orange Money', 'MyZaka', 'Pay2Cell', 'Ewallet', 'Other'];
 
+// NEW: quick-pick lay-buy periods, in months from the date of purchase. Edit freely.
+const LAYBUY_PERIODS = [1, 2, 3, 4];
+
+// NEW: local yyyy-mm-dd (NOT toISOString, which can shift the day by timezone)
+const toDateInputValue = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+// NEW: adds months safely: 31 Jan + 1 month = 28/29 Feb, not 3 Mar
+const addMonths = (from: Date, months: number) => {
+  const d = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+  const targetDay = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + months);
+  const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(targetDay, lastDay));
+  return d;
+};
+
 const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({ onSelect, onClose }) => {
   // when true, we're on the "pick a due date" step instead of the method list
   const [showLaybuyStep, setShowLaybuyStep] = useState<boolean>(false);
@@ -29,6 +51,11 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({ onSelect, onClo
   const [customerId, setCustomerId] = useState<string>('');
   const [customerPhone, setCustomerPhone] = useState<string>('');
   const [customerError, setCustomerError] = useState<string | null>(null);
+
+  // NEW: the earliest selectable due date is tomorrow
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const minDate = toDateInputValue(tomorrow);
 
   const handleLaybuyClick = () => {
     setShowLaybuyStep(true);
@@ -114,9 +141,31 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({ onSelect, onClo
             <h3 className={styles.title}>When is the balance due?</h3>
             <div className={styles.laybuyForm}>
               <label className={styles.fieldLabel}>Due date</label>
+
+              {/* NEW: quick-pick periods, counted from today. They just fill the date box below. */}
+              <div className={styles.periodRow}>
+                {LAYBUY_PERIODS.map((m) => {
+                  const value = toDateInputValue(addMonths(new Date(), m));
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      className={`${styles.periodChip} ${dueDate === value ? styles.periodChipActive : ''}`}
+                      onClick={() => {
+                        setDueDate(value);
+                        setDueDateError(null);
+                      }}
+                    >
+                      {m} {m === 1 ? 'month' : 'months'}
+                    </button>
+                  );
+                })}
+              </div>
+
               <input
                 type="date"
                 className={styles.dateInput}
+                min={minDate}
                 value={dueDate}
                 onChange={(e) => {
                   setDueDate(e.target.value);

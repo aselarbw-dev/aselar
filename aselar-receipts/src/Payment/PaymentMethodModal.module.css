@@ -101,3 +101,24 @@
   font-size: 0.8rem;
   color: #6b7280;
 }
+.periodRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 6px 0 8px;
+}
+
+.periodChip {
+  padding: 6px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.periodChipActive {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}

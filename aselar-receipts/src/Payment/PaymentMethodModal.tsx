@@ -21,6 +21,20 @@ const PAYMENT_METHODS = ['Cash', 'Swiped', 'Orange Money', 'MyZaka', 'Pay2Cell',
 // NEW: quick-pick lay-buy periods, in months from the date of purchase. Edit freely.
 const LAYBUY_PERIODS = [1, 2, 3, 4];
 
+// NEW: key used to remember the default lay-buy period on this device
+const DEFAULT_PERIOD_KEY = 'laybuyDefaultMonths';
+
+// NEW: read the saved default period (months) or null if none / invalid
+const readDefaultMonths = (): number | null => {
+  try {
+    const raw = localStorage.getItem(DEFAULT_PERIOD_KEY);
+    const n = raw ? Number(raw) : NaN;
+    return LAYBUY_PERIODS.includes(n) ? n : null;
+  } catch {
+    return null;
+  }
+};
+
 // NEW: local yyyy-mm-dd (NOT toISOString, which can shift the day by timezone)
 const toDateInputValue = (d: Date) => {
   const y = d.getFullYear();
@@ -46,6 +60,9 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({ onSelect, onClo
   const [dueDate, setDueDate] = useState<string>('');
   const [dueDateError, setDueDateError] = useState<string | null>(null);
 
+  // NEW: the remembered default period (months), set by the first chip ever tapped
+  const [defaultMonths, setDefaultMonths] = useState<number | null>(() => readDefaultMonths());
+
   // NEW: customer details for finding this lay-buy later (at least one is required)
   const [customerName, setCustomerName] = useState<string>('');
   const [customerId, setCustomerId] = useState<string>('');
@@ -58,7 +75,36 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({ onSelect, onClo
   const minDate = toDateInputValue(tomorrow);
 
   const handleLaybuyClick = () => {
+    // NEW: pre-fill the due date from the default period, if there is one
+    if (defaultMonths) {
+      setDueDate(toDateInputValue(addMonths(new Date(), defaultMonths)));
+    }
     setShowLaybuyStep(true);
+  };
+
+  // NEW: a chip was tapped. The very first tap also becomes the default.
+  const handlePeriodPick = (months: number) => {
+    setDueDate(toDateInputValue(addMonths(new Date(), months)));
+    setDueDateError(null);
+
+    if (defaultMonths === null) {
+      try {
+        localStorage.setItem(DEFAULT_PERIOD_KEY, String(months));
+      } catch {
+        // storage unavailable: the pick still works for this lay-buy
+      }
+      setDefaultMonths(months);
+    }
+  };
+
+  // NEW: forget the default so the next chip tap sets a new one
+  const handleResetDefault = () => {
+    try {
+      localStorage.removeItem(DEFAULT_PERIOD_KEY);
+    } catch {
+      // ignore
+    }
+    setDefaultMonths(null);
   };
 
   const handleConfirmLaybuy = () => {
@@ -151,16 +197,26 @@ const PaymentMethodModal: React.FC<PaymentMethodModalProps> = ({ onSelect, onClo
                       key={m}
                       type="button"
                       className={`${styles.periodChip} ${dueDate === value ? styles.periodChipActive : ''}`}
-                      onClick={() => {
-                        setDueDate(value);
-                        setDueDateError(null);
-                      }}
+                      onClick={() => handlePeriodPick(m)}
                     >
                       {m} {m === 1 ? 'month' : 'months'}
+                      {defaultMonths === m ? ' ★' : ''}
                     </button>
                   );
                 })}
               </div>
+
+              {/* NEW: shows which period is the default, with a way to reset it */}
+              {defaultMonths !== null ? (
+                <p className={styles.fieldHint}>
+                  ★ Default: {defaultMonths} {defaultMonths === 1 ? 'month' : 'months'}.{' '}
+                  <button type="button" className={styles.resetDefault} onClick={handleResetDefault}>
+                    Reset default
+                  </button>
+                </p>
+              ) : (
+                <p className={styles.fieldHint}>The first period you tap becomes the default.</p>
+              )}
 
               <input
                 type="date"

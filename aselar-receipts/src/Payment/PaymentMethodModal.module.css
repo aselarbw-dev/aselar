@@ -122,3 +122,12 @@
   border-color: #2563eb;
   color: #fff;
 }
+.resetDefault {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #2563eb;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: inherit;
+}

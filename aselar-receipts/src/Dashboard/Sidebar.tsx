@@ -71,6 +71,12 @@ const links: SidebarLink[] = [
     path: "/ledger",
     icon: <FaAddressBook />,
   },
+   {
+    title: "Tax Returns",
+    path: "/vat",
+    icon: <FaAddressBook />,
+    protected: true,
+  },
   {
     title: "Administration",
     path: "/manage-inventory",

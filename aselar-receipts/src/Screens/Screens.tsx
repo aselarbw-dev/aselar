@@ -5,6 +5,7 @@ import { Routes, Route } from "react-router-dom";
 // Lazy-loaded components
 import { ClipLoader } from "react-spinners";
 const Home = lazy(() => import("../Pages/Home"));
+const VatRoutes = lazy(() => import("../Vat/VatRoutes"));
 const ReceiptsList = lazy(() => import("../Returns/ReceiptsList"));
 const ReceiptPolicyStep = lazy(() => import("../Policy/ReceiptPolicyStep"));
 const NotFound = lazy(() => import("../Componets/NotFound"));
@@ -128,7 +129,7 @@ const Screens = () => {
           <Route path="/generative-scanner" element={<POSContainer />} />
           <Route path="/invoice" element={<Invoice />} />
           <Route path="/debt-note" element={<Delivery />} />
-         
+         <Route path="/vat/*" element={<VatRoutes />} />
           {/* <Route path="/aselar-chat-ai" element={<GPT />} />*/}
           <Route path="/ledger" element={<Ledger />} />
           <Route path="/pay-slip" element={<PaySlip />} />
